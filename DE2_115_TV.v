@@ -665,9 +665,11 @@ YCbCr2RGB 			u8	(	//	Output Side
 wire [9:0] vga_r10;
 wire [9:0] vga_g10;
 wire [9:0] vga_b10;
-assign VGA_R = vga_r10[9:2];
-assign VGA_G = vga_g10[9:2];
-assign VGA_B = vga_b10[9:2];
+// assign VGA_R = vga_r10[9:2];
+// assign VGA_G = vga_g10[9:2];
+// assign VGA_B = vga_b10[9:2];
+//////////-------------jsw267
+wire VGA_HS_, VGA_VS_, VGA_SYNC_N_, VGA_BLANK_N_;
 
 VGA_Ctrl			u9	(	//	Host Side
 							.iRed(mRed),
@@ -680,14 +682,63 @@ VGA_Ctrl			u9	(	//	Host Side
 							.oVGA_R(vga_r10 ),
 							.oVGA_G(vga_g10 ),
 							.oVGA_B(vga_b10 ),
-							.oVGA_HS(VGA_HS),
-							.oVGA_VS(VGA_VS),
-							.oVGA_SYNC(VGA_SYNC_N),
-							.oVGA_BLANK(VGA_BLANK_N),
+							.oVGA_HS(VGA_HS_),
+							.oVGA_VS(VGA_VS_),
+							.oVGA_SYNC(VGA_SYNC_N_),
+							.oVGA_BLANK(VGA_BLANK_N_),
 							.oVGA_CLOCK(VGA_CLK),
 							//	Control Signal
 							.iCLK(TD_CLK27),
 							.iRST_N(DLY2)	);
+
+
+//Delay the VGA control signals for the VGA Side
+delay #( .DATA_WIDTH(1), .DELAY(20) ) d0
+( 
+	.clk 		(VGA_CLK), 
+	.data_in 	(VGA_HS_), 
+	.data_out 	(VGA_HS)
+);
+delay #( .DATA_WIDTH(1), .DELAY(20) ) d1
+( 
+	.clk 		(VGA_CLK), 
+	.data_in 	(VGA_VS_), 
+	.data_out 	(VGA_VS)
+);
+
+delay #( .DATA_WIDTH(1), .DELAY(20) ) d2
+( 
+	.clk 		(VGA_CLK), 
+	.data_in 	(VGA_SYNC_N_), 
+	.data_out 	(VGA_SYNC_N)
+);
+
+delay #( .DATA_WIDTH(1), .DELAY(20) ) d3
+( 
+	.clk 		(VGA_CLK), 
+	.data_in 	(VGA_BLANK_N_), 
+	.data_out 	(VGA_BLANK_N)
+);
+delay #( .DATA_WIDTH(8), .DELAY(20) ) rgb_r
+( 
+	.clk 		(VGA_CLK), 
+	.data_in 	(vga_r10[9:2]), 
+	.data_out 	(VGA_R)
+);
+delay #( .DATA_WIDTH(8), .DELAY(20) ) rgb_g
+( 
+	.clk 		(VGA_CLK), 
+	.data_in 	(vga_g10[9:2]), 
+	.data_out 	(VGA_G)
+);
+delay #( .DATA_WIDTH(8), .DELAY(20) ) rgb_b
+( 
+	.clk 		(VGA_CLK), 
+	.data_in 	(vga_b10[9:2]), 
+	.data_out 	(VGA_B)
+);
+
+
 
 //	Line buffer, delay one line
 Line_Buffer u10	(	.aclr(!DLY0),
