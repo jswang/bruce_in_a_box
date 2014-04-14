@@ -529,7 +529,7 @@ assign	TD_RESET_N	=	1'b1;
 
 assign	AUD_XCK	=	AUD_CTRL_CLK;
 
-assign	LEDG	=	VGA_Y;
+// assign	LEDG	=	VGA_Y;
 assign	LEDR	=	VGA_X;
 
 assign	m1VGA_Read	=	VGA_Y[0]		?	1'b0		:	VGA_Read	;
@@ -670,6 +670,8 @@ wire [9:0] vga_b10;
 // assign VGA_B = vga_b10[9:2];
 //////////-------------jsw267
 wire VGA_HS_, VGA_VS_, VGA_SYNC_N_, VGA_BLANK_N_;
+wire corner_, corner;
+wire [7:0] VGA_R_, VGA_G_, VGA_B_;
 
 VGA_Ctrl			u9	(	//	Host Side
 							.iRed(mRed),
@@ -719,26 +721,47 @@ delay #( .DATA_WIDTH(1), .DELAY(20) ) d3
 	.data_in 	(VGA_BLANK_N_), 
 	.data_out 	(VGA_BLANK_N)
 );
+
+
 delay #( .DATA_WIDTH(8), .DELAY(20) ) rgb_r
 ( 
 	.clk 		(VGA_CLK), 
 	.data_in 	(vga_r10[9:2]), 
-	.data_out 	(VGA_R)
+	.data_out 	(VGA_R_)
 );
 delay #( .DATA_WIDTH(8), .DELAY(20) ) rgb_g
 ( 
 	.clk 		(VGA_CLK), 
 	.data_in 	(vga_g10[9:2]), 
-	.data_out 	(VGA_G)
+	.data_out 	(VGA_G_)
 );
 delay #( .DATA_WIDTH(8), .DELAY(20) ) rgb_b
 ( 
 	.clk 		(VGA_CLK), 
 	.data_in 	(vga_b10[9:2]), 
-	.data_out 	(VGA_B)
+	.data_out 	(VGA_B_)
+);
+corner_detect corner_detect (
+	.clk(VGA_CLK), 
+	.reset(KEY[0]), 
+	.r(vga_r10[9:2]),
+	.g(vga_g10[9:2]),
+	.b(vga_b10[9:2]),
+	.rgb_target(8'hFFFFFF), 
+	.threshold_in(SW[9:0]),
+	.corner_detected(corner_)
+);
+delay #( .DATA_WIDTH(1), .DELAY(20) ) corner_delay
+( 
+	.clk 		(VGA_CLK), 
+	.data_in 	(corner_), 
+	.data_out 	(corner)
 );
 
-
+assign LEDG[0] = corner;
+assign VGA_R = corner ? 8'hFF : VGA_R_;
+assign VGA_G = corner ? 8'h00 : VGA_G_;
+assign VGA_B = corner ? 8'hFF : VGA_B_;
 
 //	Line buffer, delay one line
 Line_Buffer u10	(	.aclr(!DLY0),

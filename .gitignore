@@ -13,3 +13,8 @@ DE2_115_TV.sta.summary
 log.txt
 DE2_115_TV.v.bak
 DE2_115_TV.cdf
+DE2_115_TV.eda.rpt
+DE2_115_TV_nativelink_simulation.rpt
+greybox_tmp/
+simulation/
+DE2_115_TV.parallel.txt
