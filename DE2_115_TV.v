@@ -304,12 +304,12 @@ inout		     [3:0]		SD_DAT;
 input		          		SD_WP_N;
 
 //////////// VGA //////////
-output		     [7:0]		VGA_B;
+output	 reg	     [7:0]		VGA_B;
 output		          		VGA_BLANK_N;
 output		          		VGA_CLK;
-output		     [7:0]		VGA_G;
+output reg		     [7:0]		VGA_G;
 output		          		VGA_HS;
-output		     [7:0]		VGA_R;
+output reg		     [7:0]		VGA_R;
 output		          		VGA_SYNC_N;
 output		          		VGA_VS;
 
@@ -693,6 +693,50 @@ VGA_Ctrl			u9	(	//	Host Side
 							.iCLK(TD_CLK27),
 							.iRST_N(DLY2)	);
 
+// wire [27:0] VGA_ = {VGA_HS_, VGA_VS_, VGA_SYNC_N_, VGA_BLANK_N_, VGA_R_, VGA_G_, VGA_B_};
+// wire [27:0] tap1, tap2, tap3; 
+
+// reg buf_shift_en;
+
+// ram_shift_2 buffer (
+// 	.aclr(!VGA_VS_), 
+// 	.clock(VGA_CLK && buf_shift_en), 
+// 	.shiftin(VGA_), 
+// 	.shiftout(), 
+// 	.taps({tap3, tap2, tap1})
+// );
+
+// reg [9:0] pixel_count;
+// always @ (posedge VGA_CLK) begin
+// 	if (KEY[0] && !VGA_BLANK_N) begin
+// 		if (pixel_count > 639)
+// 			buf_shift_en <= 1'b0;
+// 		else begin
+// 			buf_shift_en <= 1'b1;
+// 			pixel_count <= pixel_count + 1;
+// 		end
+// 	end
+// 	else begin
+// 		buf_shift_en <= 1'b0;
+// 		pixel_count <= 10'd0;
+// 	end
+// end
+
+// reg [23:0] x00, x01, x02, 
+// 		   x10, x11, x12, 
+// 		   x20, x21, x22;
+
+// always @ (posedge VGA_CLK) begin
+// 	x00 <= x01; 
+// 	x01 <= x02; 
+// 	x02 <= VGA_[23:0]; 
+// 	x10 <= x11; 
+// 	x11 <= x12; 
+// 	x12 <= tap1[23:0];
+// 	x20 <= x21;
+// 	x21 <= x22; 
+// 	x22 <= tap2[23:0];
+// end
 
 //Delay the VGA control signals for the VGA Side
 delay #( .DATA_WIDTH(1), .DELAY(20) ) d0
@@ -707,14 +751,12 @@ delay #( .DATA_WIDTH(1), .DELAY(20) ) d1
 	.data_in 	(VGA_VS_), 
 	.data_out 	(VGA_VS)
 );
-
 delay #( .DATA_WIDTH(1), .DELAY(20) ) d2
 ( 
 	.clk 		(VGA_CLK), 
 	.data_in 	(VGA_SYNC_N_), 
 	.data_out 	(VGA_SYNC_N)
 );
-
 delay #( .DATA_WIDTH(1), .DELAY(20) ) d3
 ( 
 	.clk 		(VGA_CLK), 
@@ -741,6 +783,8 @@ delay #( .DATA_WIDTH(8), .DELAY(20) ) rgb_b
 	.data_in 	(vga_b10[9:2]), 
 	.data_out 	(VGA_B_)
 );
+
+wire [9:0] hue_, saturation_, lightness_, hue, saturation, lightness;
 corner_detect corner_detect (
 	.clk(VGA_CLK), 
 	.reset(KEY[0]), 
@@ -749,7 +793,10 @@ corner_detect corner_detect (
 	.b(vga_b10[9:2]),
 	.rgb_target(8'hFFFFFF), 
 	.threshold_in(SW[9:0]),
-	.corner_detected(corner_)
+	.corner_detected(corner_), 
+	.hue(hue_), 
+	.saturation(saturation_), 
+	.lightness(lightness_)
 );
 delay #( .DATA_WIDTH(1), .DELAY(20) ) corner_delay
 ( 
@@ -758,10 +805,55 @@ delay #( .DATA_WIDTH(1), .DELAY(20) ) corner_delay
 	.data_out 	(corner)
 );
 
-assign LEDG[0] = corner;
-assign VGA_R = corner ? 8'hFF : VGA_R_;
-assign VGA_G = corner ? 8'h00 : VGA_G_;
-assign VGA_B = corner ? 8'hFF : VGA_B_;
+delay #( .DATA_WIDTH(10), .DELAY(19) ) hue_delay
+( 
+	.clk 		(VGA_CLK), 
+	.data_in 	(hue_), 
+	.data_out 	(hue)
+);
+delay #( .DATA_WIDTH(10), .DELAY(19) ) saturation_delay
+( 
+	.clk 		(VGA_CLK), 
+	.data_in 	(saturation_), 
+	.data_out 	(saturation)
+);
+delay #( .DATA_WIDTH(10), .DELAY(19) ) lightness_delay
+( 
+	.clk 		(VGA_CLK), 
+	.data_in 	(lightness_), 
+	.data_out 	(lightness)
+);
+
+// assign LEDG[0] = corner;
+// assign VGA_R = corner ? 8'hFF : VGA_R_;
+// assign VGA_G = corner ? 8'h00 : VGA_G_;
+// assign VGA_B = corner ? 8'hFF : VGA_B_;
+
+assign LEDG[1:0] = SW[17:16];
+always @ (*) begin
+	case (SW[17:16])
+		2'd0: begin
+			VGA_R = VGA_R_;
+			VGA_G = VGA_G_;
+			VGA_B = VGA_B_;
+		end
+		2'd1: begin
+			VGA_R = hue[7:0];
+			VGA_G = hue[7:0];
+			VGA_B = hue[7:0];
+		end
+		2'd2: begin
+			VGA_R = saturation[7:0];
+			VGA_G = saturation[7:0];
+			VGA_B = saturation[7:0];
+		end
+		2'd3: begin
+			VGA_R = lightness[7:0];
+			VGA_G = lightness[7:0];
+			VGA_B = lightness[7:0];
+		end
+	endcase
+end
 
 //	Line buffer, delay one line
 Line_Buffer u10	(	.aclr(!DLY0),

@@ -18,3 +18,5 @@ DE2_115_TV_nativelink_simulation.rpt
 greybox_tmp/
 simulation/
 DE2_115_TV.parallel.txt
+.sopc_builder/
+sopc_builder_log.txt

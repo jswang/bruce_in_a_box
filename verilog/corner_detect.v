@@ -1,7 +1,7 @@
 //Detects a predetermined color. 
 //Using the least squares formula
 
-
+//Detects green
 module corner_detect
 (   
     input clk,
@@ -11,26 +11,43 @@ module corner_detect
     input [7:0] b, 
     input [23:0] rgb_target, 
     input [9:0] threshold_in, 
-    output reg corner_detected
+    output reg corner_detected, 
+    output [9:0] hue, 
+    output [9:0] saturation, 
+    output [9:0] lightness
+
 );
+    wire [9:0] oHue, oSat, oLight;
+    assign hue = oHue;
+    assign saturation = oSat; 
+    assign lightness = oLight;
+    //Get results on next rising clock edge
+    // wire [9:0] hue, saturation, lightness;
+    RGBtoHSL RGB_to_HSL (
+        .clk(clk), 
+        .iRed(r), 
+        .iGreen(g), 
+        .iBlue(b), 
+        .oHue(oHue), 
+        .oSaturation(oSat), 
+        .oLightness(oLight)
+    );
 
-    
-    wire signed [18:0] threshold = {8'd0, threshold_in};
-
-    wire signed [17:0] r_in, g_in, b_in;
-    wire signed [17:0] r_target, g_target, b_target;
-    wire signed [17:0] r_diff, g_diff, b_diff; 
-    wire signed [17:0] r_sqrd, g_sqrd, b_sqrd;
-    assign r_in = {10'd0, r}; 
-    assign g_in = {10'd0, g}; 
-    assign b_in = {10'd0, b}; 
-    always @ (*) begin
-        if ((r_in - g_in) > 50 && (r_in - b_in) > 50 && r_in > threshold_in) begin
-            corner_detected = 1'b1;
-        end
-        else 
-            corner_detected = 1'b0;
-    end
+    // wire signed [18:0] threshold = {8'd0, threshold_in};
+    // wire signed [17:0] r_in, g_in, b_in;
+    // wire signed [17:0] r_target, g_target, b_target;
+    // wire signed [17:0] r_diff, g_diff, b_diff; 
+    // wire signed [17:0] r_sqrd, g_sqrd, b_sqrd;
+    // assign r_in = {10'd0, r}; 
+    // assign g_in = {10'd0, g}; 
+    // assign b_in = {10'd0, b}; 
+    // always @ (*) begin
+    //     if (g_in > 18'd255 - threshold && b_in < threshold && r_in < threshold) begin
+    //         corner_detected = 1'b1;
+    //     end
+    //     else 
+    //         corner_detected = 1'b0;
+    // end
     
     // Pick certain points as my corners 
     always @ (posedge clk) begin
@@ -38,12 +55,7 @@ module corner_detect
             
         end
         else begin
-            //if i detect the color I want and I'm near an edge, I know that 
-            //I have the border of my piece of paper
-            //Grab the corners via comparison
-            if (corner_detected) begin 
-
-            end
+            
         end
     end
 

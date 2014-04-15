@@ -39,20 +39,25 @@ module testbench ();
             index <= index + 10'd1;
             case (index) 
                 10'd1: begin
-                    r <= 8'd255; 
-                    g <= 8'd0;
+                    r <= 8'd0; 
+                    g <= 8'd255;
                     b <= 8'd0;
                 end
 
                 10'd2: begin
-                    r <= 8'd254; 
-                    g <= 8'd0;
+                    r <= 8'd125; 
+                    g <= 8'd255;
                     b <= 8'd0;
                 end
                 10'd3: begin
-                    r <= 8'd25; 
-                    g <= 8'd25;
-                    b <= 8'd25;
+                    r <= 8'd0; 
+                    g <= 8'd255;
+                    b <= 8'd125;
+                end
+                10'd4: begin
+                    r <= 8'd0;
+                    g <= 8'd200; 
+                    b <= 8'd0;
                 end
                 default: begin
                     r <= 8'd0; 
@@ -65,6 +70,7 @@ module testbench ();
     end
 
     corner_detect DUT (
+        .clk(clk_50),
         .r(r), 
         .g(g), 
         .b(b), 
