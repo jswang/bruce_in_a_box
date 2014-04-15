@@ -42,7 +42,7 @@
 //   V2.0 :| Peli   Li         :| 04/19/2010  :|      revised the megacore instance
 // --------------------------------------------------------------------
 
-module YCbCr2RGB (	Red,Green,Blue,oDVAL,
+module YCbCr2RGB (	Red,Green,Blue, Y_out, Cb_out, Cr_out, oDVAL,
 					iY,iCb,iCr,iDVAL,
 					iRESET,iCLK);
 //	Input
@@ -51,9 +51,11 @@ input iDVAL,iRESET,iCLK;
 wire iCLK;
 //	Output
 output [9:0] Red,Green,Blue;
+output [7:0] Y_out, Cb_out, Cr_out;
 output reg	oDVAL;
 //	Internal Registers/Wires
 reg [9:0] oRed,oGreen,oBlue;
+reg [7:0] oY, oCb, oCr;
 reg	[3:0] oDVAL_d;
 reg [19:0] X_OUT,Y_OUT,Z_OUT;
 wire [26:0] X,Y,Z;
@@ -61,6 +63,9 @@ wire [26:0] X,Y,Z;
 assign	Red  =	oRed;
 assign	Green=	oGreen;
 assign	Blue =	oBlue;
+assign  Y_out 	 =  oY; 
+assign  Cb_out 	 =  oCb;
+assign  Cr_out 	 =  oCr; 
 
 always@(posedge iCLK)
 begin
@@ -71,32 +76,39 @@ begin
 		oRed<=0;
 		oGreen<=0;
 		oBlue<=0;
+		oY <= 0;
+		oCb <= 0;
+		oCr <= 0;
 	end
 	else
 	begin
 		// Red
 		if(X_OUT[19])
-		oRed<=0;
+			oRed<=0;
 		else if(X_OUT[18:0]>1023)
-		oRed<=1023;
+			oRed<=1023;
 		else
-		oRed<=X_OUT[9:0];
+			oRed<=X_OUT[9:0];
 		// Green
 		if(Y_OUT[19])
-		oGreen<=0;
+			oGreen<=0;
 		else if(Y_OUT[18:0]>1023)
-		oGreen<=1023;
+			oGreen<=1023;
 		else
-		oGreen<=Y_OUT[9:0];
+			oGreen<=Y_OUT[9:0];
 		// Blue
 		if(Z_OUT[19])
-		oBlue<=0;
+			oBlue<=0;
 		else if(Z_OUT[18:0]>1023)
-		oBlue<=1023;
+			oBlue<=1023;
 		else
-		oBlue<=Z_OUT[9:0];
+			oBlue<=Z_OUT[9:0];
 		// Control
 		{oDVAL,oDVAL_d}<={oDVAL_d,iDVAL};
+		//YCbCr
+		oY <= iY;
+		oCb <= iCb; 
+		oCr <= iCr;
 	end
 end
 
