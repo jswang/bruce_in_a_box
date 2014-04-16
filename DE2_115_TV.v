@@ -218,22 +218,6 @@ module DE2_115_TV
 		//////// GPIO //////////
 		GPIO,
 
-		//////// HSMC (LVDS) //////////
-//	//	HSMC_CLKIN_N1,
-//	//	HSMC_CLKIN_N2,
-//		HSMC_CLKIN_P1,
-//		HSMC_CLKIN_P2,
-//		HSMC_CLKIN0,
-//	//	HSMC_CLKOUT_N1,
-//	//	HSMC_CLKOUT_N2,
-//		HSMC_CLKOUT_P1,
-//		HSMC_CLKOUT_P2,
-//		HSMC_CLKOUT0,
-//		HSMC_D,
-//	//	HSMC_RX_D_N,
-//		HSMC_RX_D_P,
-//	//	HSMC_TX_D_N,
-//		HSMC_TX_D_P,
 		//////// EXTEND IO //////////
 		EX_IO	
 	   
@@ -422,24 +406,6 @@ output		          		FL_WP_N;
 
 //////////// GPIO //////////
 inout		    [35:0]		GPIO;
-
-//////////// HSMC (LVDS) //////////
-
-////input		          		HSMC_CLKIN_N1;
-////input		          		HSMC_CLKIN_N2;
-//input		          		HSMC_CLKIN_P1;
-//input		          		HSMC_CLKIN_P2;
-//input		          		HSMC_CLKIN0;
-////output		          		HSMC_CLKOUT_N1;
-////output		          		HSMC_CLKOUT_N2;
-//output		          		HSMC_CLKOUT_P1;
-//output		          		HSMC_CLKOUT_P2;
-//output		          		HSMC_CLKOUT0;
-//inout		     [3:0]		HSMC_D;
-////input		    [16:0]		HSMC_RX_D_N;
-//input		    [16:0]		HSMC_RX_D_P;
-////output		    [16:0]		HSMC_TX_D_N;
-//output		    [16:0]		HSMC_TX_D_P;
 
 //////// EXTEND IO //////////
 inout		    [6:0]		EX_IO;
@@ -695,51 +661,6 @@ VGA_Ctrl			u9	(	//	Host Side
 							.iCLK(TD_CLK27),
 							.iRST_N(DLY2)	);
 
-// wire [27:0] VGA_ = {VGA_HS_, VGA_VS_, VGA_SYNC_N_, VGA_BLANK_N_, VGA_R_, VGA_G_, VGA_B_};
-// wire [27:0] tap1, tap2, tap3; 
-
-// reg buf_shift_en;
-
-// ram_shift_2 buffer (
-// 	.aclr(!VGA_VS_), 
-// 	.clock(VGA_CLK && buf_shift_en), 
-// 	.shiftin(VGA_), 
-// 	.shiftout(), 
-// 	.taps({tap3, tap2, tap1})
-// );
-
-// reg [9:0] pixel_count;
-// always @ (posedge VGA_CLK) begin
-// 	if (KEY[0] && !VGA_BLANK_N) begin
-// 		if (pixel_count > 639)
-// 			buf_shift_en <= 1'b0;
-// 		else begin
-// 			buf_shift_en <= 1'b1;
-// 			pixel_count <= pixel_count + 1;
-// 		end
-// 	end
-// 	else begin
-// 		buf_shift_en <= 1'b0;
-// 		pixel_count <= 10'd0;
-// 	end
-// end
-
-// reg [23:0] x00, x01, x02, 
-// 		   x10, x11, x12, 
-// 		   x20, x21, x22;
-
-// always @ (posedge VGA_CLK) begin
-// 	x00 <= x01; 
-// 	x01 <= x02; 
-// 	x02 <= VGA_[23:0]; 
-// 	x10 <= x11; 
-// 	x11 <= x12; 
-// 	x12 <= tap1[23:0];
-// 	x20 <= x21;
-// 	x21 <= x22; 
-// 	x22 <= tap2[23:0];
-// end
-
 //Delay the VGA control signals for the VGA Side
 delay #( .DATA_WIDTH(1), .DELAY(20) ) d0
 ( 
@@ -786,6 +707,7 @@ delay #( .DATA_WIDTH(8), .DELAY(20) ) rgb_b
 	.data_out 	(VGA_B_)
 );
 
+
 //Y, Cb, Cr are synced up with RGB out of the VGA controller.
 //Y, Cb, Cr are synced up wtih X and Y out of the VGA controller
 corner_detect corner_detect (
@@ -797,8 +719,7 @@ corner_detect corner_detect (
 	.y(VGA_Y),
 	.threshold_Cb(SW[15:8]),
 	.threshold_Cr(SW[7:0]),
-	.corner_detected(corner_), 
-	.clear_mem(LEDG[1])
+	.corner_detected(corner_)
 );
 delay #( .DATA_WIDTH(1), .DELAY(19) ) corner_delay
 ( 
