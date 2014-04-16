@@ -6,81 +6,120 @@ module corner_detect
 (   
     input clk,
     input reset, 
-    input [7:0] r, 
-    input [7:0] g, 
-    input [7:0] b, 
-    input [7:0] Y,
     input [7:0] Cb, 
     input [7:0] Cr,
-    input [23:0] rgb_target, 
+    input [9:0] x, 
+    input [9:0] y, 
     input [7:0] threshold_Cb,
     input [7:0] threshold_Cr, 
     output reg corner_detected, 
-    output [9:0] hue, 
-    output [9:0] saturation, 
-    output [9:0] lightness
+    output reg clear_mem
 
 );
-    // wire [9:0] oHue, oSat, oLight;
-    // assign hue = oHue;
-    // assign saturation = oSat; 
-    // assign lightness = oLight;
-    //Get results on next rising clock edge
-    // wire [9:0] hue, saturation, lightness;
-    // RGBtoHSL RGB_to_HSL (
-    //     .clk(clk), 
-    //     .iRed(r), 
-    //     .iGreen(g), 
-    //     .iBlue(b), 
-    //     .oHue(hue), 
-    //     .oSaturation(saturation), 
-    //     .oLightness(lightness)
-    // );
+    reg [18:0] addr_a, addr_b;
+    reg [3:0]  data_in_a, data_in_b;
+    reg        we_a, we_b;
+    wire [3:0] data_out_a, data_out_b;  
+    dual_SRAM color_history (
+        .clock(clk), 
+        .address_a(addr_a), 
+        .address_b(addr_b), 
+        .data_a(data_in_a), 
+        .data_b(data_in_b), 
+        .wren_a(we_a), 
+        .wren_b(we_b), 
+        .q_a(data_out_a), 
+        .q_b(data_out_b)
+    );
 
-    // wire signed [18:0] threshold = {8'd0, threshold_in};
-    // wire signed [17:0] r_in, g_in, b_in;
-    // wire signed [17:0] r_target, g_target, b_target;
-    // wire signed [17:0] r_diff, g_diff, b_diff; 
-    // wire signed [17:0] r_sqrd, g_sqrd, b_sqrd;
-    // assign r_in = {10'd0, r}; 
-    // assign g_in = {10'd0, g}; 
-    // assign b_in = {10'd0, b}; 
-    always @ (*) begin
-        // if (g_in > 18'd255 - threshold && b_in < threshold && r_in < threshold) begin
-        //     corner_detected = 1'b1;
-        // end
-        // else 
-        //     corner_detected = 1'b0;
-        if (Cb < threshold_Cb && Cr < threshold_Cr) begin
-            corner_detected = 1'b1;
-        end
-        else 
-            corner_detected = 1'b0;
-    end
-    
-    // Pick certain points as my corners 
+    //19 bits of M9K address = {10bit x, 9bit y}
+    reg [3:0] state; 
+    // reg clear_mem;
+    reg [9:0] addr_x;
+    reg [9:0] addr_y; 
     always @ (posedge clk) begin
         if (reset) begin
-            
+            addr_a          <= {10'd0, 9'd0};
+            addr_b          <= {10'd0, 9'd1};
+            addr_x          <= 10'd0;
+            addr_y          <= 10'd0;
+            data_in_a       <= 4'd0;
+            data_in_b       <= 4'd0;
+            we_a            <= 1'b1;
+            we_b            <= 1'b1;
+
+            corner_detected <= 1'b0;
+            state           <= 4'd0;
+            clear_mem       <= 1'b1;
         end
+        //Clear the memory upon reset
+        else if (clear_mem) begin
+            //Not done with row
+            if (addr_y < 10'd478) begin
+                addr_a      <= {addr_x, addr_y[8:0] + 9'd2};
+                addr_b      <= {addr_x, addr_y[8:0] + 9'd3};
+                addr_y      <= addr_y + 10'd2;
+                data_in_a   <= 4'd0;
+                data_in_b   <= 4'd0;
+                we_a        <= 1'b1;
+                we_b        <= 1'b1;
+                clear_mem   <= 1'b1;
+            end
+            //Done with row, but not all rows
+            else if (addr_x < 10'd639) begin
+                addr_a      <= {addr_x + 10'd1, 9'd0}; 
+                addr_b      <= {addr_x + 10'd1, 9'd1}; 
+                addr_x      <= addr_x + 10'd1;
+                addr_y      <= 10'd0;
+                we_a        <= 1'b1;
+                we_b        <= 1'b1;
+                clear_mem   <= 1'b1; 
+            end
+            else begin
+                clear_mem   <= 1'b0;
+                we_a        <= 1'b0;
+                we_b        <= 1'b0;
+            end
+        end
+
         else begin
-            
+            if (Cb < threshold_Cb && Cr < threshold_Cr) begin
+                corner_detected <= 1'b1;
+            end
+            else begin
+                corner_detected <= 1'b0;
+            end
+                
         end
     end
 
 
-    // assign r_target = {10'd0, rgb_target[23:16]}; 
-    // assign g_target = {10'd0, rgb_target[15:8]}; 
-    // assign b_target = {10'd0, rgb_target[7:0]}; 
-    // assign r_diff = r_in - r_target; 
-    // assign g_diff = g_in - g_target; 
-    // assign b_diff = b_in - b_target; 
-    // assign r_sqrd = r_diff * r_diff;
-    // assign g_sqrd = g_diff * g_diff;
-    // assign b_sqrd = b_diff * b_diff;
-
-    // wire signed [18:0] sum; 
-    // assign sum = r_sqrd + g_sqrd + b_sqrd;
-    // assign corner_detected = sum < threshold ? 1'b1 : 1'b0;
-
 endmodule 
+    //Corners: 
+    /**
+        edge case: perfectly aligned square
+            1: topmost and leftmost
+
+        otherwise: 
+            1: topmost
+            2: rightmost
+            3: bottomost
+            4: leftmost
+    
+    Find the left most, right most, up, down coordinates
+    If this pixel is green:
+        read from sram and write back the current value
+        if it has been green for the past 4 frames: 
+            consider for min/maxing
+
+    Determine where corners are
+    if (area around ideal corners > threshold * #green_pixels) {
+        use perfect case: (left, up), (left, down), (right, up), (right, down)
+    }
+    else {
+        use original edge coordinates: (left, ), (right, ), ( , up), ( , down)
+    }
+
+    must keep track of all of the pixels marked as green. see if portion is ok
+
+    */

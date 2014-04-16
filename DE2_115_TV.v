@@ -561,7 +561,7 @@ TD_Detect			u2	(	.oTD_Stable(TD_Stable),
 							.oPAL(PAL),
 							.iTD_VS(TD_VS),
 							.iTD_HS(TD_HS),
-							.iRST_N(KEY[0])	);
+							.iRST_N(!reset)	);
 
 //	Reset Delay Timer
 Reset_Delay			u3	(	.iCLK(CLOCK_50),
@@ -668,10 +668,9 @@ YCbCr2RGB 			u8	(	//	Output Side
 wire [9:0] vga_r10;
 wire [9:0] vga_g10;
 wire [9:0] vga_b10;
-// assign VGA_R = vga_r10[9:2];
-// assign VGA_G = vga_g10[9:2];
-// assign VGA_B = vga_b10[9:2];
+
 //////////-------------jsw267
+wire reset = ~KEY[0];
 wire VGA_HS_, VGA_VS_, VGA_SYNC_N_, VGA_BLANK_N_;
 wire corner_, corner;
 wire [7:0] VGA_R_, VGA_G_, VGA_B_;
@@ -787,90 +786,31 @@ delay #( .DATA_WIDTH(8), .DELAY(20) ) rgb_b
 	.data_out 	(VGA_B_)
 );
 
-wire [9:0] hue_, saturation_, lightness_, hue, saturation, lightness;
+//Y, Cb, Cr are synced up with RGB out of the VGA controller.
+//Y, Cb, Cr are synced up wtih X and Y out of the VGA controller
 corner_detect corner_detect (
 	.clk(VGA_CLK), 
-	.reset(KEY[0]), 
-	.r(vga_r10[9:2]),
-	.g(vga_g10[9:2]),
-	.b(vga_b10[9:2]),
-	.Y(Y), 
+	.reset(reset), 
 	.Cb(Cb), 
 	.Cr(Cr),
-	.rgb_target(8'hFFFFFF), 
+	.x(VGA_X), 
+	.y(VGA_Y),
 	.threshold_Cb(SW[15:8]),
 	.threshold_Cr(SW[7:0]),
 	.corner_detected(corner_), 
-	.hue(hue_), 
-	.saturation(saturation_), 
-	.lightness(lightness_)
+	.clear_mem(LEDG[1])
 );
-delay #( .DATA_WIDTH(1), .DELAY(20) ) corner_delay
+delay #( .DATA_WIDTH(1), .DELAY(19) ) corner_delay
 ( 
 	.clk 		(VGA_CLK), 
 	.data_in 	(corner_), 
 	.data_out 	(corner)
 );
 
-delay #( .DATA_WIDTH(10), .DELAY(19) ) hue_delay
-( 
-	.clk 		(VGA_CLK), 
-	.data_in 	(hue_), 
-	.data_out 	(hue)
-);
-delay #( .DATA_WIDTH(10), .DELAY(19) ) saturation_delay
-( 
-	.clk 		(VGA_CLK), 
-	.data_in 	(saturation_), 
-	.data_out 	(saturation)
-);
-delay #( .DATA_WIDTH(10), .DELAY(19) ) lightness_delay
-( 
-	.clk 		(VGA_CLK), 
-	.data_in 	(lightness_), 
-	.data_out 	(lightness)
-);
-
 assign LEDG[0] = corner;
 assign VGA_R = corner ? 8'hFF : VGA_R_;
 assign VGA_G = corner ? 8'h00 : VGA_G_;
 assign VGA_B = corner ? 8'hFF : VGA_B_;
-// wire [7:0] VGA_R_pink, VGA_G_pink, VGA_B_pink; 
-// assign VGA_R_pink = corner ? 8'hFF : VGA_R_;
-// assign VGA_G_pink = corner ? 8'h00 : VGA_G_;
-// assign VGA_B_pink = corner ? 8'hFF : VGA_B_;
-
-// assign LEDG[1:0] = SW[17:16];
-// always @ (*) begin
-// 	case (SW[17:15])
-// 		2'd0: begin
-
-// 			VGA_R = VGA_R_pink;
-// 			VGA_G = VGA_G_pink;
-// 			VGA_B = VGA_B_pink;
-// 		end
-// 		2'd1: begin
-// 			VGA_R = hue[9:2];
-// 			VGA_G = 8'hFF;
-// 			VGA_B = 8'hFF;
-// 		end
-// 		2'd2: begin
-// 			VGA_R = 8'hFF;
-// 			VGA_G = saturation[9:2];
-// 			VGA_B = 8'hFF;
-// 		end
-// 		2'd3: begin
-// 			VGA_R = 8'hFF;
-// 			VGA_G = 8'hFF;
-// 			VGA_B = lightness[9:2];
-// 		end
-// 		default begin
-// 			VGA_R = VGA_R_pink;
-// 			VGA_G = VGA_G_pink;
-// 			VGA_B = VGA_B_pink;
-// 		end
-// 	endcase
-// end
 
 //	Line buffer, delay one line
 Line_Buffer u10	(	.aclr(!DLY0),
@@ -897,7 +837,7 @@ AUDIO_DAC 	u12	(	//	Audio Side
 //	Audio CODEC and video decoder setting
 I2C_AV_Config 	u1	(	//	Host Side
 						.iCLK(CLOCK_50),
-						.iRST_N(KEY[0]),
+						.iRST_N(!reset),
 						//	I2C Side
 						.I2C_SCLK(I2C_SCLK),
 						.I2C_SDAT(I2C_SDAT)	);	
