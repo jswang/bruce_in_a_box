@@ -9,9 +9,16 @@ module color_history (
 	input 		write_en, 
 
 	output reg [3:0] read_data, 
-	output reg		 data_valid
+	output reg		 data_valid, 
+	output [9:0] just_read_x, 
+	output [9:0] just_read_y
 );
+	//Shift buffer for read address
+	reg [9:0] shift_buffer_read_x [0:2];
+	reg [9:0] shift_buffer_read_y [0:2];
 
+	assign just_read_x = shift_buffer_read_x[2];
+	assign just_read_y = shift_buffer_read_y[2];
 
 reg [18:0] addr_a, addr_b;
 reg [3:0]  data_in_a, data_in_b;
@@ -47,6 +54,13 @@ always @ (posedge clk) begin
         we_a            <= 1'b1;
         we_b            <= 1'b1;
 
+        shift_buffer_read_x[0] = 10'd0;
+        shift_buffer_read_x[1] = 10'd0;
+        shift_buffer_read_x[2] = 10'd0;
+        shift_buffer_read_y[0] = 10'd0;
+        shift_buffer_read_y[1] = 10'd0;
+        shift_buffer_read_y[2] = 10'd0;
+
         data_valid 		<= 1'b0;
 		state     		<= 4'd0;
 		clear_mem 		<= 1'b1;
@@ -70,6 +84,8 @@ always @ (posedge clk) begin
             addr_b      <= {addr_x + 10'd1, 9'd1}; 
             addr_x      <= addr_x + 10'd1;
             addr_y      <= 10'd0;
+            data_in_a   <= 4'd0;
+            data_in_b   <= 4'd0;
             we_a        <= 1'b1;
             we_b        <= 1'b1;
             clear_mem   <= 1'b1; 
@@ -91,11 +107,27 @@ always @ (posedge clk) begin
 		case (state)
 			4'd0: begin
 				addr_a <= {read_x[9:0], read_y[8:0]};
+				
+				shift_buffer_read_x[2] <= shift_buffer_read_x[1];
+				shift_buffer_read_x[1] <= shift_buffer_read_x[0];
+				shift_buffer_read_x[0] <= read_x;
+				shift_buffer_read_y[2] <= shift_buffer_read_y[1];
+				shift_buffer_read_y[1] <= shift_buffer_read_y[0];
+				shift_buffer_read_y[0] <= read_y;
+
 				we_a   <= 1'b0;
 				state  <= state + 4'd1;
 			end
 			4'd1: begin
 				addr_a <= {read_x[9:0], read_y[8:0]};
+
+				shift_buffer_read_x[2] <= shift_buffer_read_x[1];
+				shift_buffer_read_x[1] <= shift_buffer_read_x[0];
+				shift_buffer_read_x[0] <= read_x;
+				shift_buffer_read_y[2] <= shift_buffer_read_y[1];
+				shift_buffer_read_y[1] <= shift_buffer_read_y[0];
+				shift_buffer_read_y[0] <= read_y;
+
 				state  <= state + 4'd1;
 			end
 			//Steady state
@@ -103,6 +135,13 @@ always @ (posedge clk) begin
 				//output data from two cycles ago
 				data_valid <= 1'b1;
 				read_data  <= data_out_a;
+
+				shift_buffer_read_x[2] <= shift_buffer_read_x[1];
+				shift_buffer_read_x[1] <= shift_buffer_read_x[0];
+				shift_buffer_read_x[0] <= read_x;
+				shift_buffer_read_y[2] <= shift_buffer_read_y[1];
+				shift_buffer_read_y[1] <= shift_buffer_read_y[0];
+				shift_buffer_read_y[0] <= read_y;
 
 				//Pipeline for next read
 				addr_a 	   <= {read_x[9:0], read_y[8:0]};

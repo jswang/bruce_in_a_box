@@ -413,7 +413,10 @@ inout		    [6:0]		EX_IO;
 //=============================================================================
 // REG/WIRE declarations
 //=============================================================================
+//jsw267
+wire reset = ~KEY[0];
 
+//
 wire	CPU_CLK;
 wire	CPU_RESET;
 wire	CLK_18_4;
@@ -611,6 +614,7 @@ YUV422_to_444		u7	(	//	YUV 4:2:2 Input
 							.iX(VGA_X-160),
 							.iCLK(TD_CLK27),
 							.iRST_N(DLY0));
+
 wire [7:0] Y, Cb, Cr;
 //	YCbCr 8-bit to RGB-10 bit 
 YCbCr2RGB 			u8	(	//	Output Side
@@ -636,7 +640,6 @@ wire [9:0] vga_g10;
 wire [9:0] vga_b10;
 
 //////////-------------jsw267
-wire reset = ~KEY[0];
 wire VGA_HS_, VGA_VS_, VGA_SYNC_N_, VGA_BLANK_N_;
 wire corner_, corner;
 wire [7:0] VGA_R_, VGA_G_, VGA_B_;
@@ -687,7 +690,6 @@ delay #( .DATA_WIDTH(1), .DELAY(20) ) d3
 	.data_out 	(VGA_BLANK_N)
 );
 
-
 delay #( .DATA_WIDTH(8), .DELAY(20) ) rgb_r
 ( 
 	.clk 		(VGA_CLK), 
@@ -706,6 +708,63 @@ delay #( .DATA_WIDTH(8), .DELAY(20) ) rgb_b
 	.data_in 	(vga_b10[9:2]), 
 	.data_out 	(VGA_B_)
 );
+
+wire [9:0] VGA_X_d2, VGA_Y_d2, VGA_X_d3, VGA_Y_d3;
+//Delay the VGA_X and VGA_Y so that it syncs with history reading
+delay #( .DATA_WIDTH(10), .DELAY(2) ) vga_x_delay2
+(
+	.clk 		(VGA_CLK), 
+	.data_in	(VGA_X), 
+	.data_out   (VGA_X_d2)
+);
+delay #( .DATA_WIDTH(10), .DELAY(2) ) vga_y_delay2
+(
+	.clk 		(VGA_CLK), 
+	.data_in	(VGA_Y), 
+	.data_out   (VGA_Y_d2)
+);
+delay #( .DATA_WIDTH(10), .DELAY(3) ) vga_x_delay3
+(
+	.clk 		(VGA_CLK), 
+	.data_in	(VGA_X), 
+	.data_out   (VGA_X_d3)
+);
+delay #( .DATA_WIDTH(10), .DELAY(3) ) vga_y_delay3
+(
+	.clk 		(VGA_CLK), 
+	.data_in	(VGA_Y), 
+	.data_out   (VGA_Y_d3)
+);
+
+//Read the history of this (x,y) pixel
+reg [9:0] 	color_write_x, color_write_y;
+reg [3:0] 	color_write_data;
+wire [3:0] 	color_read_data;
+reg       	color_we;
+wire 		color_data_valid;
+
+wire [9:0] temp_x, temp_y;
+color_history color_hist (
+	.clk(VGA_CLK), 
+	.reset(reset), 
+	.read_x(VGA_X), 
+	.read_y(VGA_Y), 
+	.write_x(color_write_x), 
+	.write_y(color_write_y), 
+	.write_data(color_write_data), 
+	.write_en(color_we), 
+
+	.read_data(color_read_data), 
+	.data_valid(color_data_valid), 
+	.just_read_x(temp_x), 
+	.just_read_y(temp_y)
+);
+
+// assign LEDG[1] = 
+assign LEDG[2] = temp_x == VGA_X_d2 ? 1'b1 : 1'b0;
+assign LEDG[3] = temp_y == VGA_Y_d2 ? 1'b1 : 1'b0;
+assign LEDG[4] = temp_x == VGA_X_d3 ? 1'b1 : 1'b0;
+assign LEDG[5] = temp_y == VGA_Y_d3 ? 1'b1 : 1'b0;
 
 
 //Y, Cb, Cr are synced up with RGB out of the VGA controller.
