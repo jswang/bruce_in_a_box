@@ -288,12 +288,12 @@ inout		     [3:0]		SD_DAT;
 input		          		SD_WP_N;
 
 //////////// VGA //////////
-output	 	     [7:0]		VGA_B;
+output reg	 	     [7:0]		VGA_B;
 output		          		VGA_BLANK_N;
 output		          		VGA_CLK;
-output 		     [7:0]		VGA_G;
+output reg 		     [7:0]		VGA_G;
 output		          		VGA_HS;
-output 		     [7:0]		VGA_R;
+output reg 		     [7:0]		VGA_R;
 output		          		VGA_SYNC_N;
 output		          		VGA_VS;
 
@@ -641,7 +641,7 @@ wire [9:0] vga_b10;
 
 //////////-------------jsw267
 wire VGA_HS_, VGA_VS_, VGA_SYNC_N_, VGA_BLANK_N_;
-wire corner_, corner;
+wire [2:0] corner_, corner;
 wire [7:0] VGA_R_, VGA_G_, VGA_B_;
 wire [21:0] VGA_Addr_full;
 wire [18:0] VGA_Addr = VGA_Addr_full[18:0];
@@ -712,15 +712,15 @@ delay #( .DATA_WIDTH(8), .DELAY(20) ) rgb_b
 	.data_out 	(VGA_B_)
 );
 
-wire [9:0] VGA_Addr_d3;
+wire [9:0] VGA_VS_d3;
 wire [7:0] Cb_d3, Cr_d3;
 
-// delay #( .DATA_WIDTH(19), .DELAY(3) ) vga_addr_delay3
-// (
-// 	.clk 		(VGA_CLK), 
-// 	.data_in	(VGA_Addr), 
-// 	.data_out   (VGA_Addr_d3)
-// );
+delay #( .DATA_WIDTH(1), .DELAY(3) ) vga_vsync_delay3
+(
+	.clk 		(VGA_CLK), 
+	.data_in	(VGA_VS_), 
+	.data_out   (VGA_VS_d3)
+);
 
 delay #( .DATA_WIDTH(8), .DELAY(3) ) Cb_delay3
 (
@@ -744,6 +744,8 @@ wire [18:0] color_just_read_addr;
 wire [3:0] 	color_read_data;
 wire 		color_data_valid;
 
+wire [9:0] color_just_read_x, color_just_read_y;
+
 color_history color_hist (
 	.clk(VGA_CLK), 
 	.reset(reset), 
@@ -751,6 +753,11 @@ color_history color_hist (
 	.write_addr(color_write_addr),  
 	.write_data(color_write_data), 
 	.write_en(color_we), 
+
+	.read_x(VGA_X), 
+	.read_y(VGA_Y),
+	.just_read_x(color_just_read_x), 
+	.just_read_y(color_just_read_y),
 
 	.read_addr(VGA_Addr),
 	.read_data(color_read_data), 
@@ -763,15 +770,21 @@ color_history color_hist (
 corner_detect corner_detect (
 	.clk(VGA_CLK), 
 	.reset(reset), 
+	.VGA_VS(VGA_VS_d3),
 	.Cb(Cb_d3), 
 	.Cr(Cr_d3),
 	.color_history(color_read_data),
 	.color_valid(color_data_valid),
 	.read_addr(color_just_read_addr),
+
+	.read_x(color_just_read_x), 
+	.read_y(color_just_read_y),
+
 	.threshold_Cb(SW[15:8]),
 	.threshold_Cr(SW[7:0]),
 	.threshold_history(SW[17:16]),
-	.corner_detected(corner_), 
+	.corner_detected(corner_), //Is this pixel a corner?
+
 
 	.updated_color_history(color_write_data), 
 	.we(color_we), 
@@ -779,7 +792,7 @@ corner_detect corner_detect (
 	.test_led(LEDG[7:0])
 );
 
-delay #( .DATA_WIDTH(1), .DELAY(17) ) corner_delay
+delay #( .DATA_WIDTH(3), .DELAY(17) ) corner_delay
 ( 
 	.clk 		(VGA_CLK), 
 	.data_in 	(corner_), 
@@ -787,9 +800,64 @@ delay #( .DATA_WIDTH(1), .DELAY(17) ) corner_delay
 );
 
 // assign LEDG[0] = corner;
-assign VGA_R = corner ? 8'hFF : VGA_R_;
-assign VGA_G = corner ? 8'h00 : VGA_G_;
-assign VGA_B = corner ? 8'hFF : VGA_B_;
+localparam NONE = 3'd0;
+localparam TOP_LEFT = 3'd1;
+localparam TOP_RIGHT = 3'd2;
+localparam BOTTOM_LEFT = 3'd3; 
+localparam BOTTOM_RIGHT = 3'd4;
+localparam PINK = 3'd5;
+always @ (*) begin
+	case (corner)
+		NONE: begin
+			VGA_R = VGA_R_;
+			VGA_G = VGA_G_;
+			VGA_B = VGA_B_;
+		end
+
+		//red
+		TOP_LEFT: begin
+			VGA_R = 8'hFF;
+			VGA_G = 8'h00;
+			VGA_B = 8'h00;
+		end
+
+		//Orange
+		TOP_RIGHT: begin
+			VGA_R = 8'hFF;
+			VGA_G = 8'd125;
+			VGA_B = 8'h00;
+		end
+
+		//Yellow
+		BOTTOM_LEFT: begin
+			VGA_R = 8'hFF;
+			VGA_G = 8'hFF;
+			VGA_B = 8'h00;
+		end
+
+		//Cyan
+		BOTTOM_RIGHT: begin
+			VGA_R = 8'h00;
+			VGA_G = 8'hFF;
+			VGA_B = 8'hFF;
+		end
+
+		PINK: begin
+			VGA_R = 8'hFF;
+			VGA_G = 8'h00;
+			VGA_B = 8'hFF;
+		end
+
+		default: begin
+			VGA_R = 0;
+			VGA_G = 0;
+			VGA_B = 0;
+		end
+	endcase
+end
+// assign VGA_R = corner ? 8'hFF : VGA_R_;
+// assign VGA_G = corner ? 8'h00 : VGA_G_;
+// assign VGA_B = corner ? 8'hFF : VGA_B_;
 
 //	Line buffer, delay one line
 Line_Buffer u10	(	.aclr(!DLY0),
