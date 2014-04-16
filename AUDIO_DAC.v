@@ -89,7 +89,7 @@ begin
 			oAUD_BCK	<=	~oAUD_BCK;
 		end
 		else
-		BCK_DIV		<=	BCK_DIV+1;
+		BCK_DIV		<=	BCK_DIV+4'd1;
 	end
 end
 //////////////////////////////////////////////////
@@ -114,7 +114,7 @@ begin
 			LRCK_1X	<=	~LRCK_1X;
 		end
 		else
-		LRCK_1X_DIV		<=	LRCK_1X_DIV+1;
+		LRCK_1X_DIV		<=	LRCK_1X_DIV+9'd1;
 		//	LRCK 2X
 		if(LRCK_2X_DIV >= REF_CLK/(SAMPLE_RATE*4)-1 )
 		begin
@@ -122,7 +122,7 @@ begin
 			LRCK_2X	<=	~LRCK_2X;
 		end
 		else
-		LRCK_2X_DIV		<=	LRCK_2X_DIV+1;		
+		LRCK_2X_DIV		<=	LRCK_2X_DIV+8'd1;		
 		//	LRCK 4X
 		if(LRCK_4X_DIV >= REF_CLK/(SAMPLE_RATE*8)-1 )
 		begin
@@ -130,7 +130,7 @@ begin
 			LRCK_4X	<=	~LRCK_4X;
 		end
 		else
-		LRCK_4X_DIV		<=	LRCK_4X_DIV+1;		
+		LRCK_4X_DIV		<=	LRCK_4X_DIV+7'd1;		
 	end
 end
 assign	oAUD_LRCK	=	LRCK_1X;
@@ -143,7 +143,7 @@ begin
 	else
 	begin
 		if(SIN_Cont < SIN_SAMPLE_DATA-1 )
-		SIN_Cont	<=	SIN_Cont+1;
+		SIN_Cont	<=	SIN_Cont+6'd1;
 		else
 		SIN_Cont	<=	0;
 	end
@@ -157,7 +157,7 @@ begin
 	else
 	begin
 		if(FLASH_Cont < FLASH_DATA_NUM-1 )
-		FLASH_Cont	<=	FLASH_Cont+1;
+		FLASH_Cont	<=	FLASH_Cont+20'd1;
 		else
 		FLASH_Cont	<=	0;
 	end
@@ -193,7 +193,7 @@ begin
 	else
 	begin
 		if(SDRAM_Cont < SDRAM_DATA_NUM-1 )
-		SDRAM_Cont	<=	SDRAM_Cont+1;
+		SDRAM_Cont	<=	SDRAM_Cont+22'd1;
 		else
 		SDRAM_Cont	<=	0;
 	end
@@ -224,7 +224,7 @@ begin
 	else
 	begin
 		if(SRAM_Cont < SRAM_DATA_NUM-1 )
-		SRAM_Cont	<=	SRAM_Cont+1;
+		SRAM_Cont	<=	SRAM_Cont+18'd1;
 		else
 		SRAM_Cont	<=	0;
 	end
@@ -253,7 +253,7 @@ begin
 	if(!iRST_N)
 	SEL_Cont	<=	0;
 	else
-	SEL_Cont	<=	SEL_Cont+1;
+	SEL_Cont	<=	SEL_Cont+4'd1;
 end
 assign	oAUD_DATA	=	(iSrc_Select==SIN_SANPLE)	?	Sin_Out[~SEL_Cont]	:
 						(iSrc_Select==FLASH_DATA)	?	FLASH_Out[~SEL_Cont]:

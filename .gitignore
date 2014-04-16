@@ -22,3 +22,4 @@ DE2_115_TV.parallel.txt
 sopc_builder_log.txt
 DE2_115_TV.map.smsg
 verilog/corner_detect.v.bak
+*.bak

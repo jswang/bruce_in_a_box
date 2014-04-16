@@ -643,6 +643,8 @@ wire [9:0] vga_b10;
 wire VGA_HS_, VGA_VS_, VGA_SYNC_N_, VGA_BLANK_N_;
 wire corner_, corner;
 wire [7:0] VGA_R_, VGA_G_, VGA_B_;
+wire [21:0] VGA_Addr_full;
+wire [18:0] VGA_Addr = VGA_Addr_full[18:0];
 
 VGA_Ctrl			u9	(	//	Host Side
 							.iRed(mRed),
@@ -650,6 +652,7 @@ VGA_Ctrl			u9	(	//	Host Side
 							.iBlue(mBlue),
 							.oCurrent_X(VGA_X),
 							.oCurrent_Y(VGA_Y),
+							.oAddress(VGA_Addr_full), 
 							.oRequest(VGA_Read),
 							//	VGA Side
 							.oVGA_R(vga_r10 ),
@@ -709,33 +712,16 @@ delay #( .DATA_WIDTH(8), .DELAY(20) ) rgb_b
 	.data_out 	(VGA_B_)
 );
 
-wire [9:0] VGA_X_d2, VGA_Y_d2, VGA_X_d3, VGA_Y_d3;
+wire [9:0] VGA_Addr_d3;
 wire [7:0] Cb_d3, Cr_d3;
-//Delay the VGA_X and VGA_Y so that it syncs with history reading
-// delay #( .DATA_WIDTH(10), .DELAY(2) ) vga_x_delay2
+
+// delay #( .DATA_WIDTH(19), .DELAY(3) ) vga_addr_delay3
 // (
 // 	.clk 		(VGA_CLK), 
-// 	.data_in	(VGA_X), 
-// 	.data_out   (VGA_X_d2)
+// 	.data_in	(VGA_Addr), 
+// 	.data_out   (VGA_Addr_d3)
 // );
-// delay #( .DATA_WIDTH(10), .DELAY(2) ) vga_y_delay2
-// (
-// 	.clk 		(VGA_CLK), 
-// 	.data_in	(VGA_Y), 
-// 	.data_out   (VGA_Y_d2)
-// );
-delay #( .DATA_WIDTH(10), .DELAY(2) ) vga_x_delay3
-(
-	.clk 		(VGA_CLK), 
-	.data_in	(VGA_X), 
-	.data_out   (VGA_X_d3)
-);
-delay #( .DATA_WIDTH(10), .DELAY(2) ) vga_y_delay3
-(
-	.clk 		(VGA_CLK), 
-	.data_in	(VGA_Y), 
-	.data_out   (VGA_Y_d3)
-);
+
 delay #( .DATA_WIDTH(8), .DELAY(3) ) Cb_delay3
 (
 	.clk 		(VGA_CLK), 
@@ -750,27 +736,26 @@ delay #( .DATA_WIDTH(8), .DELAY(3) ) Cr_delay3
 );
 
 //Read the history of this (x,y) pixel
-wire [9:0] 	color_write_x, color_write_y;
+wire [18:0] color_write_addr;
 wire [3:0] 	color_write_data;
 wire       	color_we;
+
+wire [18:0] color_just_read_addr;
 wire [3:0] 	color_read_data;
 wire 		color_data_valid;
 
-wire [9:0] just_read_x, just_read_y;
 color_history color_hist (
 	.clk(VGA_CLK), 
 	.reset(reset), 
-	.read_x(VGA_X), 
-	.read_y(VGA_Y), 
-	.write_x(color_write_x), 
-	.write_y(color_write_y), 
+ 
+	.write_addr(color_write_addr),  
 	.write_data(color_write_data), 
 	.write_en(color_we), 
 
+	.read_addr(VGA_Addr),
 	.read_data(color_read_data), 
 	.data_valid(color_data_valid), 
-	.just_read_x(just_read_x), 
-	.just_read_y(just_read_y)
+	.just_read_addr(color_just_read_addr)
 );
 
 //Y, Cb, Cr are synced up with RGB out of the VGA controller.
@@ -782,8 +767,7 @@ corner_detect corner_detect (
 	.Cr(Cr_d3),
 	.color_history(color_read_data),
 	.color_valid(color_data_valid),
-	.x(just_read_x), 
-	.y(just_read_y),
+	.read_addr(color_just_read_addr),
 	.threshold_Cb(SW[15:8]),
 	.threshold_Cr(SW[7:0]),
 	.threshold_history(SW[17:16]),
@@ -791,17 +775,18 @@ corner_detect corner_detect (
 
 	.updated_color_history(color_write_data), 
 	.we(color_we), 
-	.write_x(color_write_x), 
-	.write_y(color_write_y)
+	.write_addr(color_write_addr), 
+	.test_led(LEDG[7:0])
 );
-delay #( .DATA_WIDTH(1), .DELAY(19) ) corner_delay
+
+delay #( .DATA_WIDTH(1), .DELAY(17) ) corner_delay
 ( 
 	.clk 		(VGA_CLK), 
 	.data_in 	(corner_), 
 	.data_out 	(corner)
 );
 
-assign LEDG[0] = corner;
+// assign LEDG[0] = corner;
 assign VGA_R = corner ? 8'hFF : VGA_R_;
 assign VGA_G = corner ? 8'h00 : VGA_G_;
 assign VGA_B = corner ? 8'hFF : VGA_B_;

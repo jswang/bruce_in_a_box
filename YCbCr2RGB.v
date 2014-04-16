@@ -122,9 +122,9 @@ begin
 	end
 	else
 	begin
-		X_OUT<=( X - 114131 ) >>7;
-		Y_OUT<=( Y + 69370  ) >>7;
-		Z_OUT<=( Z - 141787 ) >>7;			
+		X_OUT<=( X - 20'd114131 ) >>7;
+		Y_OUT<=( Y + 20'd69370  ) >>7;
+		Z_OUT<=( Z - 20'd141787 ) >>7;			
 	end
 end
 

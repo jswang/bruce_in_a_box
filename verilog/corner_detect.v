@@ -1,24 +1,23 @@
 //Detects green
 module corner_detect
 (   
-    input clk,
-    input reset, 
-    input [7:0] Cb, 
-    input [7:0] Cr,
-    input [3:0] color_history, 
-    input       color_valid, 
-    input [9:0] x, 
-    input [9:0] y, 
-    input [7:0] threshold_Cb,
-    input [7:0] threshold_Cr,
-    input [1:0] threshold_history,
+    input               clk,
+    input               reset, 
+    input [7:0]         Cb, 
+    input [7:0]         Cr,
+    input [3:0]         color_history, 
+    input               color_valid, 
+    input [18:0]        read_addr, 
+    input [7:0]         threshold_Cb,
+    input [7:0]         threshold_Cr,
+    input [1:0]         threshold_history,
 
-    output reg corner_detected, 
+    output reg          corner_detected, 
 
-    output reg [3:0] updated_color_history, 
-    output reg we, 
-    output reg [9:0] write_x, 
-    output reg [9:0] write_y
+    output reg [3:0]    updated_color_history, 
+    output reg          we, 
+    output reg [18:0]   write_addr, 
+    output reg [7:0]    test_led
 );
     reg [2:0] num_history;
     //encode # 1's in color_histor
@@ -44,24 +43,29 @@ module corner_detect
     end
 
     always @ (posedge clk) begin
-        //write the new history and determine if color detected
-        if (Cb < threshold_Cb && Cr < threshold_Cr && num_history > threshold_history) begin
-            corner_detected             <= 1'b1;
-            we                          <= 1'b1;
-            updated_color_history[3:1]  <= color_history[2:0];
-            updated_color_history[0]    <= (Cb < threshold_Cb && Cr < threshold_Cr);
-            write_x                     <= x; 
-            write_y                     <= y;
+        if (reset) begin
+            test_led <= 8'd0;
         end
         else begin
-            corner_detected             <= 1'b0;
-            we                          <= 1'b1;
-            updated_color_history[3:1]  <= color_history[2:0];
-            updated_color_history[0]    <= (Cb < threshold_Cb && Cr < threshold_Cr);
-            write_x                     <= x; 
-            write_y                     <= y;
+            if (write_addr >=307200) begin
+                test_led[0] <= 1'b1;
+            end
+            //Whatever I just read its history updated
+            if (Cb < threshold_Cb && Cr < threshold_Cr && num_history > threshold_history) begin
+                corner_detected             <= 1'b1;
+                updated_color_history[3:1]  <= color_history[2:0];
+                updated_color_history[0]    <= (Cb < threshold_Cb && Cr < threshold_Cr);
+                write_addr                  <= read_addr;
+                we                          <= 1'b1;
+            end
+            else begin
+                corner_detected             <= 1'b0;
+                updated_color_history[3:1]  <= color_history[2:0];
+                updated_color_history[0]    <= (Cb < threshold_Cb && Cr < threshold_Cr);
+                write_addr                  <= read_addr;
+                we                          <= 1'b1;
+            end
         end
-        
 
 
     end
