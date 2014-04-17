@@ -712,6 +712,21 @@ delay #( .DATA_WIDTH(8), .DELAY(20) ) rgb_b
 	.data_out 	(VGA_B_)
 );
 
+wire [9:0] VGA_X_d20, VGA_Y_d20;
+//Delay the x y just for referencing
+delay #( .DATA_WIDTH(10), .DELAY(20) ) d_x
+( 
+	.clk 		(VGA_CLK), 
+	.data_in 	(VGA_X), 
+	.data_out 	(VGA_X_d20)
+);
+delay #( .DATA_WIDTH(10), .DELAY(20) ) d_y
+( 
+	.clk 		(VGA_CLK), 
+	.data_in 	(VGA_Y), 
+	.data_out 	(VGA_Y_d20)
+);
+
 wire [9:0] VGA_VS_d3;
 wire [7:0] Cb_d3, Cr_d3;
 
@@ -765,6 +780,13 @@ color_history color_hist (
 	.just_read_addr(color_just_read_addr)
 );
 
+localparam x = 0;
+localparam y = 1;
+wire [9:0] top_left [0:1];
+wire [9:0] top_right [0:1];
+wire [9:0] bot_left [0:1];
+wire [9:0] bot_right [0:1];
+
 //Y, Cb, Cr are synced up with RGB out of the VGA controller.
 //Y, Cb, Cr are synced up wtih X and Y out of the VGA controller
 corner_detect corner_detect (
@@ -783,8 +805,18 @@ corner_detect corner_detect (
 	.threshold_Cb(SW[15:8]),
 	.threshold_Cr(SW[7:0]),
 	.threshold_history(SW[17:16]),
-	.corner_detected(corner_), //Is this pixel a corner?
 
+
+	.corner_detected(corner_), //Is this pixel a corner?
+	.top_left_prev_x(top_left[x]), 
+	.top_right_prev_x(top_right[x]), 
+	.bot_left_prev_x(bot_left[x]), 
+	.bot_right_prev_x(bot_right[x]),
+	
+	.top_left_prev_y(top_left[y]),
+	.top_right_prev_y(top_right[y]),
+	.bot_left_prev_y(bot_left[y]),
+	.bot_right_prev_y(bot_right[y]),
 
 	.updated_color_history(color_write_data), 
 	.we(color_we), 
@@ -807,53 +839,48 @@ localparam BOTTOM_LEFT = 3'd3;
 localparam BOTTOM_RIGHT = 3'd4;
 localparam PINK = 3'd5;
 always @ (*) begin
-	case (corner)
-		NONE: begin
-			VGA_R = VGA_R_;
-			VGA_G = VGA_G_;
-			VGA_B = VGA_B_;
-		end
-
-		//red
-		TOP_LEFT: begin
+	//Red: top left
+	if (VGA_X_d20 < top_left[x] + 5 && VGA_X_d20 >= top_left[x] - 5
+	 && VGA_Y_d20 < top_left[y] + 5 && VGA_Y_d20 >= top_left[y] - 5) begin
 			VGA_R = 8'hFF;
 			VGA_G = 8'h00;
 			VGA_B = 8'h00;
 		end
-
-		//Orange
-		TOP_RIGHT: begin
+	//orange: top right
+	else if (VGA_X_d20 < top_right[x] + 5 && VGA_X_d20 >= top_right[x] - 5
+	 && VGA_Y_d20 < top_right[y] + 5 && VGA_Y_d20 >= top_right[y] - 5) begin
 			VGA_R = 8'hFF;
 			VGA_G = 8'd125;
 			VGA_B = 8'h00;
 		end
-
-		//Yellow
-		BOTTOM_LEFT: begin
+	//yellow: bottom left
+	else if (VGA_X_d20 < bot_left[x] + 5 && VGA_X_d20 >= bot_left[x] - 5
+	 && VGA_Y_d20 < bot_left[y] + 5 && VGA_Y_d20 >= bot_left[y] - 5) begin
 			VGA_R = 8'hFF;
 			VGA_G = 8'hFF;
 			VGA_B = 8'h00;
 		end
-
-		//Cyan
-		BOTTOM_RIGHT: begin
+	//cyan: bottom right
+	else if (VGA_X_d20 < bot_right[x] + 5 && VGA_X_d20 >= bot_right[x] - 5
+	 && VGA_Y_d20 < bot_right[y] + 5 && VGA_Y_d20 >= bot_right[y] - 5) begin
 			VGA_R = 8'h00;
 			VGA_G = 8'hFF;
 			VGA_B = 8'hFF;
 		end
 
-		PINK: begin
-			VGA_R = 8'hFF;
-			VGA_G = 8'h00;
-			VGA_B = 8'hFF;
-		end
-
-		default: begin
-			VGA_R = 0;
-			VGA_G = 0;
-			VGA_B = 0;
-		end
-	endcase
+	//Green area : pink
+	else if (corner) begin
+		VGA_R = 8'hFF;
+		VGA_G = 8'h00;
+		VGA_B = 8'hFF;
+	end
+	
+	else begin
+		VGA_R = VGA_R_;
+		VGA_G = VGA_G_;
+		VGA_B = VGA_B_;
+	end
+		
 end
 // assign VGA_R = corner ? 8'hFF : VGA_R_;
 // assign VGA_G = corner ? 8'h00 : VGA_G_;

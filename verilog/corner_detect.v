@@ -16,6 +16,15 @@ module corner_detect
     input [1:0]         threshold_history,
 
     output reg [2:0]    corner_detected, 
+    output  [9:0]    top_left_prev_x,
+    output  [9:0]    top_left_prev_y,
+    output  [9:0]    top_right_prev_x,
+    output  [9:0]    top_right_prev_y,
+    output  [9:0]    bot_left_prev_x,
+    output  [9:0]    bot_left_prev_y,
+    output  [9:0]    bot_right_prev_x,
+    output  [9:0]    bot_right_prev_y,
+
 
     output reg [3:0]    updated_color_history, 
     output reg          we, 
@@ -30,6 +39,9 @@ module corner_detect
     localparam BOTTOM_LEFT = 3'd3; 
     localparam BOTTOM_RIGHT = 3'd4;
     localparam PINK         = 3'd5;
+    
+    
+
 
     reg [2:0] num_history;
 
@@ -46,6 +58,15 @@ module corner_detect
     reg [9:0] bot_right_prev [0:1];
 
     reg VGA_VS_prev;
+
+    assign top_left_prev_x = top_left_prev[x];
+    assign top_left_prev_y = top_left_prev[y];
+    assign top_right_prev_x = top_right_prev[x];
+    assign top_right_prev_y = top_right_prev[y];
+    assign bot_left_prev_x = bot_left_prev[x];
+    assign bot_left_prev_y = bot_left_prev[y];
+    assign bot_right_prev_x = bot_right_prev[x];
+    assign bot_right_prev_y = bot_right_prev[y];
 
     //encode # 1's in color_histor
     always @(color_history) begin
