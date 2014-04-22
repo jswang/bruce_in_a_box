@@ -266,31 +266,3 @@ module corner_detect
     end
 
 endmodule 
-    //Corners: 
-    /**
-        edge case: perfectly aligned square
-            1: topmost and leftmost
-
-        otherwise: 
-            1: topmost
-            2: rightmost
-            3: bottomost
-            4: leftmost
-    
-    Find the left most, right most, up, down coordinates
-    If this pixel is green:
-        read from sram and write back the current value
-        if it has been green for the past 4 frames: 
-            consider for min/maxing
-
-    Determine where corners are
-    if (area around ideal corners > threshold * #green_pixels) {
-        use perfect case: (left, up), (left, down), (right, up), (right, down)
-    }
-    else {
-        use original edge coordinates: (left, ), (right, ), ( , up), ( , down)
-    }
-
-    must keep track of all of the pixels marked as green. see if portion is ok
-
-    */

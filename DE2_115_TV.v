@@ -787,6 +787,7 @@ wire [9:0] top_right [0:1];
 wire [9:0] bot_left [0:1];
 wire [9:0] bot_right [0:1];
 
+
 //Y, Cb, Cr are synced up with RGB out of the VGA controller.
 //Y, Cb, Cr are synced up wtih X and Y out of the VGA controller
 corner_detect corner_detect (
@@ -824,6 +825,28 @@ corner_detect corner_detect (
 	.write_addr(color_write_addr), 
 	.test_led(LEDG[7:0])
 );
+
+///----------harris corner detector
+wire VGA_BLANK_d3;
+delay #(.DATA_WIDTH(1), .DELAY(3)) VGA_BLANK_delay
+( 
+	.clk 		(VGA_CLK), 
+	.data_in 	(!VGA_BLANK_N_), 
+	.data_out 	(VGA_BLANK_d3)
+);
+harris_corner_detect harris_corner_detect(
+	.clk(VGA_CLK), 
+	.reset(reset), 
+	.VGA_BLANK(VGA_BLANK_d3), 
+	.VGA_VS(VGA_VS_d3), 
+	.color_detected(corner_), 
+	.addr_in_x(color_just_read_x), 
+	.addr_in_y(color_just_read_y), 
+	.corner_detected(), 
+	.addr_corner_x(), 
+	.addr_corner_y()
+);
+//---------------------
 
 delay #( .DATA_WIDTH(3), .DELAY(17) ) corner_delay
 ( 
