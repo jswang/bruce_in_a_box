@@ -14,6 +14,8 @@ module corner_detect
     input [7:0]         threshold_Cb,
     input [7:0]         threshold_Cr,
     input [1:0]         threshold_history,
+    input [7:0]         threshold_x_diff, 
+    input [7:0]         threshold_y_diff,
 
     output reg [2:0]    corner_detected, 
     output  [9:0]    top_left_prev_x,
@@ -45,19 +47,25 @@ module corner_detect
 
     reg [2:0] num_history;
 
-    reg [9:0] x_max, x_min, y_max, y_min;
-    reg [9:0] top_left  [0:1];
-    reg [9:0] top_right [0:1];
-    reg [9:0] bot_left  [0:1];
-    reg [9:0] bot_right [0:1];
+    reg unsigned [9:0] x_max, x_min, y_max, y_min;
+    reg unsigned [9:0] top_left  [0:1];
+    reg unsigned [9:0] top_right [0:1];
+    reg unsigned [9:0] bot_left  [0:1];
+    reg unsigned [9:0] bot_right [0:1];
 
-    reg [9:0] x_max_prev, x_min_prev, y_max_prev, y_min_prev;
-    reg [9:0] top_left_prev  [0:1];
-    reg [9:0] top_right_prev [0:1];
-    reg [9:0] bot_left_prev  [0:1];
-    reg [9:0] bot_right_prev [0:1];
+    reg unsigned [9:0] x_max_prev, x_min_prev, y_max_prev, y_min_prev;
+    reg unsigned [9:0] top_left_prev  [0:1];
+    reg unsigned [9:0] top_right_prev [0:1];
+    reg unsigned [9:0] bot_left_prev  [0:1];
+    reg unsigned [9:0] bot_right_prev [0:1];
 
     reg VGA_VS_prev;
+
+    wire signed [10:0] x_max_signed, x_min_signed, y_max_signed, y_min_signed; 
+    assign x_max_signed = {1'b0, x_max};
+    assign x_min_signed = {1'b0, x_min};
+    assign y_max_signed = {1'b0, y_max};
+    assign y_min_signed = {1'b0, y_min};
 
     assign top_left_prev_x = top_left_prev[x];
     assign top_left_prev_y = top_left_prev[y];
@@ -122,6 +130,7 @@ module corner_detect
         else begin
             //Falling edge of VS
             if (VGA_VS_prev && ~VGA_VS) begin
+
                 x_max_prev           <= x_max; 
                 x_min_prev           <= x_min;
                 y_max_prev           <= y_max;
@@ -134,6 +143,50 @@ module corner_detect
                 bot_left_prev[y]     <= bot_left[y];
                 bot_right_prev[x]    <= bot_right[x];
                 bot_right_prev[y]    <= bot_right[y];
+
+                //If top left y too close to top right y = same y, max/min x
+                //if top left x too close to bottom left x = same x,  max/min y
+
+                //if bot right y too close to bottom left y = same y, max/min x
+                //if bot right x too close to top right x = same x, max/min y
+                if ( (top_left[y] < top_right[y] && top_right[y] - top_left[y] <= threshold_y_diff)
+                    || (top_right[y] < top_left[y] && top_left[y] - top_right[y] <= threshold_y_diff)
+                    || (top_left[y] == top_right[y]) ) begin
+                        top_left_prev[x] <= x_min;
+                        top_right_prev[x] <= x_max;
+                        top_left_prev[y] <= y_min;
+                        top_right_prev[y] <= y_min;
+                    end
+
+                if ( (top_left[x] < bot_left[x] && bot_left[x] - top_left[x] <= threshold_x_diff)
+                    || (bot_left[x] < top_left[x] && top_left[x] - bot_left[x] <= threshold_x_diff)
+                    || (top_left[x] == bot_left[x]) ) begin
+                        top_left_prev[x] <= x_min;
+                        bot_left_prev[x] <= x_min;
+                        top_left_prev[y] <= y_min;
+                        bot_left_prev[y] <= y_max;
+                    end
+                    
+
+                if ((bot_right[y] < bot_left[y] && bot_left[y] - bot_right[y] <= threshold_y_diff)
+                    || (bot_left[y] < bot_right[y] && bot_right[y] - bot_left[y] <= threshold_y_diff)
+                    || (bot_right[y] == bot_left[y]) ) begin
+                        bot_right_prev[x] <= x_max;
+                        bot_left_prev[x] <= x_min;
+                        bot_right_prev[y] <= y_max;
+                        bot_left_prev[y] <= y_max;
+                    end
+
+                if ((bot_right[x] < top_right[x] && top_right[x] - bot_right[x] <= threshold_x_diff)
+                    || (top_right[x] < bot_right[x] && bot_right[x] - top_right[x] <= threshold_x_diff)
+                    || (bot_right[x] == top_right[x]) ) begin
+                        bot_right_prev[x] <= x_max;
+                        top_right_prev[x] <= x_max;
+                        bot_right_prev[y] <= y_max;
+                        top_right_prev[y] <= y_min;
+                    end
+
+                //Reset for next frame of VGA screen
                 x_max           <= 10'd0; 
                 x_min           <= 10'd639;
                 y_max           <= 10'd0;

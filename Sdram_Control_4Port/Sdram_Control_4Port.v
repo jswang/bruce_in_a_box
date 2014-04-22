@@ -360,7 +360,7 @@ begin
 		default:	
 			begin	
 				if(ST!=SC_CL+SC_RCD+mLENGTH+1)
-				ST<=ST+1;
+				ST<=ST+10'd1;
 				else
 				ST<=0;
 			end

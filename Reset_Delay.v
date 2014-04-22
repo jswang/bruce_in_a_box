@@ -19,7 +19,7 @@ begin
 	else
 	begin
 		if(Cont!=22'h3FFFFF)
-		Cont	<=	Cont+1;
+		Cont	<=	Cont+22'd1;
 		if(Cont>=22'h1FFFFF)
 		oRST_0	<=	1;
 		if(Cont>=22'h2FFFFF)

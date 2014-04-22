@@ -802,10 +802,11 @@ corner_detect corner_detect (
 	.read_x(color_just_read_x), 
 	.read_y(color_just_read_y),
 
-	.threshold_Cb(SW[15:8]),
-	.threshold_Cr(SW[7:0]),
+	.threshold_Cb(8'b01111100), //SW[15:8]
+	.threshold_Cr(8'b01111000), //SW[7:0] 
 	.threshold_history(SW[17:16]),
-
+	.threshold_x_diff(SW[15:8]), 
+	.threshold_y_diff(SW[7:0]),
 
 	.corner_detected(corner_), //Is this pixel a corner?
 	.top_left_prev_x(top_left[x]), 

@@ -121,7 +121,7 @@ begin
 		Data_Valid	<=	1'b0;
 		//	TV decoder line counter for one field
 		if(FVAL && SAV)
-		TV_Y<=	TV_Y+1;
+		TV_Y<=	TV_Y+10'd1;
 		if(!FVAL)
 		TV_Y<=	0;
 		//	Data counter for one field

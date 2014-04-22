@@ -122,7 +122,7 @@ always @(posedge CLK or negedge RESET_N) begin
 				end
 				else if (INIT_REQ == 1)
 				begin
-                	timer <= REF_PER+200;
+                	timer <= REF_PER+16'd200;
 					REF_REQ	<=0;					
 				end
                 else
@@ -147,7 +147,7 @@ always @(posedge CLK or negedge RESET_N) begin
         else 
         begin
                 if (init_timer < (INIT_PER+201))
-					init_timer 	<= init_timer+1;
+					init_timer 	<= init_timer+16'd1;
 					
 				if (init_timer < INIT_PER)
 				begin
