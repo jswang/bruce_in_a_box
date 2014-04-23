@@ -40,11 +40,11 @@ module squarer (
 	dataa,
 	result);
 
-	input	[16:0]  dataa;
-	output	[33:0]  result;
+	input	[12:0]  dataa;
+	output	[25:0]  result;
 
-	wire [33:0] sub_wire0;
-	wire [33:0] result = sub_wire0[33:0];
+	wire [25:0] sub_wire0;
+	wire [25:0] result = sub_wire0[25:0];
 
 	altsquare	altsquare_component (
 				.data (dataa),
@@ -53,11 +53,11 @@ module squarer (
 				.clock (1'b1),
 				.ena (1'b1));
 	defparam
-		altsquare_component.data_width = 17,
+		altsquare_component.data_width = 13,
 		altsquare_component.lpm_type = "ALTSQUARE",
 		altsquare_component.pipeline = 0,
 		altsquare_component.representation = "SIGNED",
-		altsquare_component.result_width = 34;
+		altsquare_component.result_width = 26;
 
 
 endmodule
@@ -75,23 +75,23 @@ endmodule
 // Retrieval info: PRIVATE: SignedMult NUMERIC "1"
 // Retrieval info: PRIVATE: USE_MULT NUMERIC "0"
 // Retrieval info: PRIVATE: ValidConstant NUMERIC "0"
-// Retrieval info: PRIVATE: WidthA NUMERIC "17"
+// Retrieval info: PRIVATE: WidthA NUMERIC "13"
 // Retrieval info: PRIVATE: WidthB NUMERIC "8"
-// Retrieval info: PRIVATE: WidthP NUMERIC "34"
+// Retrieval info: PRIVATE: WidthP NUMERIC "26"
 // Retrieval info: PRIVATE: aclr NUMERIC "0"
 // Retrieval info: PRIVATE: clken NUMERIC "0"
 // Retrieval info: PRIVATE: new_diagram STRING "1"
 // Retrieval info: PRIVATE: optimize NUMERIC "0"
 // Retrieval info: LIBRARY: lpm lpm.lpm_components.all
-// Retrieval info: CONSTANT: DATA_WIDTH NUMERIC "17"
+// Retrieval info: CONSTANT: DATA_WIDTH NUMERIC "13"
 // Retrieval info: CONSTANT: LPM_TYPE STRING "ALTSQUARE"
 // Retrieval info: CONSTANT: PIPELINE NUMERIC "0"
 // Retrieval info: CONSTANT: REPRESENTATION STRING "SIGNED"
-// Retrieval info: CONSTANT: RESULT_WIDTH NUMERIC "34"
-// Retrieval info: USED_PORT: dataa 0 0 17 0 INPUT NODEFVAL "dataa[16..0]"
-// Retrieval info: USED_PORT: result 0 0 34 0 OUTPUT NODEFVAL "result[33..0]"
-// Retrieval info: CONNECT: @data 0 0 17 0 dataa 0 0 17 0
-// Retrieval info: CONNECT: result 0 0 34 0 @result 0 0 34 0
+// Retrieval info: CONSTANT: RESULT_WIDTH NUMERIC "26"
+// Retrieval info: USED_PORT: dataa 0 0 13 0 INPUT NODEFVAL "dataa[12..0]"
+// Retrieval info: USED_PORT: result 0 0 26 0 OUTPUT NODEFVAL "result[25..0]"
+// Retrieval info: CONNECT: @data 0 0 13 0 dataa 0 0 13 0
+// Retrieval info: CONNECT: result 0 0 26 0 @result 0 0 26 0
 // Retrieval info: GEN_FILE: TYPE_NORMAL squarer.v TRUE
 // Retrieval info: GEN_FILE: TYPE_NORMAL squarer.inc FALSE
 // Retrieval info: GEN_FILE: TYPE_NORMAL squarer.cmp FALSE

@@ -667,32 +667,23 @@ VGA_Ctrl			u9	(	//	Host Side
 							.iCLK(TD_CLK27),
 							.iRST_N(DLY2)	);
 
-//Sobel filtering-------------------
-wire [23:0] x00, x01, x02, 
-			x10, x11, x12, 
-			x20, x21, x22;
-wire edge_detected_, edge_detected;
-buffer3 #(.p_bit_width_in(24)) buffer (
+wire signed [17:0] harris_feature_, harris_feature;
+//Corner detection based on RGB values
+harris_corner_detect find_corners(
 	.clk(VGA_CLK), 
-	.clken(VGA_BLANK_N_), 
-	.shiftin({vga_r10[9:2],vga_g10[9:2],vga_b10[9:2]}), 
-	.oGrid({x00, x01, x02, 
-			x10, x11, x12, 
-			x20, x21, x22})
+	.reset(reset), 
+	.clk_en(VGA_BLANK_N_), 
+	.VGA_R(vga_r10[9:2]),
+	.VGA_G(vga_g10[9:2]),
+	.VGA_B(vga_b10[9:2]),
+	.threshold({2'b11, 16'd0}),  //not used except for edge dectection
+	.harris_feature(harris_feature_)
 );
-sobel sobel (
-	.clk(VGA_CLK), 
-	.threshold(SW[17:0]),
-	.x00(x00), .x01(x01), .x02(x02), 
-	.x10(x10), .x11(x11), .x12(x12), 
-	.x20(x20), .x21(x21), .x22(x22),
-	.p(edge_detected_) 
-);
-delay #(.DATA_WIDTH(1), .DELAY(20)) delay_edge_detected
+delay #(.DATA_WIDTH(18), .DELAY(20)) delay_harris_feature
 (
 	.clk(VGA_CLK), 
-	.data_in(edge_detected_), 
-	.data_out(edge_detected)
+	.data_in(harris_feature_), 
+	.data_out(harris_feature)
 );
 
 
@@ -872,11 +863,12 @@ localparam BOTTOM_LEFT = 3'd3;
 localparam BOTTOM_RIGHT = 3'd4;
 localparam PINK = 3'd5;
 
+wire signed threshold = SW[17:0];
 always @ (*) begin
 	// case (SW[17:16])
 	// 	//gradient
 	// 	2'd1: begin
-			if (edge_detected) begin
+			if (harris_feature > threshold) begin
 				VGA_R = 8'hFF;
 				VGA_G = 8'hFF;
 				VGA_B = 8'h00;

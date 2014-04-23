@@ -21,84 +21,104 @@ module testbench ();
     always begin
         #19 clk_VGA = !clk_VGA;
     end
-    reg [9:0] VGA_X, VGA_Y;
+    
+    reg [9:0] mRed, mGreen, mBlue;
+    wire [9:0] VGA_X, VGA_Y;
+    wire [9:0] vga_r10, vga_g10, vga_b10;
+    wire [21:0] VGA_Addr_full; 
+    wire VGA_Read, VGA_HS_, VGA_VS_, VGA_SYNC_N_, VGA_BLANK_N_, VGA_CLK;
+
 
     always @ (posedge clk_50) begin
         if (reset) begin
           index <= 32'd0;
+          mRed  <= 10'd0;
+          mGreen  <= 10'd0;
+          mBlue  <= 10'd0;
+
         end
+        /**
+            0 0 0 0 0 ... [0, 639]
+            0 0 1 1 1 ... [640, 1279]
+            0 0 1 1 1 ... [1280, 1919]
+            0 0 1 1 1 ... [1920, 2559]
+            0 0 0 0 0 ... [2560, 3199]
+            . . . . .
+            . . . . .
+            . . . . . 
+        */
         else begin
             index <= index + 32'd1;
-            case (index) 
-                32'd0: begin
-                    VGA_X <= 10'd0;
-                    VGA_Y <= 10'd0;
-                end
-                32'd160000: begin
-                    VGA_X <= 10'd10; 
-                    VGA_Y <= 10'd20;
-                end
-                32'd160001: begin
-                    VGA_X <= 10'd30; 
-                    VGA_Y <= 10'd40;
-                end
-                32'd160002: begin
-                    VGA_X <= 10'd50; 
-                    VGA_Y <= 10'd60;
-                end
-                32'd160003: begin
-                    VGA_X <= 10'd70; 
-                    VGA_Y <= 10'd80;
-                end
-                32'd160004: begin
-                    VGA_X <= 10'd90; 
-                    VGA_Y <= 10'd100;
-                end
+            if (index < 642) begin
+                mRed <= 10'd0;
+                mGreen <= 10'd0;
+                mBlue <= 10'd0;
+            end
+            else if (index >= 642 && index <1280) begin
+                mRed <= {8'd255, 2'd0}; 
+                mGreen <= {8'd255, 2'd0};
+                mBlue <= {8'd255, 2'd0};
+            end
+            else if (index >=1280 && index < 1282) begin
+                mRed <= 10'd0;
+                mGreen <= 10'd0;
+                mBlue <= 10'd0;
+            end
+            else if (index >= 1282 && index <1920) begin
+                mRed <= {8'd255, 2'd0}; 
+                mGreen <= {8'd255, 2'd0};
+                mBlue <= {8'd255, 2'd0};
+            end
 
-                default: begin
-
-                end
-            endcase  
+            else if (index >=1920 && index < 1922) begin
+                mRed <= 10'd0;
+                mGreen <= 10'd0;
+                mBlue <= 10'd0;
+            end
+            else if (index >= 1922 && index <2560) begin
+                mRed <= {8'd255, 2'd0}; 
+                mGreen <= {8'd255, 2'd0};
+                mBlue <= {8'd255, 2'd0};
+            end
+            else begin
+                mRed <= 10'd0;
+                mGreen <= 10'd0;
+                mBlue <= 10'd0;
+            end
         end
     end
 
-    wire [9:0] VGA_X_d2, VGA_Y_d2;
-    //Delay the VGA_X and VGA_Y so that it syncs with history reading
-    delay #( .DATA_WIDTH(10), .DELAY(2) ) vga_x_delay
-    (
-        .clk        (clk_50), 
-        .data_in    (VGA_X), 
-        .data_out   (VGA_X_d2)
-    );
-    delay #( .DATA_WIDTH(10), .DELAY(2) ) vga_y_delay
-    (
-        .clk        (clk_50), 
-        .data_in    (VGA_Y), 
-        .data_out   (VGA_Y_d2)
-    );
+    VGA_Ctrl         u9  (   //  Host Side
+                            .iRed(mRed),
+                            .iGreen(mGreen),
+                            .iBlue(mBlue),
+                            .oCurrent_X(VGA_X),
+                            .oCurrent_Y(VGA_Y),
+                            .oAddress(VGA_Addr_full), 
+                            .oRequest(VGA_Read),
+                            //  VGA Side
+                            .oVGA_R(vga_r10 ),
+                            .oVGA_G(vga_g10 ),
+                            .oVGA_B(vga_b10 ),
+                            .oVGA_HS(VGA_HS_),
+                            .oVGA_VS(VGA_VS_),
+                            .oVGA_SYNC(VGA_SYNC_N_),
+                            .oVGA_BLANK(VGA_BLANK_N_),
+                            .oVGA_CLOCK(VGA_CLK),
+                            //  Control Signal
+                            .iCLK(clk_VGA),
+                            .iRST_N(!reset)   );
 
-    //Read the history of this (x,y) pixel
-    reg [9:0]   color_write_x, color_write_y;
-    reg [3:0]   color_write_data;
-    wire [3:0]  color_read_data;
-    reg         color_we;
-    wire        color_data_valid;
-    wire [9:0]  just_read_x, just_read_y;
-    color_history color_hist (
-        .clk(clk_50), 
+    wire signed [17:0] harris_feature;
+    //Corner detection based on RGB values
+    harris_corner_detect find_corners(
+        .clk(clk_VGA), 
         .reset(reset), 
-        .read_x(VGA_X), 
-        .read_y(VGA_Y), 
-        .write_x(color_write_x), 
-        .write_y(color_write_y), 
-        .write_data(color_write_data), 
-        .write_en(color_we), 
-
-        .read_data(color_read_data), 
-        .data_valid(color_data_valid), 
-        .just_read_x(just_read_x), 
-        .just_read_y(just_read_y)
+        .clk_en(VGA_BLANK_N_), 
+        .VGA_R(vga_r10[9:2]),
+        .VGA_G(vga_g10[9:2]),
+        .VGA_B(vga_b10[9:2]),
+        .threshold({2'b11, 16'd0}),  //not used except for edge dectection
+        .harris_feature(harris_feature)
     );
-
-
 endmodule
