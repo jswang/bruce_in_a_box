@@ -17,6 +17,7 @@ module corner_detect
     input [7:0]         threshold_x_diff, 
     input [7:0]         threshold_y_diff,
 
+    output reg          green,
     output reg [2:0]    corner_detected, 
     output  [9:0]    top_left_prev_x,
     output  [9:0]    top_left_prev_y,
@@ -126,6 +127,7 @@ module corner_detect
             bot_right[x]    <= 10'd0;
             bot_right[y]    <= 10'd0;
             corner_detected <= NONE;
+            green           <= 1'b0;
         end
         else begin
             //Falling edge of VS
@@ -204,6 +206,7 @@ module corner_detect
             else begin
                 if (Cb < threshold_Cb && Cr < threshold_Cr && num_history > threshold_history) begin
                     corner_detected             <= PINK;
+                    green                       <= 1'b1;
                     updated_color_history[3:1]  <= color_history[2:0];
                     updated_color_history[0]    <= (Cb < threshold_Cb && Cr < threshold_Cr);
                     write_addr                  <= read_addr;
@@ -255,6 +258,7 @@ module corner_detect
 
                 else begin
                     corner_detected             <= NONE;
+                    green                       <= 1'b0;
                     updated_color_history[3:1]  <= color_history[2:0];
                     updated_color_history[0]    <= (Cb < threshold_Cb && Cr < threshold_Cr);
                     write_addr                  <= read_addr;

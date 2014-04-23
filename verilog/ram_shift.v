@@ -45,14 +45,14 @@ module ram_shift (
 
 	input	  aclr;
 	input	  clock;
-	input	[20:0]  shiftin;
-	output	[20:0]  shiftout;
-	output	[104:0]  taps;
+	input	[23:0]  shiftin;
+	output	[23:0]  shiftout;
+	output	[119:0]  taps;
 
-	wire [20:0] sub_wire0;
-	wire [104:0] sub_wire1;
-	wire [20:0] shiftout = sub_wire0[20:0];
-	wire [104:0] taps = sub_wire1[104:0];
+	wire [23:0] sub_wire0;
+	wire [119:0] sub_wire1;
+	wire [23:0] shiftout = sub_wire0[23:0];
+	wire [119:0] taps = sub_wire1[119:0];
 
 	altshift_taps	ALTSHIFT_TAPS_component (
 				.aclr (aclr),
@@ -72,7 +72,7 @@ module ram_shift (
 		ALTSHIFT_TAPS_component.number_of_taps = 5,
 		ALTSHIFT_TAPS_component.power_up_state = "CLEARED",
 		ALTSHIFT_TAPS_component.tap_distance = 640,
-		ALTSHIFT_TAPS_component.width = 21;
+		ALTSHIFT_TAPS_component.width = 24;
 
 
 endmodule
@@ -88,17 +88,17 @@ endmodule
 // Retrieval info: CONSTANT: NUMBER_OF_TAPS NUMERIC "5"
 // Retrieval info: CONSTANT: POWER_UP_STATE STRING "CLEARED"
 // Retrieval info: CONSTANT: TAP_DISTANCE NUMERIC "640"
-// Retrieval info: CONSTANT: WIDTH NUMERIC "21"
+// Retrieval info: CONSTANT: WIDTH NUMERIC "24"
 // Retrieval info: USED_PORT: aclr 0 0 0 0 INPUT NODEFVAL "aclr"
 // Retrieval info: CONNECT: @aclr 0 0 0 0 aclr 0 0 0 0
 // Retrieval info: USED_PORT: clock 0 0 0 0 INPUT NODEFVAL "clock"
 // Retrieval info: CONNECT: @clock 0 0 0 0 clock 0 0 0 0
-// Retrieval info: USED_PORT: shiftin 0 0 21 0 INPUT NODEFVAL "shiftin[20..0]"
-// Retrieval info: CONNECT: @shiftin 0 0 21 0 shiftin 0 0 21 0
-// Retrieval info: USED_PORT: shiftout 0 0 21 0 OUTPUT NODEFVAL "shiftout[20..0]"
-// Retrieval info: CONNECT: shiftout 0 0 21 0 @shiftout 0 0 21 0
-// Retrieval info: USED_PORT: taps 0 0 105 0 OUTPUT NODEFVAL "taps[104..0]"
-// Retrieval info: CONNECT: taps 0 0 105 0 @taps 0 0 105 0
+// Retrieval info: USED_PORT: shiftin 0 0 24 0 INPUT NODEFVAL "shiftin[23..0]"
+// Retrieval info: CONNECT: @shiftin 0 0 24 0 shiftin 0 0 24 0
+// Retrieval info: USED_PORT: shiftout 0 0 24 0 OUTPUT NODEFVAL "shiftout[23..0]"
+// Retrieval info: CONNECT: shiftout 0 0 24 0 @shiftout 0 0 24 0
+// Retrieval info: USED_PORT: taps 0 0 120 0 OUTPUT NODEFVAL "taps[119..0]"
+// Retrieval info: CONNECT: taps 0 0 120 0 @taps 0 0 120 0
 // Retrieval info: GEN_FILE: TYPE_NORMAL ram_shift.v TRUE FALSE
 // Retrieval info: GEN_FILE: TYPE_NORMAL ram_shift.qip TRUE FALSE
 // Retrieval info: GEN_FILE: TYPE_NORMAL ram_shift.bsf FALSE TRUE
