@@ -78,7 +78,7 @@ module harris_corner_detect (
     wire signed [3:0] x11_Iy, x12_Iy, x13_Iy,
     				  x21_Iy, x22_Iy, x23_Iy,
     			      x31_Iy, x32_Iy, x33_Iy;
-   	sobel #(.p_num_bits(1))point_x11 
+   	sobel #(.p_num_bits(1)) point_x11 
    	(
    		.x00(x00), 
 		.x01(x01), 
@@ -93,7 +93,7 @@ module harris_corner_detect (
 		.Iy(x11_Iy)
    	);
            
-   	sobel point_x12 #(.p_num_bits(1))(
+   	sobel #(.p_num_bits(1)) point_x12(
    		.x00(x01), 
 		.x01(x02), 
 		.x02(x03), 
@@ -107,7 +107,7 @@ module harris_corner_detect (
 		.Iy(x12_Iy)
    	);
 
-   	sobel point_x13 #(.p_num_bits(1))(
+   	sobel #(.p_num_bits(1)) point_x13(
    		.x00(x02), 
 		.x01(x03), 
 		.x02(x04), 
@@ -121,7 +121,7 @@ module harris_corner_detect (
 		.Iy(x13_Iy)
    	);
 
-   	sobel point_x21 #(.p_num_bits(1))(
+   	sobel #(.p_num_bits(1))  point_x21(
    		.x00(x10), 
 		.x01(x11), 
 		.x02(x12), 
@@ -135,7 +135,7 @@ module harris_corner_detect (
 		.Iy(x21_Iy)
    	);
 
-   	sobel point_x22 #(.p_num_bits(1))(
+   	sobel #(.p_num_bits(1)) point_x22(
    		.x00(x11), 
 		.x01(x12), 
 		.x02(x13), 
@@ -149,7 +149,7 @@ module harris_corner_detect (
 		.Iy(x22_Iy)
    	);
 
-   	sobel point_x23 #(.p_num_bits(1))(
+   	sobel #(.p_num_bits(1)) point_x23(
    		.x00(x12), 
 		.x01(x13), 
 		.x02(x14), 
@@ -163,7 +163,7 @@ module harris_corner_detect (
 		.Iy(x23_Iy)
    	);
 
-   	sobel point_x31 #(.p_num_bits(1))(
+   	sobel #(.p_num_bits(1)) point_x31(
    		.x00(x20), 
 		.x01(x21), 
 		.x02(x22), 
@@ -177,7 +177,7 @@ module harris_corner_detect (
 		.Iy(x31_Iy)
    	);
 
-   	sobel point_x32 #(.p_num_bits(1))(
+   	sobel #(.p_num_bits(1)) point_x32 (
    		.x00(x21), 
 		.x01(x22), 
 		.x02(x23), 
@@ -191,7 +191,7 @@ module harris_corner_detect (
 		.Iy(x32_Iy)
    	);
 
-   	sobel point_x33 #(.p_num_bits(1))(
+   	sobel #(.p_num_bits(1)) point_x33 (
    		.x00(x22), 
 		.x01(x23), 
 		.x02(x24), 
@@ -205,7 +205,7 @@ module harris_corner_detect (
 		.Iy(x33_Iy)
    	);
 
-    harris_operator harris_x22 #(.p_num_bits_in(4)) (
+    harris_operator #(.p_num_bits_in(4)) harris_x22 (
         .x00_Ix(x11_Ix), 
         .x01_Ix(x12_Ix), 
         .x02_Ix(x13_Ix), 
