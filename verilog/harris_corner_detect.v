@@ -6,6 +6,7 @@ module harris_corner_detect (
 	input [7:0] VGA_G, 
 	input [7:0] VGA_B, 
 	input [17:0] threshold,
+	input [3:0] scale,
 	output signed [17:0] harris_feature
 );
 
@@ -139,6 +140,7 @@ module harris_corner_detect (
    	//Using 18 bits b/c multipliers are 9x9, should utilize fully
     harris_operator #(.p_num_bits_in(13)) harris_x22 
     (
+    	.scale(scale),
         .x00_Ix(Ix_x11), .x01_Ix(Ix_x12), .x02_Ix(Ix_x13), 
         .x10_Ix(Ix_x21), .x11_Ix(Ix_x22), .x12_Ix(Ix_x23), 
         .x20_Ix(Ix_x31), .x21_Ix(Ix_x32), .x22_Ix(Ix_x33), 

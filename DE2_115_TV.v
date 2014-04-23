@@ -677,6 +677,7 @@ harris_corner_detect find_corners(
 	.VGA_G(vga_g10[9:2]),
 	.VGA_B(vga_b10[9:2]),
 	.threshold({2'b11, 16'd0}),  //not used except for edge dectection
+	.scale(SW[3:0]),
 	.harris_feature(harris_feature_)
 );
 delay #(.DATA_WIDTH(18), .DELAY(20)) delay_harris_feature
@@ -863,7 +864,7 @@ localparam BOTTOM_LEFT = 3'd3;
 localparam BOTTOM_RIGHT = 3'd4;
 localparam PINK = 3'd5;
 
-wire signed threshold = SW[17:0];
+wire signed threshold = {4'd0, SW[17:4]};
 always @ (*) begin
 	// case (SW[17:16])
 	// 	//gradient
