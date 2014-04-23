@@ -667,6 +667,39 @@ VGA_Ctrl			u9	(	//	Host Side
 							.iCLK(TD_CLK27),
 							.iRST_N(DLY2)	);
 
+//Sobel filtering-------------------
+wire [23:0] x00, x01, x02, 
+			x10, x11, x12, 
+			x20, x21, x22;
+wire edge_detected_, edge_detected;
+buffer3 #(.p_bit_width_in(24)) buffer (
+	.clk(VGA_CLK), 
+	.clken(VGA_BLANK_N_), 
+	.shiftin({vga_r10[9:2],vga_g10[9:2],vga_b10[9:2]}), 
+	.oGrid({x00, x01, x02, 
+			x10, x11, x12, 
+			x20, x21, x22})
+);
+sobel sobel (
+	.clk(VGA_CLK), 
+	.threshold(SW[17:0]),
+	.x00(x00), .x01(x01), .x02(x02), 
+	.x10(x10), .x11(x11), .x12(x12), 
+	.x20(x20), .x21(x21), .x22(x22),
+	.p(edge_detected_) 
+);
+delay #(.DATA_WIDTH(1), .DELAY(20)) delay_edge_detected
+(
+	.clk(VGA_CLK), 
+	.data_in(edge_detected_), 
+	.data_out(edge_detected)
+);
+
+
+
+//---------------------------------
+
+
 //Delay the VGA control signals for the VGA Side
 delay #( .DATA_WIDTH(1), .DELAY(20) ) d0
 ( 
@@ -786,12 +819,8 @@ wire [9:0] top_left [0:1];
 wire [9:0] top_right [0:1];
 wire [9:0] bot_left [0:1];
 wire [9:0] bot_right [0:1];
-
-
 //Y, Cb, Cr are synced up with RGB out of the VGA controller.
 //Y, Cb, Cr are synced up wtih X and Y out of the VGA controller
-
-wire color_detected;
 corner_detect corner_detect (
 	.clk(VGA_CLK), 
 	.reset(reset), 
@@ -812,7 +841,7 @@ corner_detect corner_detect (
 	.threshold_y_diff(8'd4),
 
 	.corner_detected(corner_), //Is this pixel a corner?
-	.green(color_detected), //hack for the harris detector
+	.green(), //hack for the harris detector
 	.top_left_prev_x(top_left[x]), 
 	.top_right_prev_x(top_right[x]), 
 	.bot_left_prev_x(bot_left[x]), 
@@ -828,85 +857,6 @@ corner_detect corner_detect (
 	.write_addr(color_write_addr), 
 	.test_led(LEDG[7:0])
 );
-
-///----------harris corner detector
-wire VGA_BLANK_d3;
-wire harris_corner_detected_, harris_corner_detected;
-wire [9:0] harris_corner_addr_x_, harris_corner_addr_x, harris_corner_addr_y_, harris_corner_addr_y;
-delay #(.DATA_WIDTH(1), .DELAY(3)) VGA_BLANK_delay
-( 
-	.clk 		(VGA_CLK), 
-	.data_in 	(!VGA_BLANK_N_), 
-	.data_out 	(VGA_BLANK_d3)
-);
-
-// wire signed [3:0] x_grad_, x_grad, y_grad_, y_grad;
-wire edge_detected_, edge_detected;
-harris_corner_detect harris_corner_detect(
-	.clk(VGA_CLK), 
-	.reset(reset), 
-	
-	.VGA_VS(VGA_VS_),
-	.VGA_R(vga_r10[9:2]), 
-	.VGA_G(vga_g10[9:2]),
-	.VGA_B(vga_b10[9:2]), 
-
-
-	.addr_in_x(VGA_X), 
-	.addr_in_y(VGA_Y), 
-	.edge_detected(edge_detected_)
-
-	// .threshold({2'b0, SW[15:0]}),
-
-	// .x22_Ix_out(x_grad_), 
-	// .x22_Iy_out(y_grad_),
-	// .corner_detected(harris_corner_detected_), 
-
-	// .addr_corner_x(harris_corner_addr_x_), 
-	// .addr_corner_y(harris_corner_addr_y_)
-);
-delay #(.DATA_WIDTH(1), .DELAY(19)) edge_detected_delay
-(
-	.clk(VGA_CLK), 
-	.data_in(edge_detected_), 
-	.data_out(edge_detected)
-);
-// delay #( .DATA_WIDTH(4), .DELAY(17) ) x_grad_delay
-// ( 
-// 	.clk 		(VGA_CLK), 
-// 	.data_in 	(x_grad_), 
-// 	.data_out 	(x_grad)
-// );
-// delay #( .DATA_WIDTH(4), .DELAY(17) ) y_grad_delay
-// ( 
-// 	.clk 		(VGA_CLK), 
-// 	.data_in 	(y_grad_), 
-// 	.data_out 	(y_grad)
-// );
-
-// delay #( .DATA_WIDTH(1), .DELAY(17) ) harris_corner_delay
-// ( 
-// 	.clk 		(VGA_CLK), 
-// 	.data_in 	(harris_corner_detected_), 
-// 	.data_out 	(harris_corner_detected)
-// );
-
-// delay #( .DATA_WIDTH(10), .DELAY(17) ) harris_corner_addr_x_delay
-// ( 
-// 	.clk 		(VGA_CLK), 
-// 	.data_in 	(harris_corner_addr_x_), 
-// 	.data_out 	(harris_corner_addr_x)
-// );
-
-// delay #( .DATA_WIDTH(10), .DELAY(17) ) harris_corner_addr_y_delay
-// ( 
-// 	.clk 		(VGA_CLK), 
-// 	.data_in 	(harris_corner_addr_y_), 
-// 	.data_out 	(harris_corner_addr_y)
-// );
-
-//---------------------
-
 delay #( .DATA_WIDTH(3), .DELAY(17) ) corner_delay
 ( 
 	.clk 		(VGA_CLK), 
@@ -922,37 +872,10 @@ localparam BOTTOM_LEFT = 3'd3;
 localparam BOTTOM_RIGHT = 3'd4;
 localparam PINK = 3'd5;
 
-//wire [4:0] x_grad_scaled;
-//assign x_grad_scaled = ({1'b0, x_grad} + 5'd8)<<4;
-//wire [4:0] y_grad_scaled;
-//assign y_grad_scaled = ({1'b0, y_grad} + 5'd8)<<4;
-
 always @ (*) begin
-	case (SW[17:16])
-		//normal operation
-		2'd0: begin
-			//Yellow: Harris corner
-			if (VGA_X_d20 < harris_corner_addr_x + 5 && VGA_X_d20 >= harris_corner_addr_x - 5
-			 && VGA_Y_d20 < harris_corner_addr_y + 5 && VGA_Y_d20 >= harris_corner_addr_y - 5) begin
-				VGA_R = 8'hFF;
-				VGA_G = 8'hFF;
-				VGA_B = 8'h00;
-			end
-			//Green area : pink
-			else if (corner) begin
-				VGA_R = 8'hFF;
-				VGA_G = 8'h00;
-				VGA_B = 8'hFF;
-			end
-			
-			else begin
-				VGA_R = VGA_R_;
-				VGA_G = VGA_G_;
-				VGA_B = VGA_B_;
-			end
-		end
-
-		2'd1: begin
+	// case (SW[17:16])
+	// 	//gradient
+	// 	2'd1: begin
 			if (edge_detected) begin
 				VGA_R = 8'hFF;
 				VGA_G = 8'hFF;
@@ -963,29 +886,29 @@ always @ (*) begin
 				VGA_G = 8'h00;
 				VGA_B = 8'h00;
 			end
-		end
-		//normal operation
-		default: begin
-			//Yellow: Harris corner
-			if (VGA_X_d20 == harris_corner_addr_x && VGA_Y_d20 == harris_corner_addr_y) begin
-				VGA_R = 8'hFF;
-				VGA_G = 8'hFF;
-				VGA_B = 8'h00;
-			end
-			//Green area : pink
-			else if (corner) begin
-				VGA_R = 8'hFF;
-				VGA_G = 8'h00;
-				VGA_B = 8'hFF;
-			end
+		// end
+		// //normal operation
+		// default: begin
+		// 	//Yellow: Harris corner
+		// 	if (VGA_X_d20 == harris_corner_addr_x && VGA_Y_d20 == harris_corner_addr_y) begin
+		// 		VGA_R = 8'hFF;
+		// 		VGA_G = 8'hFF;
+		// 		VGA_B = 8'h00;
+		// 	end
+		// 	//Green area : pink
+		// 	else if (corner) begin
+		// 		VGA_R = 8'hFF;
+		// 		VGA_G = 8'h00;
+		// 		VGA_B = 8'hFF;
+		// 	end
 			
-			else begin
-				VGA_R = VGA_R_;
-				VGA_G = VGA_G_;
-				VGA_B = VGA_B_;
-			end
-		end
-	endcase
+		// 	else begin
+		// 		VGA_R = VGA_R_;
+		// 		VGA_G = VGA_G_;
+		// 		VGA_B = VGA_B_;
+		// 	end
+		// end
+	// endcase
 	
 	// //Red: top left
 	// if (VGA_X_d20 < top_left[x] + 5 && VGA_X_d20 >= top_left[x] - 5
@@ -1030,9 +953,6 @@ always @ (*) begin
 	// end
 		
 end
-// assign VGA_R = corner ? 8'hFF : VGA_R_;
-// assign VGA_G = corner ? 8'h00 : VGA_G_;
-// assign VGA_B = corner ? 8'hFF : VGA_B_;
 
 //	Line buffer, delay one line
 Line_Buffer u10	(	.aclr(!DLY0),

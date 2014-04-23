@@ -2,6 +2,7 @@ module harris_corner_detect (
 	input clk, 
 	input reset, 
 	input VGA_VS,
+	input clk_en,
 	input [7:0] VGA_R, 
 	input [7:0] VGA_G, 
 	input [7:0] VGA_B, 
@@ -22,8 +23,11 @@ module harris_corner_detect (
 		if (reset) begin
 			buf_shift_en <= 1'b0;
 		end
-		else if (addr_in_x < 10'd639 && addr_in_y < 10'd479) begin
+		else if (clk_en) begin
 			buf_shift_en <= 1'b1;
+		end
+		else begin
+			buf_shift_en <= 1'b0;
 		end
 	end
 

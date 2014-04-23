@@ -1,5 +1,6 @@
 module sobel (
     input clk,
+    input [17:0] threshold, //orignally {2'b11,15'd0}
     // input [7:0] thres,
     input [23:0] x00, x01, x02, x10, x11, x12, x20, x21, x22,
     output reg  p
@@ -55,7 +56,7 @@ module sobel (
   begin
     Mx <= M00 - M02 + {M10,1'b0} - {M12,1'b0} + M20 - M22;
     My <= M00 + {M01,1'b0} + M02 - M20 - {M21,1'b0} - M22;
-    p  <= (Mx2+My2) > {2'b11,15'b0} ? 1'b1 : 1'b0;
+    p  <= (Mx2+My2) > threshold ? 1'b1 : 1'b0;
   end
 endmodule
 
