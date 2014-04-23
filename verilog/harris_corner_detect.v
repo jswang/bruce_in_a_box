@@ -13,6 +13,7 @@ module harris_corner_detect (
 
 	reg [9:0] 	pixel_count;
 	reg 		buf_shift_en;
+
 	always @ (posedge clk) begin
 		if (reset && VGA_BLANK) begin
 			if (pixel_count > 639)
@@ -40,33 +41,65 @@ module harris_corner_detect (
            x20, x21, x22, x23, x24,
            x30, x31, x32, x33, x34,
            x40, x41, x42, x43, x44;
+    reg    x00_full, x01_full, x02_full, x03_full, x04_full,
+           x10_full, x11_full, x12_full, x13_full, x14_full,
+           x20_full, x21_full, x22_full, x23_full, x24_full,
+           x30_full, x31_full, x32_full, x33_full, x34_full,
+           x40_full, x41_full, x42_full, x43_full, x44_full;
+
+    assign x00 = x00_full[0];
+    assign x01 = x01_full[0];
+    assign x02 = x02_full[0];
+    assign x03 = x03_full[0];
+    assign x04 = x04_full[0];
+    assign x10 = x10_full[0];
+    assign x11 = x11_full[0];
+    assign x12 = x12_full[0];
+    assign x13 = x13_full[0];
+    assign x14 = x14_full[0];
+    assign x20 = x20_full[0];
+    assign x21 = x21_full[0];
+    assign x22 = x22_full[0];
+    assign x23 = x23_full[0];
+    assign x24 = x24_full[0];
+    assign x30 = x30_full[0];
+    assign x31 = x31_full[0];
+    assign x32 = x32_full[0];
+    assign x33 = x33_full[0];
+    assign x34 = x34_full[0];
+    assign x40 = x40_full[0];
+    assign x41 = x41_full[0];
+    assign x42 = x42_full[0];
+    assign x43 = x43_full[0];
+    assign x44 = x44_full[0];
+
 
     always @ (posedge clk) begin
-    	  x00 <= x01;
-		  x01 <= x02;
-		  x02 <= x03;
-		  x03 <= x04;
-		  x04 <= color_detected;
-		  x10 <= x11;
-		  x11 <= x12;
-		  x12 <= x13;
-		  x13 <= x14;
-		  x14 <= tap1[0];
-		  x20 <= x21;
-		  x21 <= x22;
-		  x22 <= x23;
-		  x23 <= x24;
-		  x24 <= tap2[0];
-		  x30 <= x31;
-		  x31 <= x32;
-		  x32 <= x33;
-		  x33 <= x34;
-		  x34 <= tap3[0];
-		  x40 <= x41;
-		  x41 <= x42;
-		  x42 <= x43;
-		  x43 <= x44;
-		  x44 <= tap4[0];
+    	  x00_full <= x01_full;
+		  x01_full <= x02_full;
+		  x02_full <= x03_full;
+		  x03_full <= x04_full;
+		  x04_full <= color_detected;
+		  x10_full <= x11_full;
+		  x11_full <= x12_full;
+		  x12_full <= x13_full;
+		  x13_full <= x14_full;
+		  x14_full <= tap1[0];
+		  x20_full <= x21_full;
+		  x21_full <= x22_full;
+		  x22_full <= x23_full;
+		  x23_full <= x24_full;
+		  x24_full <= tap2[0];
+		  x30_full <= x31_full;
+		  x31_full <= x32_full;
+		  x32_full <= x33_full;
+		  x33_full <= x34_full;
+		  x34_full <= tap3[0];
+		  x40_full <= x41_full;
+		  x41_full <= x42_full;
+		  x42_full <= x43_full;
+		  x43_full <= x44_full;
+		  x44_full <= tap4[0];
 
     end
     localparam x = 0;
@@ -78,6 +111,8 @@ module harris_corner_detect (
     wire signed [3:0] x11_Iy, x12_Iy, x13_Iy,
     				  x21_Iy, x22_Iy, x23_Iy,
     			      x31_Iy, x32_Iy, x33_Iy;
+
+
    	sobel #(.p_num_bits(1))point_x11 
    	(
    		.x00(x00), 
@@ -205,6 +240,7 @@ module harris_corner_detect (
 		.Iy(x33_Iy)
    	);
 
+    wire signed [15:0] harris_feature;
     harris_operator harris_x22 #(.p_num_bits_in(4)) (
         .x00_Ix(x11_Ix), 
         .x01_Ix(x12_Ix), 
@@ -224,6 +260,14 @@ module harris_corner_detect (
         .x20_Iy(x31_Iy), 
         .x21_Iy(x32_Iy), 
         .x22_Iy(x33_Iy), 
+        .out(harris_feature)
     );
 
+    always @(posedge clk) begin
+        if (harris_feature > threshold) begin
+            corner_detected = 1'b1;
+            addr_corner_x = x22_full[20:11]; //todo not sure if this is correct place to get x value
+            addr_corner_y = x22_full[10:1];
+        end
+    end
 endmodule
