@@ -670,8 +670,7 @@ VGA_Ctrl	u9	(
 );
 
 wire [7:0] VGA_R_d3, VGA_G_d3, VGA_B_d3;
-wire [7:0] Cb_d3, Cr_d3;
-wire signed [53:0] harris_feature_, harris_feature;
+wire signed [51:0] harris_feature_, harris_feature;
 wire corner_detected_, corner_detected;
 wire VGA_BLANK_N_d3;
 
@@ -680,12 +679,6 @@ delay #( .DATA_WIDTH(24), .DELAY(3) ) delay_rgb_3
 	.clk 		(VGA_CLK), 
 	.data_in 	({vga_r10[9:2], vga_g10[9:2], vga_b10[9:2]}), 
 	.data_out 	({VGA_R_d3, VGA_G_d3, VGA_B_d3})
-);
-delay #(.DATA_WIDTH(16), .DELAY(3)) delay_CbCr_3
-(
-	.clk 		(VGA_CLK), 
-	.data_in 	({Cb, Cr}), 
-	.data_out   ({Cb_d3, Cr_d3})
 );
 delay #( .DATA_WIDTH(1), .DELAY(3) ) vga_blank_n
 (
@@ -696,14 +689,14 @@ delay #( .DATA_WIDTH(1), .DELAY(3) ) vga_blank_n
 harris_corner_detect find_corners(
 	.clk(VGA_CLK), 
 	.reset(reset), 
-	.clk_en(VGA_BLANK_N_d3), 
-	.VGA_R(VGA_R_d3), //vga_r10[9:2]
-	.VGA_G(VGA_G_d3), //vga_g10[9:2]
-	.VGA_B(VGA_B_d3), //vga_b10[9:2]
-	.scale({4'b0000, 4'b1111}),
+	.VGA_BLANK_N(VGA_BLANK_N_), 
+	.VGA_R(vga_r10[9:2]), //vga_r10[9:2]
+	.VGA_G(vga_g10[9:2]), //vga_g10[9:2]
+	.VGA_B(vga_b10[9:2]), //vga_b10[9:2]
+	.scale({4'b0000, SW[3:0]}),
 	.harris_feature(harris_feature_)
 );
-delay #(.DATA_WIDTH(53), .DELAY(17)) delay_harris_feature
+delay #(.DATA_WIDTH(52), .DELAY(20)) delay_harris_feature
 (
 	.clk(VGA_CLK), 
 	.data_in(harris_feature_), 
@@ -845,10 +838,10 @@ localparam BOTTOM_RIGHT = 3'd4;
 localparam PINK = 3'd5;
 
 always @ (*) begin
-	// case (SW[0])
+	case (SW[17])
 	// 	//gradient
-	// 	2'd0: begin
-			if (harris_feature > {1'b0, SW[17:0], 35'd0}) begin
+		1'd0: begin
+			if (harris_feature > {1'b0, 29'd0, SW[16:4], 9'd0}) begin
 				VGA_R = 8'hFF;
 				VGA_G = 8'hFF;
 				VGA_B = 8'h00;
@@ -858,7 +851,10 @@ always @ (*) begin
 				VGA_G = VGA_G_;
 				VGA_B = VGA_B_;
 			end
-	// 	end
+		end
+		1'd1: begin
+			
+		end
 	// 	//normal operation
 	// 	default: begin
 	// 		//Yellow: Harris corner
@@ -913,7 +909,13 @@ I2C_AV_Config 	u1	(	//	Host Side
 						.I2C_SCLK(I2C_SCLK),
 						.I2C_SDAT(I2C_SDAT)	);	
 
-
-
+//----------Read from the ROM------------//
+// rom_clocktower clocktower (
+// 	.clock(VGA_CLK), 
+// 	.address_a(), 
+// 	.address_b(), 
+// 	.q_a(), 
+// 	.q_b()
+// );
 endmodule
 
