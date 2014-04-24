@@ -669,11 +669,19 @@ VGA_Ctrl	u9	(
 	.iRST_N 	(DLY2)	
 );
 
-// wire signed [17:0] threshold = ;
 wire green;
 wire [7:0] rgb_mask;
 assign rgb_mask = green ? 8'd255 : 8'd0;
-wire signed [17:0] harris_feature_, harris_feature;
+wire [7:0] VGA_R_d3, VGA_G_d3, VGA_B_d3;
+//Delay RGB values
+delay #( .DATA_WIDTH(24), .DELAY(3) ) delay_rgb_3
+( 
+	.clk 		(VGA_CLK), 
+	.data_in 	({vga_r10[9:2], vga_g10[9:2], vga_b10[9:2]}), 
+	.data_out 	({VGA_R_d3, VGA_G_d3, VGA_B_d3})
+);
+
+wire signed [53:0] harris_feature_, harris_feature;
 wire corner_detected_, corner_detected;
 //Corner detection based on RGB values
 wire VGA_BLANK_N_d3;
@@ -687,14 +695,13 @@ harris_corner_detect find_corners(
 	.clk(VGA_CLK), 
 	.reset(reset), 
 	.clk_en(VGA_BLANK_N_d3), 
-	.VGA_R(rgb_mask), //vga_r10[9:2]
-	.VGA_G(rgb_mask), //vga_g10[9:2]
-	.VGA_B(rgb_mask), //vga_b10[9:2]
-	.threshold({4'd0, SW[17:4]}),
-	.scale({5'b00000, SW[3:2]}),
+	.VGA_R(VGA_R_d3), //vga_r10[9:2]
+	.VGA_G(VGA_G_d3), //vga_g10[9:2]
+	.VGA_B(VGA_B_d3), //vga_b10[9:2]
+	.scale({4'b0000, 4'b1111}),
 	.harris_feature(harris_feature_)
 );
-delay #(.DATA_WIDTH(18), .DELAY(17)) delay_harris_feature
+delay #(.DATA_WIDTH(53), .DELAY(17)) delay_harris_feature
 (
 	.clk(VGA_CLK), 
 	.data_in(harris_feature_), 
@@ -800,9 +807,9 @@ corner_detect corner_detect (
 	.read_x(color_just_read_x), 
 	.read_y(color_just_read_y),
 
-	.threshold_Cb(8'b01111100), //SW[15:8]
-	.threshold_Cr(8'b01111000), //SW[7:0] 
-	.threshold_history(2'b00), //SW[17:16]
+	.threshold_Cb(8'b01111100), 
+	.threshold_Cr(8'b01111000),
+	.threshold_history(2'b00), 
 
 	.corner_detected(corner_), //Is this pixel a corner?
 	.green(green), //hack for the harris detector
@@ -836,42 +843,42 @@ localparam BOTTOM_RIGHT = 3'd4;
 localparam PINK = 3'd5;
 
 always @ (*) begin
-	case (SW[0])
-		//gradient
-		2'd0: begin
-			if (harris_feature > {4'd0, SW[17:4]}) begin
+	// case (SW[0])
+	// 	//gradient
+	// 	2'd0: begin
+			if (harris_feature > {1'b0, SW[17:0], 35'd0}) begin
 				VGA_R = 8'hFF;
 				VGA_G = 8'hFF;
 				VGA_B = 8'h00;
 			end
 			else begin
-				VGA_R = 8'h00;
-				VGA_G = 8'h00;
-				VGA_B = 8'h00;
+				VGA_R = VGA_R_;
+				VGA_G = VGA_G_;
+				VGA_B = VGA_B_;
 			end
-		end
-		//normal operation
-		default: begin
-			//Yellow: Harris corner
-			if (harris_feature > {4'd0, SW[17:4]}) begin
-				VGA_R = 8'hFF;
-				VGA_G = 8'hFF;
-				VGA_B = 8'h00;
-			end
-			//Green area : pink
-			else if (corner) begin
-				VGA_R = 8'hFF;
-				VGA_G = 8'h00;
-				VGA_B = 8'hFF;
-			end
+	// 	end
+	// 	//normal operation
+	// 	default: begin
+	// 		//Yellow: Harris corner
+	// 		if (harris_feature > {4'd0, SW[17:4]}) begin
+	// 			VGA_R = 8'hFF;
+	// 			VGA_G = 8'hFF;
+	// 			VGA_B = 8'h00;
+	// 		end
+	// 		//Green area : pink
+	// 		else if (corner) begin
+	// 			VGA_R = 8'hFF;
+	// 			VGA_G = 8'h00;
+	// 			VGA_B = 8'hFF;
+	// 		end
 			
-			else begin
-				VGA_R = 8'h00;
-				VGA_G = 8'h00;
-				VGA_B = 8'h00;
-			end
-		end
-	endcase
+	// 		else begin
+	// 			VGA_R = VGA_R_;
+	// 			VGA_G = VGA_G_;
+	// 			VGA_B = VGA_B_;
+	// 		end
+	// 	end
+	// endcase
 end
 
 //	Line buffer, delay one line

@@ -4,10 +4,10 @@ module harris_corner_detect (
 	input clk_en,
 	input [7:0] VGA_R, 
 	input [7:0] VGA_G, 
-	input [7:0] VGA_B, 
-	input signed [17:0] threshold,
+	input [7:0] VGA_B,
 	input unsigned [7:0] scale,
-	output signed [17:0] harris_feature
+
+	output signed [53:0] harris_feature
 );
 
 	//5x5 Buffering
@@ -117,21 +117,29 @@ module harris_corner_detect (
    	);
 
    	//Perform Harris Operations
-   	//Max value of Ix and Iy are 4*(255*3) = 3060
-  
-    wire signed [25:0] x11_Ix_2, x12_Ix_2, x13_Ix_2, 
+    //max value of RorGorB: 255
+    //Max value of addition: 255*3 = 765
+    //Max value of Ix or Iy: 765*4 = 3060 (12b + sign = [12:0])
+    //Max value of Ix^2: 3060^2 =  9363600 (24b + sign bit = [24:0])
+    //Max value of A: 9*9363600 = 84272400 (27b + sign = [27:0])
+    //Max value of determinant: A*A = (53b + sign = [53:0])
+    //Max value of trace: 2*A = (28b + sign = [28:0])
+    //Max value of harris_feature: A*A = (53b + sign = [53:0])
+    wire signed [24:0] x11_Ix_2, x12_Ix_2, x13_Ix_2, 
                        x21_Ix_2, x22_Ix_2, x23_Ix_2,
                        x31_Ix_2, x32_Ix_2, x33_Ix_2;
 
     
-    wire signed [25:0] x11_Iy_2, x12_Iy_2, x13_Iy_2, 
+    wire signed [24:0] x11_Iy_2, x12_Iy_2, x13_Iy_2, 
                        x21_Iy_2, x22_Iy_2, x23_Iy_2, 
                        x31_Iy_2, x32_Iy_2, x33_Iy_2;
 
     
-    wire signed [25:0] x11_Ix_Iy, x12_Ix_Iy, x13_Ix_Iy, 
+    wire signed [24:0] x11_Ix_Iy, x12_Ix_Iy, x13_Ix_Iy, 
                        x21_Ix_Iy, x22_Ix_Iy, x23_Ix_Iy, 
                        x31_Ix_Iy, x32_Ix_Iy, x33_Ix_Iy;
+    wire signed [27:0] A, B, C;
+    wire signed [53:0] determinant, trace;
 
     assign x11_Ix_2 = x11_Ix * x11_Ix;
     assign x12_Ix_2 = x12_Ix * x12_Ix;
@@ -163,8 +171,6 @@ module harris_corner_detect (
     assign x32_Ix_Iy = x32_Ix * x32_Iy;
     assign x33_Ix_Iy = x33_Ix * x33_Iy;
 
-    wire signed [27:0] A, B, C;
-    wire signed [55:0] determinant, trace, harris_operator;
     assign A = x11_Ix_2 + x12_Ix_2 + x13_Ix_2
              + x21_Ix_2 + x22_Ix_2 + x23_Ix_2
              + x31_Ix_2 + x32_Ix_2 + x33_Ix_2; 
