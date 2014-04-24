@@ -1,7 +1,5 @@
 ///////////////////////////////////////////////////////
 // 5 Line Buffer with taps for use in edge detection //
-// Code from Cartoonifier Project. 
-// Modified for use by Julie Wang jsw267@cornell.edu
 ///////////////////////////////////////////////////////
 
 module buffer5

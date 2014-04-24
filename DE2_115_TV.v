@@ -684,13 +684,13 @@ harris_corner_detect find_corners(
 	.harris_feature(harris_feature_), 
 	.corner_detected(corner_detected_)
 );
-delay #(.DATA_WIDTH(18), .DELAY(20)) delay_harris_feature
+delay #(.DATA_WIDTH(18), .DELAY(18)) delay_harris_feature
 (
 	.clk(VGA_CLK), 
 	.data_in(harris_feature_), 
 	.data_out(harris_feature)
 );
-delay #(.DATA_WIDTH(1), .DELAY(20)) delay_corner_detected
+delay #(.DATA_WIDTH(1), .DELAY(18)) delay_corner_detected
 (
 	.clk(VGA_CLK), 
 	.data_in(corner_detected_), 
