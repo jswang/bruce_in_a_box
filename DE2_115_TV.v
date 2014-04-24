@@ -669,22 +669,24 @@ VGA_Ctrl	u9	(
 	.iRST_N 	(DLY2)	
 );
 
-wire green;
-wire [7:0] rgb_mask;
-assign rgb_mask = green ? 8'd255 : 8'd0;
 wire [7:0] VGA_R_d3, VGA_G_d3, VGA_B_d3;
-//Delay RGB values
+wire [7:0] Cb_d3, Cr_d3;
+wire signed [53:0] harris_feature_, harris_feature;
+wire corner_detected_, corner_detected;
+wire VGA_BLANK_N_d3;
+
 delay #( .DATA_WIDTH(24), .DELAY(3) ) delay_rgb_3
 ( 
 	.clk 		(VGA_CLK), 
 	.data_in 	({vga_r10[9:2], vga_g10[9:2], vga_b10[9:2]}), 
 	.data_out 	({VGA_R_d3, VGA_G_d3, VGA_B_d3})
 );
-
-wire signed [53:0] harris_feature_, harris_feature;
-wire corner_detected_, corner_detected;
-//Corner detection based on RGB values
-wire VGA_BLANK_N_d3;
+delay #(.DATA_WIDTH(16), .DELAY(3)) delay_CbCr_3
+(
+	.clk 		(VGA_CLK), 
+	.data_in 	({Cb, Cr}), 
+	.data_out   ({Cb_d3, Cr_d3})
+);
 delay #( .DATA_WIDTH(1), .DELAY(3) ) vga_blank_n
 (
 	.clk 		(VGA_CLK), 
