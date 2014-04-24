@@ -701,17 +701,19 @@ delay #(.DATA_WIDTH(18), .DELAY(17)) delay_harris_feature
 	.data_out(harris_feature)
 );
 
+//---------------------------------Delayers
+wire [9:0] VGA_X_d20, VGA_Y_d20;
+wire VGA_VS_d3;
+wire [7:0] Cb_d3, Cr_d3;
 
-
-//---------------------------------
 //Delay the VGA control signals for the VGA Side
 delay #( .DATA_WIDTH(4), .DELAY(20) ) delay_vga_ctrl_20
 ( 
 	.clk 		(VGA_CLK), 
 	.data_in 	({VGA_HS_, VGA_VS_, VGA_SYNC_N_, VGA_BLANK_N_}), 
-	.data_out 	({VGA_HS, VGA_VS, VGA_SYNC_N, VGA_BLANK_N)
+	.data_out 	({VGA_HS, VGA_VS, VGA_SYNC_N, VGA_BLANK_N})
 );
-
+//Delay RGB values
 delay #( .DATA_WIDTH(24), .DELAY(20) ) delay_rgb_20
 ( 
 	.clk 		(VGA_CLK), 
@@ -719,7 +721,6 @@ delay #( .DATA_WIDTH(24), .DELAY(20) ) delay_rgb_20
 	.data_out 	({VGA_R_, VGA_G_, VGA_B_})
 );
 
-wire [9:0] VGA_X_d20, VGA_Y_d20;
 //Delay the x y just for referencing
 delay #( .DATA_WIDTH(20), .DELAY(20) ) delay_x_y_20
 ( 
@@ -727,9 +728,6 @@ delay #( .DATA_WIDTH(20), .DELAY(20) ) delay_x_y_20
 	.data_in 	({VGA_X,VGA_Y}), 
 	.data_out 	({VGA_X_d20, VGA_Y_d20})
 );
-
-wire VGA_VS_d3;
-wire [7:0] Cb_d3, Cr_d3;
 
 delay #( .DATA_WIDTH(1), .DELAY(3) ) vga_vsync_delay3
 (
