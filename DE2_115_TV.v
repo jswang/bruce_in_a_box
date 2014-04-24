@@ -667,7 +667,10 @@ VGA_Ctrl			u9	(	//	Host Side
 							.iCLK(TD_CLK27),
 							.iRST_N(DLY2)	);
 
+wire signed [17:0] threshold = {4'd0, SW[17:4]};
+
 wire signed [17:0] harris_feature_, harris_feature;
+wire corner_detected_, corner_detected;
 //Corner detection based on RGB values
 harris_corner_detect find_corners(
 	.clk(VGA_CLK), 
@@ -676,9 +679,10 @@ harris_corner_detect find_corners(
 	.VGA_R(vga_r10[9:2]),
 	.VGA_G(vga_g10[9:2]),
 	.VGA_B(vga_b10[9:2]),
-	.threshold({2'b11, 16'd0}),  //not used except for edge dectection
-	.scale({SW[3:0], 4'b1111}),
-	.harris_feature(harris_feature_)
+	.threshold(threshold),
+	.scale({4'b0000, SW[3:0]}),
+	.harris_feature(harris_feature_), 
+	.corner_detected(corner_detected_)
 );
 delay #(.DATA_WIDTH(18), .DELAY(20)) delay_harris_feature
 (
@@ -686,7 +690,12 @@ delay #(.DATA_WIDTH(18), .DELAY(20)) delay_harris_feature
 	.data_in(harris_feature_), 
 	.data_out(harris_feature)
 );
-
+delay #(.DATA_WIDTH(1), .DELAY(20)) delay_corner_detected
+(
+	.clk(VGA_CLK), 
+	.data_in(corner_detected_), 
+	.data_out(corner_detected)
+);
 
 
 //---------------------------------
@@ -864,7 +873,6 @@ localparam BOTTOM_LEFT = 3'd3;
 localparam BOTTOM_RIGHT = 3'd4;
 localparam PINK = 3'd5;
 
-wire signed threshold = {4'd0, SW[17:4]};
 always @ (*) begin
 	// case (SW[17:16])
 	// 	//gradient

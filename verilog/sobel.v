@@ -4,12 +4,9 @@
 
 module sobel (
     input clk,
-    input [17:0] threshold, //orignally {2'b11,15'd0}
-    // input [7:0] thres,
     input [23:0] x00, x01, x02, x10, x11, x12, x20, x21, x22,
     output reg signed [12:0] Ix,
-    output reg signed [12:0] Iy,
-    output reg  p
+    output reg signed [12:0] Iy
   );
   
   wire [15:0] R00 = x00[23:16];
@@ -52,16 +49,9 @@ module sobel (
   wire [15:0] M21 = R21 + G21 + B21;
   wire [15:0] M22 = R22 + G22 + B22;
   
-  // reg signed [16:0] Ix, Iy;
-  // wire [33:0] Ix2, Iy2;
-  
-  // squarer sx ( Ix, Ix2 );
-  // squarer sy ( Iy, Iy2 );
-  
   always @ (posedge clk)
   begin
     Ix <= M00 - M02 + {M10,1'b0} - {M12,1'b0} + M20 - M22;
     Iy <= M00 + {M01,1'b0} + M02 - M20 - {M21,1'b0} - M22;
-    // p  <= (Ix2+Iy2) > threshold ? 1'b1 : 1'b0;
   end
 endmodule

@@ -5,9 +5,10 @@ module harris_corner_detect (
 	input [7:0] VGA_R, 
 	input [7:0] VGA_G, 
 	input [7:0] VGA_B, 
-	input [17:0] threshold,
+	input signed [17:0] threshold,
 	input [7:0] scale,
-	output signed [17:0] harris_feature
+	output signed [17:0] harris_feature, 
+	output reg   		 corner_detected
 );
 
     localparam x = 0;
@@ -40,99 +41,81 @@ module harris_corner_detect (
 	
 	sobel sobel_x11(
    		.clk(clk),
-   		.threshold(threshold),
    		.x00(x00), .x01(x01), .x02(x02), 
 		.x10(x10), .x11(x11), .x12(x12), 
 		.x20(x20), .x21(x21), .x22(x22), 
-		.p(), 
 		.Ix(x11_Ix), 
 		.Iy(x11_Iy)
    	);
 
    	sobel sobel_x12(
    		.clk(clk),
-   		.threshold(threshold),
    		.x00(x01), .x01(x02), .x02(x03), 
 		.x10(x11), .x11(x12), .x12(x13), 
 		.x20(x21), .x21(x22), .x22(x23), 
-		.p(),
 		.Ix(x12_Ix), 
 		.Iy(x12_Iy)
    	);
 
    	sobel sobel_x13(
    		.clk(clk),
-   		.threshold(threshold),
    		.x00(x02), .x01(x03), .x02(x04), 
 		.x10(x12), .x11(x13), .x12(x14), 
 		.x20(x22), .x21(x23), .x22(x24), 
-		.p(),
 		.Ix(x13_Ix), 
 		.Iy(x13_Iy)
    	);
 
    	sobel sobel_x21(
    		.clk(clk),
-   		.threshold(threshold),
    		.x00(x10), .x01(x11), .x02(x12), 
 		.x10(x20), .x11(x21), .x12(x22), 
 		.x20(x30), .x21(x31), .x22(x32), 
-		.p(),
 		.Ix(x21_Ix), 
 		.Iy(x21_Iy)
    	);
 
    	sobel sobel_x22 (
 		.clk(clk), 
-		.threshold(threshold),
 		.x00(x11), .x01(x12), .x02(x13), 
 		.x10(x21), .x11(x22), .x12(x23), 
 		.x20(x31), .x21(x32), .x22(x33),
-		.p(), 
 		.Ix(x22_Ix), 
 		.Iy(x22_Iy)
 	);
 
    	sobel sobel_x23(
    		.clk(clk),
-   		.threshold(threshold),
    		.x00(x12), .x01(x13), .x02(x14), 
 		.x10(x22), .x11(x23), .x12(x24), 
 		.x20(x32), .x21(x33), .x22(x34), 
-		.p(),
 		.Ix(x23_Ix), 
 		.Iy(x23_Iy)
    	);
 
    	sobel sobel_x31(
    		.clk(clk),
-   		.threshold(threshold),
    		.x00(x20), .x01(x21), .x02(x22), 
 		.x10(x30), .x11(x31), .x12(x32), 
 		.x20(x40), .x21(x41), .x22(x42), 
-		.p(), 
 		.Ix(x31_Ix), 
 		.Iy(x31_Iy)
    	);
 
    	sobel sobel_x32 (
    		.clk(clk),
-   		.threshold(threshold),
    		.x00(x21), .x01(x22), .x02(x23), 
 		.x10(x31), .x11(x32), .x12(x33), 
 		.x20(x41), .x21(x42), .x22(x43), 
-		.p(), 
 		.Ix(x32_Ix), 
 		.Iy(x32_Iy)
    	);
 
    	sobel sobel_x33 (
    		.clk(clk),
-   		.threshold(threshold),
    		.x00(x22), .x01(x23), .x02(x24), 
 		.x10(x32), .x11(x33), .x12(x34), 
 		.x20(x42), .x21(x43), .x22(x44), 
-		.p(),
 		.Ix(x33_Ix), 
 		.Iy(x33_Iy)
    	);
@@ -184,9 +167,9 @@ module harris_corner_detect (
     assign x31_Ix_Iy = x31_Ix * x31_Iy;
     assign x32_Ix_Iy = x32_Ix * x32_Iy;
     assign x33_Ix_Iy = x33_Ix * x33_Iy;
+
     wire signed [27:0] A, B, C;
-    wire signed [55:0] det_temp1, det_temp2, determinant;
-    wire signed [55:0] trace, harris_operator;
+    wire signed [55:0] determinant, trace, harris_operator;
     assign A = x11_Ix_2 + x12_Ix_2 + x13_Ix_2
              + x21_Ix_2 + x22_Ix_2 + x23_Ix_2
              + x31_Ix_2 + x32_Ix_2 + x33_Ix_2; 
@@ -198,9 +181,19 @@ module harris_corner_detect (
     assign C = x11_Iy_2 + x12_Iy_2 + x13_Iy_2
              + x21_Iy_2 + x22_Iy_2 + x23_Iy_2
              + x31_Iy_2 + x32_Iy_2 + x33_Iy_2; 
+
     assign determinant = A*C - B*B; 
     assign trace = (A + C) >>> scale;
     assign harris_feature = (trace == 0) ? 0 : determinant/trace;
+
+    always @ (posedge clk) begin
+    	if (harris_feature > threshold) begin
+    		corner_detected <= 1'b1;
+    	end
+    	else begin
+    		corner_detected <= 1'b0;
+    	end
+    end
 
     // harris_operator #(.p_num_bits_in(13)) harris_x22 
     // (
