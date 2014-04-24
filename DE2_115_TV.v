@@ -646,119 +646,86 @@ wire [7:0] VGA_R_, VGA_G_, VGA_B_;
 wire [21:0] VGA_Addr_full;
 wire [18:0] VGA_Addr = VGA_Addr_full[18:0];
 
-VGA_Ctrl			u9	(	//	Host Side
-							.iRed(mRed),
-							.iGreen(mGreen),
-							.iBlue(mBlue),
-							.oCurrent_X(VGA_X),
-							.oCurrent_Y(VGA_Y),
-							.oAddress(VGA_Addr_full), 
-							.oRequest(VGA_Read),
-							//	VGA Side
-							.oVGA_R(vga_r10 ),
-							.oVGA_G(vga_g10 ),
-							.oVGA_B(vga_b10 ),
-							.oVGA_HS(VGA_HS_),
-							.oVGA_VS(VGA_VS_),
-							.oVGA_SYNC(VGA_SYNC_N_),
-							.oVGA_BLANK(VGA_BLANK_N_),
-							.oVGA_CLOCK(VGA_CLK),
-							//	Control Signal
-							.iCLK(TD_CLK27),
-							.iRST_N(DLY2)	);
+VGA_Ctrl	u9	(	
+	//	Host Side
+	.iRed 		(mRed),
+	.iGreen 	(mGreen),
+	.iBlue 		(mBlue),
+	.oCurrent_X (VGA_X),
+	.oCurrent_Y (VGA_Y),
+	.oAddress 	(VGA_Addr_full), 
+	.oRequest 	(VGA_Read),
+	//	VGA Side
+	.oVGA_R 	(vga_r10 ),
+	.oVGA_G 	(vga_g10 ),
+	.oVGA_B 	(vga_b10 ),
+	.oVGA_HS 	(VGA_HS_),
+	.oVGA_VS 	(VGA_VS_),
+	.oVGA_SYNC 	(VGA_SYNC_N_),
+	.oVGA_BLANK (VGA_BLANK_N_),
+	.oVGA_CLOCK (VGA_CLK),
+	//	Control Signal
+	.iCLK 		(TD_CLK27),
+	.iRST_N 	(DLY2)	
+);
 
-wire signed [17:0] threshold = {4'd0, SW[17:4]};
-
+// wire signed [17:0] threshold = ;
+wire green;
+wire [7:0] rgb_mask;
+assign rgb_mask = green ? 8'd255 : 8'd0;
 wire signed [17:0] harris_feature_, harris_feature;
 wire corner_detected_, corner_detected;
 //Corner detection based on RGB values
+wire VGA_BLANK_N_d3;
+delay #( .DATA_WIDTH(1), .DELAY(3) ) vga_blank_n
+(
+	.clk 		(VGA_CLK), 
+	.data_in	(VGA_BLANK_N_), 
+	.data_out   (VGA_BLANK_N_d3)
+);
 harris_corner_detect find_corners(
 	.clk(VGA_CLK), 
 	.reset(reset), 
-	.clk_en(VGA_BLANK_N_), 
-	.VGA_R(vga_r10[9:2]),
-	.VGA_G(vga_g10[9:2]),
-	.VGA_B(vga_b10[9:2]),
-	.threshold(threshold),
-	.scale({4'b0000, SW[3:0]}),
-	.harris_feature(harris_feature_), 
-	.corner_detected(corner_detected_)
+	.clk_en(VGA_BLANK_N_d3), 
+	.VGA_R(rgb_mask), //vga_r10[9:2]
+	.VGA_G(rgb_mask), //vga_g10[9:2]
+	.VGA_B(rgb_mask), //vga_b10[9:2]
+	.threshold({4'd0, SW[17:4]}),
+	.scale({5'b00000, SW[3:2]}),
+	.harris_feature(harris_feature_)
 );
-delay #(.DATA_WIDTH(18), .DELAY(18)) delay_harris_feature
+delay #(.DATA_WIDTH(18), .DELAY(17)) delay_harris_feature
 (
 	.clk(VGA_CLK), 
 	.data_in(harris_feature_), 
 	.data_out(harris_feature)
 );
-delay #(.DATA_WIDTH(1), .DELAY(18)) delay_corner_detected
-(
-	.clk(VGA_CLK), 
-	.data_in(corner_detected_), 
-	.data_out(corner_detected)
-);
+
 
 
 //---------------------------------
-
-
 //Delay the VGA control signals for the VGA Side
-delay #( .DATA_WIDTH(1), .DELAY(20) ) d0
+delay #( .DATA_WIDTH(4), .DELAY(20) ) delay_vga_ctrl_20
 ( 
 	.clk 		(VGA_CLK), 
-	.data_in 	(VGA_HS_), 
-	.data_out 	(VGA_HS)
-);
-delay #( .DATA_WIDTH(1), .DELAY(20) ) d1
-( 
-	.clk 		(VGA_CLK), 
-	.data_in 	(VGA_VS_), 
-	.data_out 	(VGA_VS)
-);
-delay #( .DATA_WIDTH(1), .DELAY(20) ) d2
-( 
-	.clk 		(VGA_CLK), 
-	.data_in 	(VGA_SYNC_N_), 
-	.data_out 	(VGA_SYNC_N)
-);
-delay #( .DATA_WIDTH(1), .DELAY(20) ) d3
-( 
-	.clk 		(VGA_CLK), 
-	.data_in 	(VGA_BLANK_N_), 
-	.data_out 	(VGA_BLANK_N)
+	.data_in 	({VGA_HS_, VGA_VS_, VGA_SYNC_N_, VGA_BLANK_N_}), 
+	.data_out 	({VGA_HS, VGA_VS, VGA_SYNC_N, VGA_BLANK_N)
 );
 
-delay #( .DATA_WIDTH(8), .DELAY(20) ) rgb_r
+delay #( .DATA_WIDTH(24), .DELAY(20) ) delay_rgb_20
 ( 
 	.clk 		(VGA_CLK), 
-	.data_in 	(vga_r10[9:2]), 
-	.data_out 	(VGA_R_)
-);
-delay #( .DATA_WIDTH(8), .DELAY(20) ) rgb_g
-( 
-	.clk 		(VGA_CLK), 
-	.data_in 	(vga_g10[9:2]), 
-	.data_out 	(VGA_G_)
-);
-delay #( .DATA_WIDTH(8), .DELAY(20) ) rgb_b
-( 
-	.clk 		(VGA_CLK), 
-	.data_in 	(vga_b10[9:2]), 
-	.data_out 	(VGA_B_)
+	.data_in 	({vga_r10[9:2], vga_g10[9:2], vga_b10[9:2]}), 
+	.data_out 	({VGA_R_, VGA_G_, VGA_B_})
 );
 
 wire [9:0] VGA_X_d20, VGA_Y_d20;
 //Delay the x y just for referencing
-delay #( .DATA_WIDTH(10), .DELAY(20) ) d_x
+delay #( .DATA_WIDTH(20), .DELAY(20) ) delay_x_y_20
 ( 
 	.clk 		(VGA_CLK), 
-	.data_in 	(VGA_X), 
-	.data_out 	(VGA_X_d20)
-);
-delay #( .DATA_WIDTH(10), .DELAY(20) ) d_y
-( 
-	.clk 		(VGA_CLK), 
-	.data_in 	(VGA_Y), 
-	.data_out 	(VGA_Y_d20)
+	.data_in 	({VGA_X,VGA_Y}), 
+	.data_out 	({VGA_X_d20, VGA_Y_d20})
 );
 
 wire VGA_VS_d3;
@@ -822,6 +789,7 @@ wire [9:0] bot_left [0:1];
 wire [9:0] bot_right [0:1];
 //Y, Cb, Cr are synced up with RGB out of the VGA controller.
 //Y, Cb, Cr are synced up wtih X and Y out of the VGA controller
+
 corner_detect corner_detect (
 	.clk(VGA_CLK), 
 	.reset(reset), 
@@ -831,23 +799,20 @@ corner_detect corner_detect (
 	.color_history(color_read_data),
 	.color_valid(color_data_valid),
 	.read_addr(color_just_read_addr),
-
 	.read_x(color_just_read_x), 
 	.read_y(color_just_read_y),
 
 	.threshold_Cb(8'b01111100), //SW[15:8]
 	.threshold_Cr(8'b01111000), //SW[7:0] 
 	.threshold_history(2'b00), //SW[17:16]
-	.threshold_x_diff(8'd4), 
-	.threshold_y_diff(8'd4),
 
 	.corner_detected(corner_), //Is this pixel a corner?
-	.green(), //hack for the harris detector
+	.green(green), //hack for the harris detector
+
 	.top_left_prev_x(top_left[x]), 
 	.top_right_prev_x(top_right[x]), 
 	.bot_left_prev_x(bot_left[x]), 
 	.bot_right_prev_x(bot_right[x]),
-	
 	.top_left_prev_y(top_left[y]),
 	.top_right_prev_y(top_right[y]),
 	.bot_left_prev_y(bot_left[y]),
@@ -855,9 +820,9 @@ corner_detect corner_detect (
 
 	.updated_color_history(color_write_data), 
 	.we(color_we), 
-	.write_addr(color_write_addr), 
-	.test_led(LEDG[7:0])
+	.write_addr(color_write_addr)
 );
+
 delay #( .DATA_WIDTH(3), .DELAY(17) ) corner_delay
 ( 
 	.clk 		(VGA_CLK), 
@@ -865,7 +830,6 @@ delay #( .DATA_WIDTH(3), .DELAY(17) ) corner_delay
 	.data_out 	(corner)
 );
 
-// assign LEDG[0] = corner;
 localparam NONE = 3'd0;
 localparam TOP_LEFT = 3'd1;
 localparam TOP_RIGHT = 3'd2;
@@ -874,10 +838,10 @@ localparam BOTTOM_RIGHT = 3'd4;
 localparam PINK = 3'd5;
 
 always @ (*) begin
-	// case (SW[17:16])
-	// 	//gradient
-	// 	2'd1: begin
-			if (harris_feature > threshold) begin
+	case (SW[0])
+		//gradient
+		2'd0: begin
+			if (harris_feature > {4'd0, SW[17:4]}) begin
 				VGA_R = 8'hFF;
 				VGA_G = 8'hFF;
 				VGA_B = 8'h00;
@@ -887,72 +851,29 @@ always @ (*) begin
 				VGA_G = 8'h00;
 				VGA_B = 8'h00;
 			end
-		// end
-		// //normal operation
-		// default: begin
-		// 	//Yellow: Harris corner
-		// 	if (VGA_X_d20 == harris_corner_addr_x && VGA_Y_d20 == harris_corner_addr_y) begin
-		// 		VGA_R = 8'hFF;
-		// 		VGA_G = 8'hFF;
-		// 		VGA_B = 8'h00;
-		// 	end
-		// 	//Green area : pink
-		// 	else if (corner) begin
-		// 		VGA_R = 8'hFF;
-		// 		VGA_G = 8'h00;
-		// 		VGA_B = 8'hFF;
-		// 	end
+		end
+		//normal operation
+		default: begin
+			//Yellow: Harris corner
+			if (harris_feature > {4'd0, SW[17:4]}) begin
+				VGA_R = 8'hFF;
+				VGA_G = 8'hFF;
+				VGA_B = 8'h00;
+			end
+			//Green area : pink
+			else if (corner) begin
+				VGA_R = 8'hFF;
+				VGA_G = 8'h00;
+				VGA_B = 8'hFF;
+			end
 			
-		// 	else begin
-		// 		VGA_R = VGA_R_;
-		// 		VGA_G = VGA_G_;
-		// 		VGA_B = VGA_B_;
-		// 	end
-		// end
-	// endcase
-	
-	// //Red: top left
-	// if (VGA_X_d20 < top_left[x] + 5 && VGA_X_d20 >= top_left[x] - 5
-	//  && VGA_Y_d20 < top_left[y] + 5 && VGA_Y_d20 >= top_left[y] - 5) begin
-	// 		VGA_R = 8'hFF;
-	// 		VGA_G = 8'h00;
-	// 		VGA_B = 8'h00;
-	// 	end
-	// //orange: top right
-	// else if (VGA_X_d20 < top_right[x] + 5 && VGA_X_d20 >= top_right[x] - 5
-	//  && VGA_Y_d20 < top_right[y] + 5 && VGA_Y_d20 >= top_right[y] - 5) begin
-	// 		VGA_R = 8'hFF;
-	// 		VGA_G = 8'd125;
-	// 		VGA_B = 8'h00;
-	// 	end
-	// //yellow: bottom left
-	// else if (VGA_X_d20 < bot_left[x] + 5 && VGA_X_d20 >= bot_left[x] - 5
-	//  && VGA_Y_d20 < bot_left[y] + 5 && VGA_Y_d20 >= bot_left[y] - 5) begin
-	// 		VGA_R = 8'hFF;
-	// 		VGA_G = 8'hFF;
-	// 		VGA_B = 8'h00;
-	// 	end
-	// //cyan: bottom right
-	// else if (VGA_X_d20 < bot_right[x] + 5 && VGA_X_d20 >= bot_right[x] - 5
-	//  && VGA_Y_d20 < bot_right[y] + 5 && VGA_Y_d20 >= bot_right[y] - 5) begin
-	// 		VGA_R = 8'h00;
-	// 		VGA_G = 8'hFF;
-	// 		VGA_B = 8'hFF;
-	// 	end
-
-	// //Green area : pink
-	// else if (corner) begin
-	// 	VGA_R = 8'hFF;
-	// 	VGA_G = 8'h00;
-	// 	VGA_B = 8'hFF;
-	// end
-	
-	// else begin
-	// 	VGA_R = VGA_R_;
-	// 	VGA_G = VGA_G_;
-	// 	VGA_B = VGA_B_;
-	// end
-		
+			else begin
+				VGA_R = 8'h00;
+				VGA_G = 8'h00;
+				VGA_B = 8'h00;
+			end
+		end
+	endcase
 end
 
 //	Line buffer, delay one line
