@@ -677,7 +677,7 @@ harris_corner_detect find_corners(
 	.VGA_G(vga_g10[9:2]),
 	.VGA_B(vga_b10[9:2]),
 	.threshold({2'b11, 16'd0}),  //not used except for edge dectection
-	.scale(SW[3:0]),
+	.scale({SW[3:0], 4'b1111}),
 	.harris_feature(harris_feature_)
 );
 delay #(.DATA_WIDTH(18), .DELAY(20)) delay_harris_feature

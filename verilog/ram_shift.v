@@ -38,12 +38,14 @@
 // synopsys translate_on
 module ram_shift (
 	aclr,
+	clken,
 	clock,
 	shiftin,
 	shiftout,
 	taps);
 
 	input	  aclr;
+	input	  clken;
 	input	  clock;
 	input	[23:0]  shiftin;
 	output	[23:0]  shiftout;
@@ -57,14 +59,10 @@ module ram_shift (
 	altshift_taps	ALTSHIFT_TAPS_component (
 				.aclr (aclr),
 				.clock (clock),
+				.clken (clken),
 				.shiftin (shiftin),
 				.shiftout (sub_wire0),
-				.taps (sub_wire1)
-				// synopsys translate_off
-				,
-				.clken ()
-				// synopsys translate_on
-				);
+				.taps (sub_wire1));
 	defparam
 		ALTSHIFT_TAPS_component.intended_device_family = "Cyclone IV E",
 		ALTSHIFT_TAPS_component.lpm_hint = "RAM_BLOCK_TYPE=M4K",
@@ -91,6 +89,8 @@ endmodule
 // Retrieval info: CONSTANT: WIDTH NUMERIC "24"
 // Retrieval info: USED_PORT: aclr 0 0 0 0 INPUT NODEFVAL "aclr"
 // Retrieval info: CONNECT: @aclr 0 0 0 0 aclr 0 0 0 0
+// Retrieval info: USED_PORT: clken 0 0 0 0 INPUT NODEFVAL "clken"
+// Retrieval info: CONNECT: @clken 0 0 0 0 clken 0 0 0 0
 // Retrieval info: USED_PORT: clock 0 0 0 0 INPUT NODEFVAL "clock"
 // Retrieval info: CONNECT: @clock 0 0 0 0 clock 0 0 0 0
 // Retrieval info: USED_PORT: shiftin 0 0 24 0 INPUT NODEFVAL "shiftin[23..0]"

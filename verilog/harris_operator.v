@@ -3,7 +3,7 @@ module harris_operator
     parameter p_num_bits_in = 13
     )
 (
-    input [3:0] scale, 
+    input [7:0] scale, 
     input signed [p_num_bits_in-1:0] x00_Ix,
     input signed [p_num_bits_in-1:0] x01_Ix,
     input signed [p_num_bits_in-1:0] x02_Ix,

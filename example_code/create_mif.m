@@ -1,4 +1,4 @@
-s = sprintf('icon0');
+s = sprintf('editedclocktower');
 img = imread(s,'bmp');
 t = [s,'.mif'];
 file = fopen(t,'w');
