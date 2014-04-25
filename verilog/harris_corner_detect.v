@@ -1,6 +1,7 @@
 module harris_corner_detect (
 	input clk, 
 	input reset, 
+    input ram_clr,
 	input VGA_BLANK_N,
 	input [7:0] VGA_R, 
 	input [7:0] VGA_G, 
@@ -14,6 +15,8 @@ module harris_corner_detect (
   reg [9:0] pixel_count;
   always @ (posedge clk)
   begin
+    //VGA_BLANK_N is high when there is no valid horizonatl or
+    //vertical pixels being submitted. So you should count up 
     if (!reset && VGA_BLANK_N)
     begin
       if (pixel_count > 639)
@@ -37,6 +40,7 @@ module harris_corner_detect (
 	
 	buffer5 #(.p_bit_width_in(24)) buffer (
 		.clk(clk), 
+        .ram_clr(ram_clr), 
 		.clken(buf_shift_en), 
 		.shiftin({VGA_R,VGA_G,VGA_B}), 
 		.oGrid({x00, x01, x02, x03, x04,
@@ -202,7 +206,7 @@ module harris_corner_detect (
              + x31_Iy_2>>1 + x32_Iy_2>>0 + x33_Iy_2>>1; 
 
     assign determinant = A*C - B*B; 
-    assign trace = (A + C) >>> scale;
+    assign trace = (A + C) >> scale;
     always @ (posedge clk) begin
       harris_feature <= (trace == 0) ? 0 : determinant/trace;
     end

@@ -689,6 +689,7 @@ delay #( .DATA_WIDTH(1), .DELAY(3) ) vga_blank_n
 harris_corner_detect find_corners(
 	.clk(VGA_CLK), 
 	.reset(reset), 
+	.ram_clr(!VGA_VS_)
 	.VGA_BLANK_N(VGA_BLANK_N_), 
 	.VGA_R(vga_r10[9:2]), //vga_r10[9:2]
 	.VGA_G(vga_g10[9:2]), //vga_g10[9:2]
@@ -772,13 +773,13 @@ color_history color_hist (
 
 	.read_x(VGA_X), 
 	.read_y(VGA_Y),
-	.just_read_x(color_just_read_x), 
-	.just_read_y(color_just_read_y),
-
 	.read_addr(VGA_Addr),
 	.read_data(color_read_data), 
 	.data_valid(color_data_valid), 
+	.just_read_x(color_just_read_x), 
+	.just_read_y(color_just_read_y),
 	.just_read_addr(color_just_read_addr)
+
 );
 
 localparam x = 0;
