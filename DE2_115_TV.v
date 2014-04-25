@@ -674,8 +674,8 @@ wire signed [53:0] harris_feature_, harris_feature, threshold;
 wire corner_detected_, corner_detected;
 wire VGA_BLANK_N_d3;
 wire [7:0] scale;
-assign threshold = {1'b0, SW[17:2], 37'd0};
-assign scale = {2'd0, SW[1:0], 4'b1111};
+assign threshold = {1'b0, 16'h3fff, 37'd0};
+assign scale = {2'b00, 2'd0, 4'b1111};
 
 delay #( .DATA_WIDTH(24), .DELAY(3) ) delay_rgb_3
 ( 
@@ -700,7 +700,9 @@ harris_corner_detect find_corners(
 	.scale(scale),
 	.harris_feature(harris_feature_)
 );
-delay #(.DATA_WIDTH(52), .DELAY(15)) delay_harris_feature
+//If you make this 52 you get solid edge detection
+//set threshold = 0 and scale = 0000_1111
+delay #(.DATA_WIDTH(54), .DELAY(15)) delay_harris_feature
 (
 	.clk(VGA_CLK), 
 	.data_in(harris_feature_), 
