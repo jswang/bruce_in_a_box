@@ -141,48 +141,6 @@ module color_detect
                 bot_right_prev[x]    <= bot_right[x];
                 bot_right_prev[y]    <= bot_right[y];
 
-                //If top left y too close to top right y = same y, max/min x
-                //if top left x too close to bottom left x = same x,  max/min y
-
-                //if bot right y too close to bottom left y = same y, max/min x
-                //if bot right x too close to top right x = same x, max/min y
-                // if ( (top_left[y] < top_right[y] && top_right[y] - top_left[y] <= threshold_y_diff)
-                //     || (top_right[y] < top_left[y] && top_left[y] - top_right[y] <= threshold_y_diff)
-                //     || (top_left[y] == top_right[y]) ) begin
-                //         top_left_prev[x] <= x_min;
-                //         top_right_prev[x] <= x_max;
-                //         top_left_prev[y] <= y_min;
-                //         top_right_prev[y] <= y_min;
-                //     end
-
-                // if ( (top_left[x] < bot_left[x] && bot_left[x] - top_left[x] <= threshold_x_diff)
-                //     || (bot_left[x] < top_left[x] && top_left[x] - bot_left[x] <= threshold_x_diff)
-                //     || (top_left[x] == bot_left[x]) ) begin
-                //         top_left_prev[x] <= x_min;
-                //         bot_left_prev[x] <= x_min;
-                //         top_left_prev[y] <= y_min;
-                //         bot_left_prev[y] <= y_max;
-                //     end
-                    
-
-                // if ((bot_right[y] < bot_left[y] && bot_left[y] - bot_right[y] <= threshold_y_diff)
-                //     || (bot_left[y] < bot_right[y] && bot_right[y] - bot_left[y] <= threshold_y_diff)
-                //     || (bot_right[y] == bot_left[y]) ) begin
-                //         bot_right_prev[x] <= x_max;
-                //         bot_left_prev[x] <= x_min;
-                //         bot_right_prev[y] <= y_max;
-                //         bot_left_prev[y] <= y_max;
-                //     end
-
-                // if ((bot_right[x] < top_right[x] && top_right[x] - bot_right[x] <= threshold_x_diff)
-                //     || (top_right[x] < bot_right[x] && bot_right[x] - top_right[x] <= threshold_x_diff)
-                //     || (bot_right[x] == top_right[x]) ) begin
-                //         bot_right_prev[x] <= x_max;
-                //         top_right_prev[x] <= x_max;
-                //         bot_right_prev[y] <= y_max;
-                //         top_right_prev[y] <= y_min;
-                //     end
-
                 //Reset for next frame of VGA screen
                 x_max           <= 10'd0; 
                 x_min           <= 10'd639;
@@ -215,28 +173,26 @@ module color_detect
                         x_max <= read_x; 
                         bot_right[x] <= read_x;
                         bot_right[y] <= read_y;
-                        // color_detected <= BOTTOM_RIGHT;
+
                     end 
                     //Most left -> New top left
                     if (read_x <= x_min && read_x < 10'd640) begin
                         x_min <= read_x;
                         top_left[x] <= read_x;
                         top_left[y] <= read_y;
-                        // color_detected <= TOP_LEFT;
+
                     end
                     // lowest -> New bottom left
                     if (read_y >= y_max && read_y < 10'd480) begin
                         y_max <= read_y;
                         bot_left[x] <= read_x;
                         bot_left[y] <= read_y;
-                        // color_detected <= BOTTOM_LEFT;
                     end 
                     //highest -> New top right
                     if (read_y <= y_min && read_y < 10'd480) begin
                         y_min <= read_y;
                         top_right[x] <= read_x;
                         top_right[y] <= read_y;
-                        // color_detected <= TOP_RIGHT;
                     end
                     
                     //Assign corner detected based on the previous cycle's information
