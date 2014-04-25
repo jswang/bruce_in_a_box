@@ -26,12 +26,14 @@ module buffer5
 	output	wire	[p_bit_width_in-1:0]	shiftout;
 
 	wire [p_bit_width_in-1:0] tap5, tap4, tap3, tap2, tap1;
-	reg  [p_bit_width_in-1:0] x00, x01, x02, x303, x04, 
+	reg  [p_bit_width_in-1:0] x00, x01, x02, x03, x04, 
 			   				  x10, x11, x12, x13, x14, 
 			   				  x20, x21, x22, x23, x24, 
 			   				  x30, x31, x32, x33, x34, 
 			   				  x40, x41, x42, x43, x44;
 
+	//async clear so that you don't get leftover bottom rows when 
+	//restarting from the top row
 	ram_shift shift_buffer (
 		.aclr(ram_clr), 
 		.clken(clken), 
@@ -40,9 +42,7 @@ module buffer5
 		.shiftout(shiftout), 
 		.taps({tap5, tap4, tap3, tap2, tap1})
 	);
-	
-	//assign oGrid = {grid_2d[8],grid_2d[7],grid_2d[6],grid_2d[5],grid_2d[4],grid_2d[3],grid_2d[2],grid_2d[1],grid_2d[0]};
-	
+		
 	assign oGrid = {x00, x01, x02, x03, x04,
 					x10, x11, x12, x13, x14,
 					x20, x21, x22, x23, x24,			

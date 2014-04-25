@@ -1,0 +1,7 @@
+assign threshold = {1'b0, SW[17:2], 37'd0};
+assign scale = {2'd0, SW[1:0], 4'b1111};
+
+original rgb with no scaling -> had an issue with thresholding. seemd to be not able to adjust. 
+turned threshold into a wire that is then fed in rather than directly
+
+might need to delay the hsync so that the first two things out of the buffer are ignored....

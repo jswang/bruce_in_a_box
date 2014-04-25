@@ -1,14 +1,14 @@
 module harris_corner_detect (
 	input clk, 
 	input reset, 
-    input ram_clr,
+  input ram_clr,
 	input VGA_BLANK_N,
 	input [7:0] VGA_R, 
 	input [7:0] VGA_G, 
 	input [7:0] VGA_B,
 	input unsigned [7:0] scale,
 
-	output reg signed [51:0] harris_feature
+	output reg signed [53:0] harris_feature
 );
   
   reg buf_shift_en;
@@ -44,10 +44,10 @@ module harris_corner_detect (
 		.clken(buf_shift_en), 
 		.shiftin({VGA_R,VGA_G,VGA_B}), 
 		.oGrid({x00, x01, x02, x03, x04,
-				x10, x11, x12, x13, x14,
-				x20, x21, x22, x23, x24,			
-				x30, x31, x32, x33, x34,
-				x40, x41, x42, x43, x44})
+				    x10, x11, x12, x13, x14,
+				    x20, x21, x22, x23, x24,			
+				    x30, x31, x32, x33, x34,
+				    x40, x41, x42, x43, x44})
 	);
 
 	//Calculating Gradients using Sobel Filter
@@ -142,26 +142,33 @@ module harris_corner_detect (
     //max value of RorGorB: 255
     //Max value of addition: 255*3 = 765
     //Max value of Ix or Iy: 765*4 = 3060 (12b + sign = [12:0])
-    //Max value of Ix^2: 3060^2 =  9363600 (24b + sign bit = [24:0])
-    //Max value of A: 4*(9363600/4) + 4*(9363600/2) + 9363699 = 37,454,400 (26b = [25:0])
-    //Max value of determinant: A*A = (51b + sign = [51:0])
+    //Max value of Ix^2: 3060^2 =  9363600 (24b + sign bit = [24:0]) note: using unsigned 24:0
+    //weighted Max value of A: 4*(9363600/4) + 4*(9363600/2) + 9363699 = 37,454,400 (26b = [25:0])
     //Max value of trace: 2*A = (27b + sign = [27:0])
-    //Max value of harris_feature: A*A = (51b + sign = [51:0])
-    wire signed [24:0] x11_Ix_2, x12_Ix_2, x13_Ix_2, 
+    //weighted Max value of harris_feature: A*A = (51b +sign  = [51:0])
+    //weighted Max value of determinant: A*A = (51b + sign = [51:0])
+
+    //nonweighted Max value of A: 9*(9363600) = 84,272,400 (27b = [26:0])
+    //unweighted Max value of determinant: A*A = (53b + sign = [53:0])
+    //unweighted Max value of harris_feature: A*A = (53b + sign = [53:0])
+
+      
+      
+    wire unsigned [24:0] x11_Ix_2, x12_Ix_2, x13_Ix_2, 
                        x21_Ix_2, x22_Ix_2, x23_Ix_2,
                        x31_Ix_2, x32_Ix_2, x33_Ix_2;
 
     
-    wire signed [24:0] x11_Iy_2, x12_Iy_2, x13_Iy_2, 
+    wire unsigned [24:0] x11_Iy_2, x12_Iy_2, x13_Iy_2, 
                        x21_Iy_2, x22_Iy_2, x23_Iy_2, 
                        x31_Iy_2, x32_Iy_2, x33_Iy_2;
 
     
-    wire signed [24:0] x11_Ix_Iy, x12_Ix_Iy, x13_Ix_Iy, 
+    wire unsigned [24:0] x11_Ix_Iy, x12_Ix_Iy, x13_Ix_Iy, 
                        x21_Ix_Iy, x22_Ix_Iy, x23_Ix_Iy, 
                        x31_Ix_Iy, x32_Ix_Iy, x33_Ix_Iy;
-    wire unsigned [25:0] A, B, C;
-    wire signed [51:0] determinant, trace;
+    wire unsigned [26:0] A, B, C;
+    wire signed [53:0] sum_A_C, determinant, trace;
 
     assign x11_Ix_2 = x11_Ix * x11_Ix;
     assign x12_Ix_2 = x12_Ix * x12_Ix;
@@ -193,20 +200,21 @@ module harris_corner_detect (
     assign x32_Ix_Iy = x32_Ix * x32_Iy;
     assign x33_Ix_Iy = x33_Ix * x33_Iy;
 
-    assign A = x11_Ix_2>>1 + x12_Ix_2>>0 + x13_Ix_2>>1
-             + x21_Ix_2>>0 + x22_Ix_2    + x23_Ix_2>>0
-             + x31_Ix_2>>1 + x32_Ix_2>>0 + x33_Ix_2>>1; 
+    assign A = x11_Ix_2 + x12_Ix_2 + x13_Ix_2
+             + x21_Ix_2 + x22_Ix_2    + x23_Ix_2
+             + x31_Ix_2 + x32_Ix_2 + x33_Ix_2; 
 
-    assign B = x11_Ix_Iy>>1 + x12_Ix_Iy>>0 + x13_Ix_Iy>>1
-             + x21_Ix_Iy>>0 + x22_Ix_Iy    + x23_Ix_Iy>>0
-             + x31_Ix_Iy>>1 + x32_Ix_Iy>>0 + x33_Ix_Iy>>1; 
+    assign B = x11_Ix_Iy + x12_Ix_Iy + x13_Ix_Iy
+             + x21_Ix_Iy + x22_Ix_Iy    + x23_Ix_Iy
+             + x31_Ix_Iy + x32_Ix_Iy + x33_Ix_Iy; 
 
-    assign C = x11_Iy_2>>1 + x12_Iy_2>>0 + x13_Iy_2>>1
-             + x21_Iy_2>>0 + x22_Iy_2    + x23_Iy_2>>0
-             + x31_Iy_2>>1 + x32_Iy_2>>0 + x33_Iy_2>>1; 
+    assign C = x11_Iy_2 + x12_Iy_2 + x13_Iy_2
+             + x21_Iy_2 + x22_Iy_2    + x23_Iy_2
+             + x31_Iy_2 + x32_Iy_2 + x33_Iy_2; 
 
     assign determinant = A*C - B*B; 
-    assign trace = (A + C) >> scale;
+    assign sum_A_C = A + C;
+    assign trace = sum_A_C >> scale;
     always @ (posedge clk) begin
       harris_feature <= (trace == 0) ? 0 : determinant/trace;
     end
