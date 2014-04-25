@@ -1129,11 +1129,11 @@ set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id testbench
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME testbench -section_id testbench
 set_global_assignment -name EDA_TEST_BENCH_FILE testbench/testbench.v -section_id testbench
 set_global_assignment -name SYNTH_TIMING_DRIVEN_SYNTHESIS ON
-set_global_assignment -name SYNTHESIS_EFFORT FAST
+set_global_assignment -name SYNTHESIS_EFFORT AUTO
 set_global_assignment -name SMART_RECOMPILE ON
 set_global_assignment -name NUM_PARALLEL_PROCESSORS ALL
 set_global_assignment -name RAPID_RECOMPILE_MODE ON
-set_global_assignment -name CYCLONEII_OPTIMIZATION_TECHNIQUE BALANCED
+set_global_assignment -name CYCLONEII_OPTIMIZATION_TECHNIQUE SPEED
 set_global_assignment -name VERILOG_FILE verilog/color_detect.v
 set_global_assignment -name VERILOG_FILE verilog/buffer7.v
 set_global_assignment -name VERILOG_FILE verilog/rom_clocktower.v

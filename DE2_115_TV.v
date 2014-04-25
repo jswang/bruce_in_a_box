@@ -710,7 +710,7 @@ delay #(.DATA_WIDTH(54), .DELAY(15)) delay_harris_feature
 );
 
 //---------------------------------Delayers
-wire [9:0] VGA_X_d20, VGA_Y_d20;
+wire [10:0] VGA_X_d20, VGA_Y_d20;
 wire VGA_VS_d3;
 wire [7:0] Cb_d3, Cr_d3;
 
@@ -730,7 +730,7 @@ delay #( .DATA_WIDTH(24), .DELAY(20) ) delay_rgb_20
 );
 
 //Delay the x y just for referencing
-delay #( .DATA_WIDTH(20), .DELAY(20) ) delay_x_y_20
+delay #( .DATA_WIDTH(22), .DELAY(20) ) delay_x_y_20
 ( 
 	.clk 		(VGA_CLK), 
 	.data_in 	({VGA_X,VGA_Y}), 
@@ -810,9 +810,9 @@ color_detect color_detect (
 
 	.threshold_Cb(8'b01111100), 
 	.threshold_Cr(8'b01111000),
-	.threshold_history(2'b00), 
+	.threshold_history(SW[17:16]), 
 
-	.color_detected(color_), //Is this pixel a corner?
+	.color_detected(color_), //Is this pixel a color?
 
 	.top_left_prev_x(top_left[x]), 
 	.top_right_prev_x(top_right[x]), 
@@ -840,12 +840,56 @@ localparam TOP_LEFT = 3'd1;
 localparam TOP_RIGHT = 3'd2;
 localparam BOTTOM_LEFT = 3'd3; 
 localparam BOTTOM_RIGHT = 3'd4;
-localparam PINK = 3'd5;
+localparam GREEN = 3'd5;
 
 always @ (*) begin
-	// case (SW[17])
-	// // 	//gradient
-	// 	1'd0: begin
+	case (SW[1:0])
+		2'd0: begin
+
+			//Red: top left
+			if (VGA_X_d20 < top_left[x] + 5 && VGA_X_d20 >= top_left[x] - 5
+			 && VGA_Y_d20 < top_left[y] + 5 && VGA_Y_d20 >= top_left[y] - 5) begin
+					VGA_R = 8'hFF;
+					VGA_G = 8'h00;
+					VGA_B = 8'h00;
+				end
+			//orange: top right
+			else if (VGA_X_d20 < top_right[x] + 5 && VGA_X_d20 >= top_right[x] - 5
+			 && VGA_Y_d20 < top_right[y] + 5 && VGA_Y_d20 >= top_right[y] - 5) begin
+					VGA_R = 8'hFF;
+					VGA_G = 8'd125;
+					VGA_B = 8'h00;
+				end
+			//yellow: bottom left
+			else if (VGA_X_d20 < bot_left[x] + 5 && VGA_X_d20 >= bot_left[x] - 5
+			 && VGA_Y_d20 < bot_left[y] + 5 && VGA_Y_d20 >= bot_left[y] - 5) begin
+					VGA_R = 8'hFF;
+					VGA_G = 8'hFF;
+					VGA_B = 8'h00;
+				end
+			//cyan: bottom right
+			else if (VGA_X_d20 < bot_right[x] + 5 && VGA_X_d20 >= bot_right[x] - 5
+			 && VGA_Y_d20 < bot_right[y] + 5 && VGA_Y_d20 >= bot_right[y] - 5) begin
+					VGA_R = 8'h00;
+					VGA_G = 8'hFF;
+					VGA_B = 8'hFF;
+				end
+
+			//Green area : pink
+			else if (color== GREEN) begin
+				VGA_R = 8'hFF;
+				VGA_G = 8'h00;
+				VGA_B = 8'hFF;
+			end
+			
+			else begin
+				VGA_R = VGA_R_;
+				VGA_G = VGA_G_;
+				VGA_B = VGA_B_;
+			end
+		end
+	    //harris corners
+		2'd1: begin
 			if (harris_feature > threshold) begin
 				VGA_R = 8'hFF;
 				VGA_G = 8'hFF;
@@ -857,32 +901,20 @@ always @ (*) begin
 				VGA_B = VGA_B_;
 			end
 		end
-		// 1'd1: begin
-			
-		// end
-	// 	//normal operation
-	// 	default: begin
-	// 		//Yellow: Harris corner
-	// 		if (harris_feature > {4'd0, SW[17:4]}) begin
-	// 			VGA_R = 8'hFF;
-	// 			VGA_G = 8'hFF;
-	// 			VGA_B = 8'h00;
-	// 		end
-	// 		//Green area : pink
-	// 		else if (corner) begin
-	// 			VGA_R = 8'hFF;
-	// 			VGA_G = 8'h00;
-	// 			VGA_B = 8'hFF;
-	// 		end
-			
-	// 		else begin
-	// 			VGA_R = VGA_R_;
-	// 			VGA_G = VGA_G_;
-	// 			VGA_B = VGA_B_;
-	// 		end
-	// 	end
-	 // endcase
-//end
+		default: begin
+			if (harris_feature > threshold && color==GREEN) begin
+				VGA_R = 8'hFF;
+				VGA_G = 8'hFF;
+				VGA_B = 8'h00;
+			end
+			else begin
+				VGA_R = VGA_R_;
+				VGA_G = VGA_G_;
+				VGA_B = VGA_B_;
+			end
+		end
+	 endcase
+end
 
 //	Line buffer, delay one line
 Line_Buffer u10	(	.aclr(!DLY0),
