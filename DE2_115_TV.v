@@ -641,7 +641,7 @@ wire [9:0] vga_b10;
 
 //////////-------------jsw267
 wire VGA_HS_, VGA_VS_, VGA_SYNC_N_, VGA_BLANK_N_;
-wire [2:0] corner_, corner;
+wire [2:0] color_, color;
 wire [7:0] VGA_R_, VGA_G_, VGA_B_;
 wire [21:0] VGA_Addr_full;
 wire [18:0] VGA_Addr = VGA_Addr_full[18:0];
@@ -794,7 +794,7 @@ wire [9:0] bot_right [0:1];
 //Y, Cb, Cr are synced up with RGB out of the VGA controller.
 //Y, Cb, Cr are synced up wtih X and Y out of the VGA controller
 
-corner_detect corner_detect (
+color_detect color_detect (
 	.clk(VGA_CLK), 
 	.reset(reset), 
 	.VGA_VS(VGA_VS_d3),
@@ -810,8 +810,7 @@ corner_detect corner_detect (
 	.threshold_Cr(8'b01111000),
 	.threshold_history(2'b00), 
 
-	.corner_detected(corner_), //Is this pixel a corner?
-	.green(), //hack for the harris detector
+	.color_detected(color_), //Is this pixel a corner?
 
 	.top_left_prev_x(top_left[x]), 
 	.top_right_prev_x(top_right[x]), 
@@ -827,11 +826,11 @@ corner_detect corner_detect (
 	.write_addr(color_write_addr)
 );
 
-delay #( .DATA_WIDTH(3), .DELAY(17) ) corner_delay
+delay #( .DATA_WIDTH(3), .DELAY(17) ) color_detected_delay
 ( 
 	.clk 		(VGA_CLK), 
-	.data_in 	(corner_), 
-	.data_out 	(corner)
+	.data_in 	(color_), 
+	.data_out 	(color)
 );
 
 localparam NONE = 3'd0;
@@ -881,7 +880,7 @@ always @ (*) begin
 	// 		end
 	// 	end
 	 // endcase
-end
+//end
 
 //	Line buffer, delay one line
 Line_Buffer u10	(	.aclr(!DLY0),
