@@ -796,6 +796,7 @@ wire [9:0] bot_right [0:1];
 //Y, Cb, Cr are synced up with RGB out of the VGA controller.
 //Y, Cb, Cr are synced up wtih X and Y out of the VGA controller
 
+//delays output color_ by 3
 color_detect color_detect (
 	.clk(VGA_CLK), 
 	.reset(reset), 
@@ -812,7 +813,7 @@ color_detect color_detect (
 	.threshold_Cr(8'b01111000),
 	.threshold_history(SW[17:16]), 
 
-	.color_detected(color_), //Is this pixel a color?
+	.color_detected(color_), //3 bits -> color of pixel
 
 	.top_left_prev_x(top_left[x]), 
 	.top_right_prev_x(top_right[x]), 
@@ -827,12 +828,29 @@ color_detect color_detect (
 	.we(color_we), 
 	.write_addr(color_write_addr)
 );
-
 delay #( .DATA_WIDTH(3), .DELAY(17) ) color_detected_delay
 ( 
 	.clk 		(VGA_CLK), 
 	.data_in 	(color_), 
 	.data_out 	(color)
+);
+
+wire median_color_, median_color;
+wire color_detected = (color_ == GREEN);
+//delays output by 4
+median_filter median_filter_color (
+	.clk(VGA_CLK), 
+	.reset(reset), 
+	.ram_clr(!VGA_VS_),
+	.VGA_BLANK_N(VGA_BLANK_N_), 
+	.data_in(color_detected), 
+	.data_out(median_color_)
+);
+delay #( .DATA_WIDTH(1), .DELAY(13) ) median_color_delay
+( 
+	.clk 		(VGA_CLK), 
+	.data_in 	(median_color_), 
+	.data_out 	(median_color)
 );
 
 localparam NONE = 3'd0;
@@ -895,6 +913,19 @@ always @ (*) begin
 				VGA_G = 8'hFF;
 				VGA_B = 8'h00;
 			end
+			else begin
+				VGA_R = VGA_R_;
+				VGA_G = VGA_G_;
+				VGA_B = VGA_B_;
+			end
+		end
+		2'd2: begin
+			if (median_color) begin
+				VGA_R = 8'hFF;
+				VGA_G = 8'h00;
+				VGA_B = 8'hFF;
+			end
+			
 			else begin
 				VGA_R = VGA_R_;
 				VGA_G = VGA_G_;
