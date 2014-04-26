@@ -809,9 +809,11 @@ color_detect color_detect (
 	.read_x(color_just_read_x), 
 	.read_y(color_just_read_y),
 
-	.threshold_Cb(8'b01111100), 
-	.threshold_Cr(8'b01111000),
-	.threshold_history(SW[17:16]), 
+	.threshold_Cb_orange(SW[15:8]),
+	.threshold_Cr_orange(SW[7:0]),
+	.threshold_Cb_green(8'b01111100),
+	.threshold_Cr_green(8'b01111000),
+	.threshold_history(2'b11), 
 
 	.color_detected(color_), //3 bits -> color of pixel
 
@@ -861,7 +863,7 @@ localparam BOTTOM_RIGHT = 3'd4;
 localparam GREEN = 3'd5;
 
 always @ (*) begin
-	case (SW[1:0])
+	case (SW[17:16])
 		2'd0: begin
 
 			//Red: top left
@@ -932,6 +934,7 @@ always @ (*) begin
 				VGA_B = VGA_B_;
 			end
 		end
+
 		default: begin
 			if (harris_feature > threshold && color==GREEN) begin
 				VGA_R = 8'hFF;

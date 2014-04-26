@@ -5,14 +5,17 @@ module corner_detect
     input               VGA_VS,
     input [7:0]         Cb, 
     input [7:0]         Cr,
+
     input [3:0]         color_history, 
     input               color_valid, 
     input [18:0]        read_addr, 
     input unsigned [9:0]         read_x, 
     input unsigned [9:0]         read_y,
 
-    input [7:0]         threshold_Cb,
-    input [7:0]         threshold_Cr,
+    input [7:0]         threshold_Cb_green,
+    input [7:0]         threshold_Cr_green,
+    input [7:0]         threshold_Cb_orange,
+    input [7:0]         threshold_Cr_orange,
     input [1:0]         threshold_history,
 
     output reg [2:0]    color_detected, 
@@ -199,10 +202,12 @@ module corner_detect
             end
             //otherwise keep updating
             else begin
-                if (Cb < threshold_Cb && Cr < threshold_Cr && num_history > threshold_history) begin
+                if ( Cb < threshold_Cb_orange && Cr > threshold_Cr_orange
+                    //Cb < threshold_Cb_green && Cr < threshold_Cr_green
+                    && num_history > threshold_history) begin
                     color_detected              <= GREEN;
                     updated_color_history[3:1]  <= color_history[2:0];
-                    updated_color_history[0]    <= (Cb < threshold_Cb && Cr < threshold_Cr);
+                    updated_color_history[0]    <= (Cb < threshold_Cb_orange && Cr > threshold_Cr_orange);
                     write_addr                  <= read_addr;
                     we                          <= 1'b1;
                     //If I am the highest, I am new top right
@@ -253,7 +258,7 @@ module corner_detect
                 else begin
                     color_detected              <= NONE;
                     updated_color_history[3:1]  <= color_history[2:0];
-                    updated_color_history[0]    <= (Cb < threshold_Cb && Cr < threshold_Cr);
+                    updated_color_history[0]    <= (Cb < threshold_Cb_orange && Cr < threshold_Cr_orange);
                     write_addr                  <= read_addr;
                     we                          <= 1'b1;
                 end
