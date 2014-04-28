@@ -10,14 +10,13 @@ module color_detect
     input [18:0]        read_addr, 
     input unsigned [9:0]         read_x, 
     input unsigned [9:0]         read_y,
-
-    input [7:0]         threshold_Cb_orange,
-    input [7:0]         threshold_Cr_orange,
     input [7:0]         threshold_Cb_green,
     input [7:0]         threshold_Cr_green,
     input [1:0]         threshold_history,
 
     output reg [2:0]    color_detected, 
+    output reg unsigned [9:0] color_x, 
+    output reg unsigned [9:0] color_y,
 
     output  [9:0]    top_left_prev_x,
     output  [9:0]    top_left_prev_y,
@@ -124,7 +123,10 @@ module color_detect
             bot_left[y]     <= 10'd0;
             bot_right[x]    <= 10'd0;
             bot_right[y]    <= 10'd0;
-            color_detected <= NONE;
+
+            color_detected  <= NONE;
+            color_x         <= 10'd0;
+            color_y         <= 10'd0;
         end
         else begin
             //Falling edge of VS
@@ -159,13 +161,13 @@ module color_detect
             end
             //otherwise keep updating
             else begin
-                if ( (Cb < threshold_Cb_orange && Cr > threshold_Cr_orange)
-                   || (Cb < threshold_Cb_green && Cr < threshold_Cr_green) 
+                if (Cb < threshold_Cb_green && Cr < threshold_Cr_green
                     && num_history > threshold_history) begin
                     color_detected              <= GREEN;
+                    color_x                     <= read_x;
+                    color_y                     <= read_y;
                     updated_color_history[3:1]  <= color_history[2:0];
-                    updated_color_history[0]    <= ((Cb < threshold_Cb_orange && Cr > threshold_Cr_orange)
-                                                    || (Cb < threshold_Cb_green && Cr < threshold_Cr_green));
+                    updated_color_history[0]    <= (Cb < threshold_Cb_green && Cr < threshold_Cr_green);
                     write_addr                  <= read_addr;
                     we                          <= 1'b1;
                     //If I am the highest, I am new top right
@@ -213,9 +215,10 @@ module color_detect
 
                 else begin
                     color_detected              <= NONE;
+                    color_x                     <= read_x;
+                    color_y                     <= read_y;
                     updated_color_history[3:1]  <= color_history[2:0];
-                    updated_color_history[0]    <= ((Cb < threshold_Cb_orange && Cr > threshold_Cr_orange)
-                                                    || (Cb < threshold_Cb_green && Cr < threshold_Cr_green));
+                    updated_color_history[0]    <= (Cb < threshold_Cb_green && Cr < threshold_Cr_green);
                     write_addr                  <= read_addr;
                     we                          <= 1'b1;
                 end
@@ -225,31 +228,3 @@ module color_detect
     end
 
 endmodule 
-    //Corners: 
-    /**
-        edge case: perfectly aligned square
-            1: topmost and leftmost
-
-        otherwise: 
-            1: topmost
-            2: rightmost
-            3: bottomost
-            4: leftmost
-    
-    Find the left most, right most, up, down coordinates
-    If this pixel is green:
-        read from sram and write back the current value
-        if it has been green for the past 4 frames: 
-            consider for min/maxing
-
-    Determine where corners are
-    if (area around ideal corners > threshold * #green_pixels) {
-        use perfect case: (left, up), (left, down), (right, up), (right, down)
-    }
-    else {
-        use original edge coordinates: (left, ), (right, ), ( , up), ( , down)
-    }
-
-    must keep track of all of the pixels marked as green. see if portion is ok
-
-    */

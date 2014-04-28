@@ -1134,6 +1134,7 @@ set_global_assignment -name SMART_RECOMPILE ON
 set_global_assignment -name NUM_PARALLEL_PROCESSORS ALL
 set_global_assignment -name RAPID_RECOMPILE_MODE ON
 set_global_assignment -name CYCLONEII_OPTIMIZATION_TECHNIQUE SPEED
+set_global_assignment -name VERILOG_FILE verilog/fsm.v
 set_global_assignment -name VERILOG_FILE verilog/median_filter.v
 set_global_assignment -name VERILOG_FILE verilog/ram_shift_1.v
 set_global_assignment -name VERILOG_FILE verilog/color_detect.v
@@ -1141,8 +1142,6 @@ set_global_assignment -name VERILOG_FILE verilog/buffer7.v
 set_global_assignment -name VERILOG_FILE verilog/rom_clocktower.v
 set_global_assignment -name VERILOG_FILE verilog/mult_s28.v
 set_global_assignment -name VERILOG_FILE verilog/mult_s13.v
-set_global_assignment -name VERILOG_FILE verilog/mult_s36.v
-set_global_assignment -name VERILOG_FILE verilog/mult_s18.v
 set_global_assignment -name VERILOG_FILE verilog/buffer5.v
 set_global_assignment -name VERILOG_FILE verilog/squarer.v
 set_global_assignment -name VERILOG_FILE verilog/harris_operator.v
