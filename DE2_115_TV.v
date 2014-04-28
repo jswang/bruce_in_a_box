@@ -796,20 +796,20 @@ color_history color_hist (
 
 localparam x = 0;
 localparam y = 1;
-wire [9:0] top_left 	[0:1];
-wire [9:0] top_right 	[0:1];
-wire [9:0] bot_left 	[0:1];
-wire [9:0] bot_right 	[0:1];
+wire unsigned [9:0] top_left 	[0:1];
+wire unsigned [9:0] top_right 	[0:1];
+wire unsigned [9:0] bot_left 	[0:1];
+wire unsigned [9:0] bot_right 	[0:1];
+
+wire unsigned [9:0] top_left_d20 	[0:1];
+wire unsigned [9:0] top_right_d20 	[0:1];
+wire unsigned [9:0] bot_left_d20 	[0:1];
+wire unsigned [9:0] bot_right_d20 	[0:1];
 
 wire signed [10:0] top_left_fsm [0:1];
 wire signed [10:0] top_right_fsm [0:1];
 wire signed [10:0] bot_left_fsm [0:1];
 wire signed [10:0] bot_right_fsm [0:1];
-
-wire signed [10:0] top_left_d20 	[0:1];
-wire signed [10:0] top_right_d20 	[0:1];
-wire signed [10:0] bot_left_d20 	[0:1];
-wire signed [10:0] bot_right_d20 	[0:1];
 
 wire signed [10:0] top_left_fsm_d20 [0:1];
 wire signed [10:0] top_right_fsm_d20 [0:1];
@@ -920,7 +920,8 @@ fsm corner_follower (
     .out_bot_right_y(bot_right_fsm[y]), 
 
     .state(LEDG[3:0]), 
-    .thresh_flags(LEDR[3:0])
+    .thresh_exceeded_flags(LEDG[7:4]),
+    .thresh_flags(LEDR[15:0])
 );
 
 delay #( .DATA_WIDTH(88), .DELAY(12) ) fsm_corner_delay
@@ -977,7 +978,7 @@ always @ (*) begin
 				end
 
 			//Green area : pink
-			else if (color== GREEN) begin
+			else if (color == GREEN) begin
 				VGA_R = 8'hFF;
 				VGA_G = 8'h00;
 				VGA_B = 8'hFF;

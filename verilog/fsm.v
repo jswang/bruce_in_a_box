@@ -2,7 +2,7 @@ module fsm (
 	input clk,
 	input reset,
 	input VGA_VS, 
-    input               pixel_valid, 
+   input               pixel_valid, 
 	input signed [10:0] pixel_x, 
 	input signed [10:0] pixel_y,
 	input signed [10:0] threshold,
@@ -17,14 +17,35 @@ module fsm (
     output reg signed [10:0]    out_bot_right_y, 
 
     output reg [3:0] state, 
-    output[7:0] thresh_flags
+    output [3:0] thresh_exceeded_flags,
+    output [15:0] thresh_flags
 
 
 	);
-assign thresh_flags[3] = x_max_exceeded;
-assign thresh_flags[2] = x_min_exceeded;
-assign thresh_flags[1] = y_max_exceeded;
-assign thresh_flags[0] = y_min_exceeded;
+assign thresh_flags[15] = x_thresh_TL;
+assign thresh_flags[14] = x_thresh_TR;
+assign thresh_flags[13] = x_thresh_BL;
+assign thresh_flags[12] = x_thresh_BR;
+
+assign thresh_flags[11] = y_thresh_TL;
+assign thresh_flags[10] = y_thresh_TR;
+assign thresh_flags[9] = y_thresh_BL;
+assign thresh_flags[8] = y_thresh_BR;
+
+assign thresh_flags[7] = xy_thresh_TL;
+assign thresh_flags[6] = xy_thresh_TR;
+assign thresh_flags[5] = xy_thresh_BL;
+assign thresh_flags[4] = xy_thresh_BR;
+
+assign thresh_flags[3] = no_thresh_TL;
+assign thresh_flags[2] = no_thresh_TR;
+assign thresh_flags[1] = no_thresh_BL;
+assign thresh_flags[0] = no_thresh_BR;
+
+assign thresh_exceeded_flags[3] = x_max_exceeded;
+assign thresh_exceeded_flags[2] = x_min_exceeded;
+assign thresh_exceeded_flags[1] = y_max_exceeded;
+assign thresh_exceeded_flags[0] = y_min_exceeded;
 
 //Signal wires
 wire falling_VGA_VS = (VGA_VS_prev && ~VGA_VS);
@@ -44,6 +65,7 @@ localparam y_local_min = 2;
 localparam state_pre_init 	= 4'd0;
 localparam state_init 		= 4'd1;
 localparam state_rotating   = 4'd2;
+localparam state_bad       = 4'd3;
 
 //Internal registers
 reg VGA_VS_prev;
@@ -431,6 +453,7 @@ always @ (posedge clk) begin
                                 out_top_right_x <= x_min[x];
                                 out_top_right_y <= x_min[y_local_max];
                             end
+                            else state <= state_bad;
                         end
                         // y thresh exceeded, x thresh not
                         else if ((y_min_exceeded || y_max_exceeded) && !(x_min_exceeded || x_max_exceeded)) begin
@@ -475,6 +498,7 @@ always @ (posedge clk) begin
                                 out_top_right_x <= y_max[x_local_min];
                                 out_top_right_y <= y_max[y];
                             end
+                            else state <= state_bad;
 
                             
                         end
@@ -521,6 +545,7 @@ always @ (posedge clk) begin
                                 out_top_right_x <= x_min[x];
                                 out_top_right_y <= y_max[y];
                             end
+                            else state <= state_bad;
 
                             
                         end
@@ -567,8 +592,13 @@ always @ (posedge clk) begin
                                 out_top_right_x <= y_max[x_local_min];
                                 out_top_right_y <= y_max[y];
                             end
+                            else state <= state_bad;
                             
                         end
+                    end
+
+                    state_bad: begin
+                       state <= state_bad;
                     end
 
                     default: begin
