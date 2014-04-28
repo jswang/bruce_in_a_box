@@ -17,7 +17,7 @@ module fsm (
     output reg signed [10:0]    out_bot_right_y, 
 
     output reg [3:0] state, 
-    output[3:0] thresh_flags
+    output[7:0] thresh_flags
 
 
 	);
@@ -102,18 +102,125 @@ wire x_thresh_BR = (x_thresh_BR_sum < x_thresh_TL_sum)
                 && (x_thresh_BR_sum < x_thresh_TR_sum) 
                 && (x_thresh_BR_sum < x_thresh_BL_sum); 
 
-wire y_thresh_TL; 
-wire y_thresh_TR; 
-wire y_thresh_BL; 
-wire y_thresh_BR;
-wire xy_thresh_TL; 
-wire xy_thresh_TR; 
-wire xy_thresh_BL; 
-wire xy_thresh_BR;
-wire no_thresh_TL; 
-wire no_thresh_TR; 
-wire no_thresh_BL; 
-wire no_thresh_BR; 
+//Distance calculations: y_threshold
+wire signed [10:0] y_thresh_TL_x = (x_min[x] - top_left_x_prev);
+wire signed [10:0] y_thresh_TL_y = (x_min[y] - top_left_y_prev);
+wire signed [10:0] y_thresh_TR_x = (x_min[x] - top_right_x_prev);
+wire signed [10:0] y_thresh_TR_y = (x_min[y] - top_right_y_prev);
+wire signed [10:0] y_thresh_BL_x = (x_min[x] - bot_left_x_prev);
+wire signed [10:0] y_thresh_BL_y = (x_min[y] - bot_left_y_prev);
+wire signed [10:0] y_thresh_BR_x = (x_min[x] - bot_right_x_prev);
+wire signed [10:0] y_thresh_BR_y = (x_min[y] - bot_right_y_prev);
+
+wire unsigned [21:0] y_thresh_TL_x2, y_thresh_TL_y2, y_thresh_TR_x2, y_thresh_TR_y2, 
+                     y_thresh_BL_x2, y_thresh_BL_y2, y_thresh_BR_x2, y_thresh_BR_y2;
+wire unsigned [22:0] y_thresh_TL_sum = y_thresh_TL_x2 + y_thresh_TL_y2;
+wire unsigned [22:0] y_thresh_TR_sum = y_thresh_TR_x2 + y_thresh_TR_y2;
+wire unsigned [22:0] y_thresh_BL_sum = y_thresh_BL_x2 + y_thresh_BL_y2;
+wire unsigned [22:0] y_thresh_BR_sum = y_thresh_BR_x2 + y_thresh_BR_y2;
+
+squarer_s11 square_y_thresh_TL_x(y_thresh_TL_x, y_thresh_TL_x2);
+squarer_s11 square_y_thresh_TL_y(y_thresh_TL_y, y_thresh_TL_y2);
+squarer_s11 square_y_thresh_TR_x(y_thresh_TR_x, y_thresh_TR_x2);
+squarer_s11 square_y_thresh_TR_y(y_thresh_TR_y, y_thresh_TR_y2);
+squarer_s11 square_y_thresh_BL_x(y_thresh_BL_x, y_thresh_BL_x2);
+squarer_s11 square_y_thresh_BL_y(y_thresh_BL_y, y_thresh_BL_y2);
+squarer_s11 square_y_thresh_BR_x(y_thresh_BR_x, y_thresh_BR_x2);
+squarer_s11 square_y_thresh_BR_y(y_thresh_BR_y, y_thresh_BR_y2);
+
+wire y_thresh_TL = (y_thresh_TL_sum < y_thresh_TR_sum)
+                && (y_thresh_TL_sum < y_thresh_BL_sum) 
+                && (y_thresh_TL_sum < y_thresh_BR_sum); 
+wire y_thresh_TR = (y_thresh_TR_sum < y_thresh_TL_sum)
+                && (y_thresh_TR_sum < y_thresh_BL_sum) 
+                && (y_thresh_TR_sum < y_thresh_BR_sum); 
+wire y_thresh_BL = (y_thresh_BL_sum < y_thresh_TL_sum)
+                && (y_thresh_BL_sum < y_thresh_TR_sum) 
+                && (y_thresh_BL_sum < y_thresh_BR_sum); 
+wire y_thresh_BR = (y_thresh_BR_sum < y_thresh_TL_sum)
+                && (y_thresh_BR_sum < y_thresh_TR_sum) 
+                && (y_thresh_BR_sum < y_thresh_BL_sum); 
+
+
+//Distance calculations: xy_threshold
+wire signed [10:0] xy_thresh_TL_x = (x_min[x] - top_left_x_prev);
+wire signed [10:0] xy_thresh_TL_y = (x_min[y] - top_left_y_prev);
+wire signed [10:0] xy_thresh_TR_x = (x_min[x] - top_right_x_prev);
+wire signed [10:0] xy_thresh_TR_y = (x_min[y] - top_right_y_prev);
+wire signed [10:0] xy_thresh_BL_x = (x_min[x] - bot_left_x_prev);
+wire signed [10:0] xy_thresh_BL_y = (x_min[y] - bot_left_y_prev);
+wire signed [10:0] xy_thresh_BR_x = (x_min[x] - bot_right_x_prev);
+wire signed [10:0] xy_thresh_BR_y = (x_min[y] - bot_right_y_prev);
+
+wire unsigned [21:0] xy_thresh_TL_x2, xy_thresh_TL_y2, xy_thresh_TR_x2, xy_thresh_TR_y2, 
+                     xy_thresh_BL_x2, xy_thresh_BL_y2, xy_thresh_BR_x2, xy_thresh_BR_y2;
+wire unsigned [22:0] xy_thresh_TL_sum = xy_thresh_TL_x2 + xy_thresh_TL_y2;
+wire unsigned [22:0] xy_thresh_TR_sum = xy_thresh_TR_x2 + xy_thresh_TR_y2;
+wire unsigned [22:0] xy_thresh_BL_sum = xy_thresh_BL_x2 + xy_thresh_BL_y2;
+wire unsigned [22:0] xy_thresh_BR_sum = xy_thresh_BR_x2 + xy_thresh_BR_y2;
+
+squarer_s11 square_xy_thresh_TL_x(xy_thresh_TL_x, xy_thresh_TL_x2);
+squarer_s11 square_xy_thresh_TL_y(xy_thresh_TL_y, xy_thresh_TL_y2);
+squarer_s11 square_xy_thresh_TR_x(xy_thresh_TR_x, xy_thresh_TR_x2);
+squarer_s11 square_xy_thresh_TR_y(xy_thresh_TR_y, xy_thresh_TR_y2);
+squarer_s11 square_xy_thresh_BL_x(xy_thresh_BL_x, xy_thresh_BL_x2);
+squarer_s11 square_xy_thresh_BL_y(xy_thresh_BL_y, xy_thresh_BL_y2);
+squarer_s11 square_xy_thresh_BR_x(xy_thresh_BR_x, xy_thresh_BR_x2);
+squarer_s11 square_xy_thresh_BR_y(xy_thresh_BR_y, xy_thresh_BR_y2);
+
+wire xy_thresh_TL = (xy_thresh_TL_sum < xy_thresh_TR_sum)
+                && (xy_thresh_TL_sum < xy_thresh_BL_sum) 
+                && (xy_thresh_TL_sum < xy_thresh_BR_sum); 
+wire xy_thresh_TR = (xy_thresh_TR_sum < xy_thresh_TL_sum)
+                && (xy_thresh_TR_sum < xy_thresh_BL_sum) 
+                && (xy_thresh_TR_sum < xy_thresh_BR_sum); 
+wire xy_thresh_BL = (xy_thresh_BL_sum < xy_thresh_TL_sum)
+                && (xy_thresh_BL_sum < xy_thresh_TR_sum) 
+                && (xy_thresh_BL_sum < xy_thresh_BR_sum); 
+wire xy_thresh_BR = (xy_thresh_BR_sum < xy_thresh_TL_sum)
+                && (xy_thresh_BR_sum < xy_thresh_TR_sum) 
+                && (xy_thresh_BR_sum < xy_thresh_BL_sum); 
+
+
+//Distance calculations: no_threshold
+wire signed [10:0] no_thresh_TL_x = (x_min[x] - top_left_x_prev);
+wire signed [10:0] no_thresh_TL_y = (x_min[y] - top_left_y_prev);
+wire signed [10:0] no_thresh_TR_x = (x_min[x] - top_right_x_prev);
+wire signed [10:0] no_thresh_TR_y = (x_min[y] - top_right_y_prev);
+wire signed [10:0] no_thresh_BL_x = (x_min[x] - bot_left_x_prev);
+wire signed [10:0] no_thresh_BL_y = (x_min[y] - bot_left_y_prev);
+wire signed [10:0] no_thresh_BR_x = (x_min[x] - bot_right_x_prev);
+wire signed [10:0] no_thresh_BR_y = (x_min[y] - bot_right_y_prev);
+
+wire unsigned [21:0] no_thresh_TL_x2, no_thresh_TL_y2, no_thresh_TR_x2, no_thresh_TR_y2, 
+                     no_thresh_BL_x2, no_thresh_BL_y2, no_thresh_BR_x2, no_thresh_BR_y2;
+wire unsigned [22:0] no_thresh_TL_sum = no_thresh_TL_x2 + no_thresh_TL_y2;
+wire unsigned [22:0] no_thresh_TR_sum = no_thresh_TR_x2 + no_thresh_TR_y2;
+wire unsigned [22:0] no_thresh_BL_sum = no_thresh_BL_x2 + no_thresh_BL_y2;
+wire unsigned [22:0] no_thresh_BR_sum = no_thresh_BR_x2 + no_thresh_BR_y2;
+
+squarer_s11 square_no_thresh_TL_x(no_thresh_TL_x, no_thresh_TL_x2);
+squarer_s11 square_no_thresh_TL_y(no_thresh_TL_y, no_thresh_TL_y2);
+squarer_s11 square_no_thresh_TR_x(no_thresh_TR_x, no_thresh_TR_x2);
+squarer_s11 square_no_thresh_TR_y(no_thresh_TR_y, no_thresh_TR_y2);
+squarer_s11 square_no_thresh_BL_x(no_thresh_BL_x, no_thresh_BL_x2);
+squarer_s11 square_no_thresh_BL_y(no_thresh_BL_y, no_thresh_BL_y2);
+squarer_s11 square_no_thresh_BR_x(no_thresh_BR_x, no_thresh_BR_x2);
+squarer_s11 square_no_thresh_BR_y(no_thresh_BR_y, no_thresh_BR_y2);
+
+wire no_thresh_TL = (no_thresh_TL_sum < no_thresh_TR_sum)
+                && (no_thresh_TL_sum < no_thresh_BL_sum) 
+                && (no_thresh_TL_sum < no_thresh_BR_sum); 
+wire no_thresh_TR = (no_thresh_TR_sum < no_thresh_TL_sum)
+                && (no_thresh_TR_sum < no_thresh_BL_sum) 
+                && (no_thresh_TR_sum < no_thresh_BR_sum); 
+wire no_thresh_BL = (no_thresh_BL_sum < no_thresh_TL_sum)
+                && (no_thresh_BL_sum < no_thresh_TR_sum) 
+                && (no_thresh_BL_sum < no_thresh_BR_sum); 
+wire no_thresh_BR = (no_thresh_BR_sum < no_thresh_TL_sum)
+                && (no_thresh_BR_sum < no_thresh_TR_sum) 
+                && (no_thresh_BR_sum < no_thresh_BL_sum); 
+
 
 
 always @ (posedge clk) begin
