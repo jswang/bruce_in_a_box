@@ -801,20 +801,20 @@ wire [9:0] top_right 	[0:1];
 wire [9:0] bot_left 	[0:1];
 wire [9:0] bot_right 	[0:1];
 
-wire [9:0] top_left_fsm [0:1];
-wire [9:0] top_right_fsm [0:1];
-wire [9:0] bot_left_fsm [0:1];
-wire [9:0] bot_right_fsm [0:1];
+wire signed [10:0] top_left_fsm [0:1];
+wire signed [10:0] top_right_fsm [0:1];
+wire signed [10:0] bot_left_fsm [0:1];
+wire signed [10:0] bot_right_fsm [0:1];
 
-wire [9:0] top_left_d20 	[0:1];
-wire [9:0] top_right_d20 	[0:1];
-wire [9:0] bot_left_d20 	[0:1];
-wire [9:0] bot_right_d20 	[0:1];
+wire signed [10:0] top_left_d20 	[0:1];
+wire signed [10:0] top_right_d20 	[0:1];
+wire signed [10:0] bot_left_d20 	[0:1];
+wire signed [10:0] bot_right_d20 	[0:1];
 
-wire [9:0] top_left_fsm_d20 [0:1];
-wire [9:0] top_right_fsm_d20 [0:1];
-wire [9:0] bot_left_fsm_d20 [0:1];
-wire [9:0] bot_right_fsm_d20 [0:1];
+wire signed [10:0] top_left_fsm_d20 [0:1];
+wire signed [10:0] top_right_fsm_d20 [0:1];
+wire signed [10:0] bot_left_fsm_d20 [0:1];
+wire signed [10:0] bot_right_fsm_d20 [0:1];
 
 
 //Y, Cb, Cr are synced up with RGB out of the VGA controller.
@@ -907,9 +907,9 @@ fsm corner_follower (
 	.reset(reset), 
 	.VGA_VS(VGA_VS_d7), 
 	.pixel_valid(median_color_), 
-	.pixel_x(color_x_d7),
-	.pixel_y(color_y_d7),
-	.threshold(SW[17:8]), 
+	.pixel_x({1'b0, color_x_d7}),
+	.pixel_y({1'b0, color_y_d7}),
+	.threshold({1'b0, SW[17:8]}), 
 	.out_top_left_x(top_left_fsm[x]),
     .out_top_left_y(top_left_fsm[y]),
     .out_top_right_x(top_right_fsm[x]),
@@ -923,7 +923,7 @@ fsm corner_follower (
     .thresh_flags(LEDR[3:0])
 );
 
-delay #( .DATA_WIDTH(80), .DELAY(12) ) fsm_corner_delay
+delay #( .DATA_WIDTH(88), .DELAY(12) ) fsm_corner_delay
 (
 	.clk 		(VGA_CLK), 
 	.data_in 	({	top_left_fsm[x], top_right_fsm[x], 
@@ -1037,7 +1037,7 @@ always @ (*) begin
 
 	    //display from rom
 		2'd2: begin
-			if ( (VGA_Y-draw_start[y]) < 480 + (VGA_X-draw_start[x])
+			if ( (VGA_Y-draw_start[y]) < 480 + (VGA_X-draw_start[x]) &&
 				!(rom_R_d20 == 8'd43 && rom_G_d20 == 8'd213 && rom_B_d20 == 8'd55)) begin
 				VGA_R = rom_R_d20;
 				VGA_G = rom_G_d20;
