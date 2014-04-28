@@ -1037,7 +1037,7 @@ always @ (*) begin
 
 	    //display from rom
 		2'd2: begin
-			if (rom_addr_d20 < 17'd38400 && rom_addr_d20 >= 17'd0 &&
+			if ( (VGA_Y-draw_start[y]) < 480 + (VGA_X-draw_start[x])
 				!(rom_R_d20 == 8'd43 && rom_G_d20 == 8'd213 && rom_B_d20 == 8'd55)) begin
 				VGA_R = rom_R_d20;
 				VGA_G = rom_G_d20;
