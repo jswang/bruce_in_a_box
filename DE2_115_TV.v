@@ -486,7 +486,6 @@ assign	LCD_BLON	=	1'b1;	//	LCD Back Light
 assign	SD_DAT		=	4'b1zzz;  //Set SD Card to SD Mode
 assign	AUD_ADCLRCK	=	AUD_DACLRCK;
 assign	GPIO	=	36'hzzzzzzzzz;
-assign	HSMC_D   	=	4'hz;
 assign	EX_IO   	=	7'bzzzzzzz;
 
 //	Disable USB speed select
@@ -902,6 +901,7 @@ delay #( .DATA_WIDTH(1), .DELAY(13) ) median_color_delay
 
 //delays corner (x,y) by 1
 //inputs are delayed by 7 already
+wire [9:0] test_x_max, test_x_min, test_y_max, test_y_min, test_y_max_xlocalmin, test_y_max_xlocalmax;
 fsm corner_follower (
 	.clk(VGA_CLK), 
 	.reset(reset), 
@@ -909,7 +909,7 @@ fsm corner_follower (
 	.pixel_valid(median_color_), 
 	.pixel_x({1'b0, color_x_d7}),
 	.pixel_y({1'b0, color_y_d7}),
-	.threshold({1'b0, SW[17:8]}), 
+	// .threshold({1'b0, SW[17:8]}), 
 	.out_top_left_x(top_left_fsm[x]),
     .out_top_left_y(top_left_fsm[y]),
     .out_top_right_x(top_right_fsm[x]),
@@ -921,7 +921,14 @@ fsm corner_follower (
 
     .state(LEDG[3:0]), 
     .thresh_exceeded_flags(LEDG[7:4]),
-    .thresh_flags(LEDR[15:0])
+    .count(LEDR[10:0]),
+    .thresh_flags(), 
+    .test_x_max(test_x_max), 
+    .test_x_min(test_x_min), 
+    .test_y_max(test_y_max),
+    .test_y_min(test_y_min), 
+    .test_y_max_xlocalmax(test_y_max_xlocalmax), 
+    .test_y_max_xlocalmin(test_y_max_xlocalmin)
 );
 
 delay #( .DATA_WIDTH(88), .DELAY(12) ) fsm_corner_delay
@@ -1036,19 +1043,30 @@ always @ (*) begin
 			end
 		end
 
-	    //display from rom
+	    //ymax
 		2'd2: begin
-			if ( (VGA_Y-draw_start[y]) < 480 + (VGA_X-draw_start[x]) &&
-				!(rom_R_d20 == 8'd43 && rom_G_d20 == 8'd213 && rom_B_d20 == 8'd55)) begin
-				VGA_R = rom_R_d20;
-				VGA_G = rom_G_d20;
-				VGA_B = rom_B_d20;
+			//yellow
+			if (VGA_Y_d20 == test_y_max 
+				&& VGA_X_d20 >= test_y_max_xlocalmin
+				&& VGA_X_d20 <= test_y_max_xlocalmax ) begin
+				VGA_R = 8'hFF;
+				VGA_G = 8'hFF;
+				VGA_B = 8'h00;
+			end
+			else if (median_color) begin
+				VGA_R = 8'hFF;
+				VGA_G = 8'h00;
+				VGA_B = 8'hFF;
 			end
 			else begin
 				VGA_R = VGA_R_;
 				VGA_G = VGA_G_;
 				VGA_B = VGA_B_;
 			end
+			//Red: top left
+			//orange: top right
+			//yellow: bottom left
+			//cyan: bottom right
 		end
 
 		//median filtering

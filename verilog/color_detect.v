@@ -51,19 +51,12 @@ module color_detect
     reg unsigned [9:0] bot_left  [0:1];
     reg unsigned [9:0] bot_right [0:1];
 
-    reg unsigned [9:0] x_max_prev, x_min_prev, y_max_prev, y_min_prev;
     reg unsigned [9:0] top_left_prev  [0:1];
     reg unsigned [9:0] top_right_prev [0:1];
     reg unsigned [9:0] bot_left_prev  [0:1];
     reg unsigned [9:0] bot_right_prev [0:1];
 
     reg VGA_VS_prev;
-
-    wire signed [10:0] x_max_signed, x_min_signed, y_max_signed, y_min_signed; 
-    assign x_max_signed = {1'b0, x_max};
-    assign x_min_signed = {1'b0, x_min};
-    assign y_max_signed = {1'b0, y_max};
-    assign y_min_signed = {1'b0, y_min};
 
     assign top_left_prev_x = top_left_prev[x];
     assign top_left_prev_y = top_left_prev[y];
@@ -99,10 +92,6 @@ module color_detect
     always @ (posedge clk) begin
         VGA_VS_prev <= VGA_VS;
         if (reset) begin
-            x_max_prev           <= 10'd0; 
-            x_min_prev           <= 10'd639;
-            y_max_prev           <= 10'd0;
-            y_min_prev           <= 10'd479;
             top_left_prev[x]     <= 10'd0;
             top_left_prev[y]     <= 10'd0;
             top_right_prev[x]    <= 10'd0;
@@ -131,11 +120,6 @@ module color_detect
         else begin
             //Falling edge of VS
             if (VGA_VS_prev && ~VGA_VS) begin
-
-                x_max_prev           <= x_max; 
-                x_min_prev           <= x_min;
-                y_max_prev           <= y_max;
-                y_min_prev           <= y_min;
                 top_left_prev[x]     <= top_left[x];
                 top_left_prev[y]     <= top_left[y];
                 top_right_prev[x]    <= top_right[x];
