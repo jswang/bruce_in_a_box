@@ -916,6 +916,7 @@ fsm corner_follower (
 	.pixel_y({1'b0, color_y_d7}),
 	// .movement_threshold(SW[17:7]), 
 	.threshold({1'b0, SW[17:8]}),
+	.offset(SW[7:2]),
 	.out_top_left_x(top_left_fsm[x]),
     .out_top_left_y(top_left_fsm[y]),
     .out_top_right_x(top_right_fsm[x]),
@@ -1053,6 +1054,41 @@ always @ (*) begin
 				VGA_G = VGA_G_;
 				VGA_B = VGA_B_;
 			end
+
+			//red
+			if(VGA_X_d20 == test_x_max
+				&& VGA_Y_d20 >= test_x_max_ylocalmin
+				&& VGA_Y_d20 <= test_x_max_ylocalmax ) begin
+				VGA_R = 8'hFF;
+				VGA_G = 8'h00;
+				VGA_B = 8'h00;
+			end
+			//orange
+			else if(VGA_X_d20 == test_x_min 
+				&& VGA_Y_d20 >= test_x_min_ylocalmin
+				&& VGA_Y_d20 <= test_x_min_ylocalmax ) begin
+				VGA_R = 8'hFF;
+				VGA_G = 8'd125;
+				VGA_B = 8'h00;
+			end
+
+			//yellow
+			else if (VGA_Y_d20 == test_y_max 
+				&& VGA_X_d20 >= test_y_max_xlocalmin
+				&& VGA_X_d20 <= test_y_max_xlocalmax ) begin
+				VGA_R = 8'hFF;
+				VGA_G = 8'hFF;
+				VGA_B = 8'h00;
+			end
+			//cyan
+			else if (VGA_Y_d20 == test_y_min 
+				&& VGA_X_d20 >= test_y_min_xlocalmin
+				&& VGA_X_d20 <= test_y_min_xlocalmax ) begin
+				VGA_R = 8'h00;
+				VGA_G = 8'hFF;
+				VGA_B = 8'hFF;
+			end
+
 		end
 
 	    //ymax

@@ -6,6 +6,7 @@ module fsm (
     input signed [10:0] pixel_x, 
     input signed [10:0] pixel_y,
     input signed [10:0] threshold,
+    input unsigned [5:0] offset,
     // input unsigned [10:0] movement_threshold,
 
     output reg signed [10:0]    out_top_left_x,
@@ -53,7 +54,6 @@ wire y_max_exceeded = (count_y_max_offset > threshold);
 wire y_min_exceeded = (count_y_min_offset > threshold);
 
 //Parameters
-localparam offset = 5;
 localparam x = 0;
 localparam y = 2;
 localparam x_local_max = 0;
@@ -410,26 +410,26 @@ always @ (posedge clk) begin
                     count_y_min     <= count_y_min + 11'd1;
                 end
 
-                //find the +-5 offset from previous
-                if (pixel_valid && (pixel_x == x_max_prev[x] - 5)) begin
+                //find the +-offset from previous
+                if (pixel_valid && (pixel_x == x_max_prev[x] - offset)) begin
                     x_max_offset[x]            <= pixel_x; 
                     if (pixel_y > x_max_offset[y_local_max]) x_max_offset[y_local_max]  <= pixel_y;
                     if (pixel_y < x_max_offset[y_local_min]) x_max_offset[y_local_min]  <= pixel_y;
                     count_x_max_offset         <= count_x_max_offset + 11'd1;
                 end
-                if (pixel_valid && (pixel_x == x_min_prev[x] + 5)) begin
+                if (pixel_valid && (pixel_x == x_min_prev[x] + offset)) begin
                     x_min_offset[x]            <= pixel_x; 
                     if (pixel_y > x_min_offset[y_local_max]) x_min_offset[y_local_max] <= pixel_y;
                     if (pixel_y < x_min_offset[y_local_min]) x_min_offset[y_local_min] <= pixel_y;
                     count_x_min_offset        <= count_x_min_offset + 11'd1;
                 end
-                if (pixel_valid && (pixel_y == y_max_prev[y] - 5)) begin
+                if (pixel_valid && (pixel_y == y_max_prev[y] - offset)) begin
                     y_max_offset[y]            <= pixel_y; 
                     if (pixel_x > y_max_offset[x_local_max]) y_max_offset[x_local_max] <= pixel_x;
                     if (pixel_x < y_max_offset[x_local_min]) y_max_offset[x_local_min] <= pixel_x;
                     count_y_max_offset     <= count_y_max_offset + 11'd1;
                 end
-                if (pixel_valid && (pixel_y == y_min_prev[y] + 5)) begin
+                if (pixel_valid && (pixel_y == y_min_prev[y] + offset)) begin
                     y_min_offset[y]            <= pixel_y; 
                     if (pixel_x > y_min_offset[x_local_max]) y_min_offset[x_local_max] <= pixel_x;
                     if (pixel_x < y_min_offset[x_local_min]) y_min_offset[x_local_min] <= pixel_x;
