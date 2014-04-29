@@ -901,7 +901,12 @@ delay #( .DATA_WIDTH(1), .DELAY(13) ) median_color_delay
 
 //delays corner (x,y) by 1
 //inputs are delayed by 7 already
-wire [9:0] test_x_max, test_x_min, test_y_max, test_y_min, test_y_max_xlocalmin, test_y_max_xlocalmax;
+wire [9:0] test_x_max, test_x_min, test_y_max, test_y_min;
+wire [9:0] test_x_max_ylocalmin, test_x_max_ylocalmax,
+		   test_x_min_ylocalmin, test_x_min_ylocalmax,
+		   test_y_max_xlocalmin, test_y_max_xlocalmax, 
+		   test_y_min_xlocalmin, test_y_min_xlocalmax;
+
 fsm corner_follower (
 	.clk(VGA_CLK), 
 	.reset(reset), 
@@ -909,7 +914,8 @@ fsm corner_follower (
 	.pixel_valid(median_color_), 
 	.pixel_x({1'b0, color_x_d7}),
 	.pixel_y({1'b0, color_y_d7}),
-	// .threshold({1'b0, SW[17:8]}), 
+	// .movement_threshold(SW[17:7]), 
+	.threshold({1'b0, SW[17:8]}),
 	.out_top_left_x(top_left_fsm[x]),
     .out_top_left_y(top_left_fsm[y]),
     .out_top_right_x(top_right_fsm[x]),
@@ -927,8 +933,14 @@ fsm corner_follower (
     .test_x_min(test_x_min), 
     .test_y_max(test_y_max),
     .test_y_min(test_y_min), 
-    .test_y_max_xlocalmax(test_y_max_xlocalmax), 
-    .test_y_max_xlocalmin(test_y_max_xlocalmin)
+    .test_x_max_ylocalmin(test_x_max_ylocalmin),
+    .test_x_max_ylocalmax(test_x_max_ylocalmax),
+    .test_x_min_ylocalmin(test_x_min_ylocalmin),
+    .test_x_min_ylocalmax(test_x_min_ylocalmax),
+    .test_y_max_xlocalmin(test_y_max_xlocalmin),
+    .test_y_max_xlocalmax(test_y_max_xlocalmax),
+    .test_y_min_xlocalmin(test_y_min_xlocalmin),
+    .test_y_min_xlocalmax(test_y_min_xlocalmax),
 );
 
 delay #( .DATA_WIDTH(88), .DELAY(12) ) fsm_corner_delay
@@ -1045,13 +1057,38 @@ always @ (*) begin
 
 	    //ymax
 		2'd2: begin
+			//red
+			if(VGA_X_d20 == test_x_max
+				&& VGA_Y_d20 >= test_x_max_ylocalmin
+				&& VGA_Y_d20 <= test_x_max_ylocalmax ) begin
+				VGA_R = 8'hFF;
+				VGA_G = 8'h00;
+				VGA_B = 8'h00;
+			end
+			//orange
+			else if(VGA_X_d20 == test_x_min 
+				&& VGA_Y_d20 >= test_x_min_ylocalmin
+				&& VGA_Y_d20 <= test_x_min_ylocalmax ) begin
+				VGA_R = 8'hFF;
+				VGA_G = 8'd125;
+				VGA_B = 8'h00;
+			end
+
 			//yellow
-			if (VGA_Y_d20 == test_y_max 
+			else if (VGA_Y_d20 == test_y_max 
 				&& VGA_X_d20 >= test_y_max_xlocalmin
 				&& VGA_X_d20 <= test_y_max_xlocalmax ) begin
 				VGA_R = 8'hFF;
 				VGA_G = 8'hFF;
 				VGA_B = 8'h00;
+			end
+			//cyan
+			else if (VGA_Y_d20 == test_y_min 
+				&& VGA_X_d20 >= test_y_min_xlocalmin
+				&& VGA_X_d20 <= test_y_min_xlocalmax ) begin
+				VGA_R = 8'h00;
+				VGA_G = 8'hFF;
+				VGA_B = 8'hFF;
 			end
 			else if (median_color) begin
 				VGA_R = 8'hFF;
