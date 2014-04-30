@@ -97,14 +97,14 @@ reg signed [10:0]    bot_right_y_prev;
 
 
 //Distance calculations: xthreshold exceeded. so current TL = (x_min[x], x_min[y_local_min])
-wire signed [10:0] x_thresh_TL_x = (x_min[x]           - top_left_x_prev);
-wire signed [10:0] x_thresh_TL_y = (x_min[y_local_min] - top_left_y_prev);
-wire signed [10:0] x_thresh_TR_x = (x_min[x]           - top_right_x_prev);
-wire signed [10:0] x_thresh_TR_y = (x_min[y_local_min] - top_right_y_prev);
-wire signed [10:0] x_thresh_BL_x = (x_min[x]           - bot_left_x_prev);
-wire signed [10:0] x_thresh_BL_y = (x_min[y_local_min] - bot_left_y_prev);
-wire signed [10:0] x_thresh_BR_x = (x_min[x]           - bot_right_x_prev);
-wire signed [10:0] x_thresh_BR_y = (x_min[y_local_min] - bot_right_y_prev);
+wire signed [10:0] x_thresh_TL_x = (x_min_offset[x]           - top_left_x_prev);
+wire signed [10:0] x_thresh_TL_y = (x_min_offset[y_local_min] - top_left_y_prev);
+wire signed [10:0] x_thresh_TR_x = (x_min_offset[x]           - top_right_x_prev);
+wire signed [10:0] x_thresh_TR_y = (x_min_offset[y_local_min] - top_right_y_prev);
+wire signed [10:0] x_thresh_BL_x = (x_min_offset[x]           - bot_left_x_prev);
+wire signed [10:0] x_thresh_BL_y = (x_min_offset[y_local_min] - bot_left_y_prev);
+wire signed [10:0] x_thresh_BR_x = (x_min_offset[x]           - bot_right_x_prev);
+wire signed [10:0] x_thresh_BR_y = (x_min_offset[y_local_min] - bot_right_y_prev);
 
 wire unsigned [21:0] x_thresh_TL_x2, x_thresh_TL_y2, x_thresh_TR_x2, x_thresh_TR_y2, 
                      x_thresh_BL_x2, x_thresh_BL_y2, x_thresh_BR_x2, x_thresh_BR_y2;
@@ -141,14 +141,14 @@ wire x_thresh_BR = ((x_thresh_BR_sum < x_thresh_TL_sum)
 
 
 //Distance calculations: y_thresh exceeded. So current TL = (y_min[x_local_min], y_min[y])
-wire signed [10:0] y_thresh_TL_x = (y_min[x_local_min] - top_left_x_prev);
-wire signed [10:0] y_thresh_TL_y = (y_min[y]           - top_left_y_prev);
-wire signed [10:0] y_thresh_TR_x = (y_min[x_local_min] - top_right_x_prev);
-wire signed [10:0] y_thresh_TR_y = (y_min[y]           - top_right_y_prev);
-wire signed [10:0] y_thresh_BL_x = (y_min[x_local_min] - bot_left_x_prev);
-wire signed [10:0] y_thresh_BL_y = (y_min[y]           - bot_left_y_prev);
-wire signed [10:0] y_thresh_BR_x = (y_min[x_local_min] - bot_right_x_prev);
-wire signed [10:0] y_thresh_BR_y = (y_min[y]           - bot_right_y_prev);
+wire signed [10:0] y_thresh_TL_x = (y_min_offset[x_local_min] - top_left_x_prev);
+wire signed [10:0] y_thresh_TL_y = (y_min_offset[y]           - top_left_y_prev);
+wire signed [10:0] y_thresh_TR_x = (y_min_offset[x_local_min] - top_right_x_prev);
+wire signed [10:0] y_thresh_TR_y = (y_min_offset[y]           - top_right_y_prev);
+wire signed [10:0] y_thresh_BL_x = (y_min_offset[x_local_min] - bot_left_x_prev);
+wire signed [10:0] y_thresh_BL_y = (y_min_offset[y]           - bot_left_y_prev);
+wire signed [10:0] y_thresh_BR_x = (y_min_offset[x_local_min] - bot_right_x_prev);
+wire signed [10:0] y_thresh_BR_y = (y_min_offset[y]           - bot_right_y_prev);
 
 wire unsigned [21:0] y_thresh_TL_x2, y_thresh_TL_y2, y_thresh_TR_x2, y_thresh_TR_y2, 
                      y_thresh_BL_x2, y_thresh_BL_y2, y_thresh_BR_x2, y_thresh_BR_y2;
@@ -185,14 +185,14 @@ wire y_thresh_BR = ((y_thresh_BR_sum < y_thresh_TL_sum)
 
 
 //Distance calculations: xy_threshold both exceeded. So current TL = (x_min[x], y_min[y])
-wire signed [10:0] xy_thresh_TL_x = (x_min[x] - top_left_x_prev);
-wire signed [10:0] xy_thresh_TL_y = (y_min[y] - top_left_y_prev);
-wire signed [10:0] xy_thresh_TR_x = (x_min[x] - top_right_x_prev);
-wire signed [10:0] xy_thresh_TR_y = (y_min[y] - top_right_y_prev);
-wire signed [10:0] xy_thresh_BL_x = (x_min[x] - bot_left_x_prev);
-wire signed [10:0] xy_thresh_BL_y = (y_min[y] - bot_left_y_prev);
-wire signed [10:0] xy_thresh_BR_x = (x_min[x] - bot_right_x_prev);
-wire signed [10:0] xy_thresh_BR_y = (y_min[y] - bot_right_y_prev);
+wire signed [10:0] xy_thresh_TL_x = (x_min_offset[x] - top_left_x_prev);
+wire signed [10:0] xy_thresh_TL_y = (y_min_offset[y] - top_left_y_prev);
+wire signed [10:0] xy_thresh_TR_x = (x_min_offset[x] - top_right_x_prev);
+wire signed [10:0] xy_thresh_TR_y = (y_min_offset[y] - top_right_y_prev);
+wire signed [10:0] xy_thresh_BL_x = (x_min_offset[x] - bot_left_x_prev);
+wire signed [10:0] xy_thresh_BL_y = (y_min_offset[y] - bot_left_y_prev);
+wire signed [10:0] xy_thresh_BR_x = (x_min_offset[x] - bot_right_x_prev);
+wire signed [10:0] xy_thresh_BR_y = (y_min_offset[y] - bot_right_y_prev);
 
 wire unsigned [21:0] xy_thresh_TL_x2, xy_thresh_TL_y2, xy_thresh_TR_x2, xy_thresh_TR_y2, 
                      xy_thresh_BL_x2, xy_thresh_BL_y2, xy_thresh_BR_x2, xy_thresh_BR_y2;
@@ -229,14 +229,14 @@ wire xy_thresh_BR = ((xy_thresh_BR_sum < xy_thresh_TL_sum)
 
 
 //Distance calculations: no_threshold exceeded. so current TL = (x_min[x], x_min[y_local_min])
-wire signed [10:0] no_thresh_TL_x = (x_min[x]           - top_left_x_prev);
-wire signed [10:0] no_thresh_TL_y = (x_min[y_local_min] - top_left_y_prev);
-wire signed [10:0] no_thresh_TR_x = (x_min[x]           - top_right_x_prev);
-wire signed [10:0] no_thresh_TR_y = (x_min[y_local_min] - top_right_y_prev);
-wire signed [10:0] no_thresh_BL_x = (x_min[x]           - bot_left_x_prev);
-wire signed [10:0] no_thresh_BL_y = (x_min[y_local_min] - bot_left_y_prev);
-wire signed [10:0] no_thresh_BR_x = (x_min[x]           - bot_right_x_prev);
-wire signed [10:0] no_thresh_BR_y = (x_min[y_local_min] - bot_right_y_prev);
+wire signed [10:0] no_thresh_TL_x = (x_min_offset[x]           - top_left_x_prev);
+wire signed [10:0] no_thresh_TL_y = (x_min_offset[y_local_min] - top_left_y_prev);
+wire signed [10:0] no_thresh_TR_x = (x_min_offset[x]           - top_right_x_prev);
+wire signed [10:0] no_thresh_TR_y = (x_min_offset[y_local_min] - top_right_y_prev);
+wire signed [10:0] no_thresh_BL_x = (x_min_offset[x]           - bot_left_x_prev);
+wire signed [10:0] no_thresh_BL_y = (x_min_offset[y_local_min] - bot_left_y_prev);
+wire signed [10:0] no_thresh_BR_x = (x_min_offset[x]           - bot_right_x_prev);
+wire signed [10:0] no_thresh_BR_y = (x_min_offset[y_local_min] - bot_right_y_prev);
 
 wire unsigned [21:0] no_thresh_TL_x2, no_thresh_TL_y2, no_thresh_TR_x2, no_thresh_TR_y2, 
                      no_thresh_BL_x2, no_thresh_BL_y2, no_thresh_BR_x2, no_thresh_BR_y2;
@@ -594,7 +594,7 @@ always @ (posedge clk) begin
                         //X thresh exceeded, y thresh not
                         if ((x_min_exceeded || x_max_exceeded) && !(y_min_exceeded || y_max_exceeded)) begin
                             //if the coordinates of xmin are closest to the old top left: 
-                            // if (x_thresh_TL) begin
+                            if (x_thresh_TL) begin
                                 out_top_left_x  <= x_min_offset[x];
                                 out_top_left_y  <= x_min_offset[y_local_min];
                                 out_top_right_x <= x_max_offset[x];
@@ -603,58 +603,58 @@ always @ (posedge clk) begin
                                 out_bot_right_y <= x_max_offset[y_local_max];
                                 out_bot_left_x  <= x_min_offset[x];
                                 out_bot_left_y  <= x_min_offset[y_local_max];
-                            // end
+                            end
 
-                            // //if the coordinates of xmin are closest to the old top right: 
-                            // else if (x_thresh_TR) begin
-                            //     out_top_right_x <= x_min[x];
-                            //     out_top_right_y <= x_min[y_local_min];
-                            //     out_bot_right_x <= x_max[x];
-                            //     out_bot_right_y <= x_max[y_local_min];
-                            //     out_bot_left_x  <= x_max[x];
-                            //     out_bot_left_y  <= x_max[y_local_max];
-                            //     out_top_left_x  <= x_min[x];
-                            //     out_top_left_y  <= x_min[y_local_max];
-                            // end
+                            //if the coordinates of xmin are closest to the old top right: 
+                            else if (x_thresh_TR) begin
+                                out_top_right_x <= x_min_offset[x];
+                                out_top_right_y <= x_min_offset[y_local_min];
+                                out_bot_right_x <= x_max_offset[x];
+                                out_bot_right_y <= x_max_offset[y_local_min];
+                                out_bot_left_x  <= x_max_offset[x];
+                                out_bot_left_y  <= x_max_offset[y_local_max];
+                                out_top_left_x  <= x_min_offset[x];
+                                out_top_left_y  <= x_min_offset[y_local_max];
+                            end
                             
-                            // //if the coordinates of xmin are closest to the old bot left: 
-                            // else if (x_thresh_BL) begin
-                            //     out_bot_left_x  <= x_min[x];
-                            //     out_bot_left_y  <= x_min[y_local_min];
-                            //     out_top_left_x  <= x_max[x];
-                            //     out_top_left_y  <= x_max[y_local_min];
-                            //     out_top_right_x <= x_max[x];
-                            //     out_top_right_y <= x_max[y_local_max];
-                            //     out_bot_right_x <= x_min[x];
-                            //     out_bot_right_y <= x_min[y_local_max];
-                            // end
+                            //if the coordinates of xmin are closest to the old bot left: 
+                            else if (x_thresh_BL) begin
+                                out_bot_left_x  <= x_min_offset[x];
+                                out_bot_left_y  <= x_min_offset[y_local_min];
+                                out_top_left_x  <= x_max_offset[x];
+                                out_top_left_y  <= x_max_offset[y_local_min];
+                                out_top_right_x <= x_max_offset[x];
+                                out_top_right_y <= x_max_offset[y_local_max];
+                                out_bot_right_x <= x_min_offset[x];
+                                out_bot_right_y <= x_min_offset[y_local_max];
+                            end
 
-                            // //if the coordinates of xmin are closest to the old bot right:
-                            // else if (x_thresh_BR) begin
-                            //     out_bot_right_x <= x_min[x];
-                            //     out_bot_right_y <= x_min[y_local_min];
-                            //     out_bot_left_x  <= x_max[x];
-                            //     out_bot_left_y  <= x_max[y_local_min];
-                            //     out_top_left_x  <= x_max[x];
-                            //     out_top_left_y  <= x_max[y_local_max];
-                            //     out_top_right_x <= x_min[x];
-                            //     out_top_right_y <= x_min[y_local_max];
-                            // end
-                            // else begin 
-                            //     out_top_left_x  <= out_top_left_x; 
-                            //     out_top_left_y  <= out_top_left_y; 
-                            //     out_top_right_x <= out_top_right_x; 
-                            //     out_top_right_y <= out_top_right_y; 
-                            //     out_bot_right_x <= out_bot_right_x; 
-                            //     out_bot_right_y <= out_bot_right_y; 
-                            //     out_bot_left_x  <= out_bot_left_x; 
-                            //     out_bot_left_y  <= out_bot_left_y; 
-                            // end
+                            //if the coordinates of xmin are closest to the old bot right:
+                            else if (x_thresh_BR) begin
+                                out_bot_right_x <= x_min_offset[x];
+                                out_bot_right_y <= x_min_offset[y_local_min];
+                                out_bot_left_x  <= x_max_offset[x];
+                                out_bot_left_y  <= x_max_offset[y_local_min];
+                                out_top_left_x  <= x_max_offset[x];
+                                out_top_left_y  <= x_max_offset[y_local_max];
+                                out_top_right_x <= x_min_offset[x];
+                                out_top_right_y <= x_min_offset[y_local_max];
+                            end
+                            else begin 
+                                out_top_left_x  <= out_top_left_x; 
+                                out_top_left_y  <= out_top_left_y; 
+                                out_top_right_x <= out_top_right_x; 
+                                out_top_right_y <= out_top_right_y; 
+                                out_bot_right_x <= out_bot_right_x; 
+                                out_bot_right_y <= out_bot_right_y; 
+                                out_bot_left_x  <= out_bot_left_x; 
+                                out_bot_left_y  <= out_bot_left_y; 
+                            end
                         end
                         // y thresh exceeded, x thresh not
                         else if ((y_min_exceeded || y_max_exceeded) && !(x_min_exceeded || x_max_exceeded)) begin
                             //if the coordinates of xmin are closest to the old top left: 
-                            // if (y_thresh_TL) begin
+                            if (y_thresh_TL) begin
                                 out_top_left_x  <= y_min_offset[x_local_min];
                                 out_top_left_y  <= y_min_offset[y];
                                 out_top_right_x <= y_min_offset[x_local_max];
@@ -663,54 +663,54 @@ always @ (posedge clk) begin
                                 out_bot_right_y <= y_max_offset[y];
                                 out_bot_left_x  <= y_max_offset[x_local_min];
                                 out_bot_left_y  <= y_max_offset[y];
-                            // end
-                            // else if (y_thresh_TR) begin
-                            //     out_top_right_x <= y_min[x_local_min];
-                            //     out_top_right_y <= y_min[y];
-                            //     out_bot_right_x <= y_min[x_local_max];
-                            //     out_bot_right_y <= y_min[y];
-                            //     out_bot_left_x  <= y_max[x_local_max];
-                            //     out_bot_left_y  <= y_max[y];
-                            //     out_top_left_x  <= y_max[x_local_min];
-                            //     out_top_left_y  <= y_max[y];
-                            // end
-                            // else if (y_thresh_BL) begin
-                            //     out_bot_left_x  <= y_min[x_local_min];
-                            //     out_bot_left_y  <= y_min[y];
-                            //     out_top_left_x  <= y_min[x_local_max];
-                            //     out_top_left_y  <= y_min[y];
-                            //     out_top_right_x <= y_max[x_local_max];
-                            //     out_top_right_y <= y_max[y];
-                            //     out_bot_right_x <= y_max[x_local_min];
-                            //     out_bot_right_y <= y_max[y];
-                            // end
-                            // else if (y_thresh_BR) begin
-                            //     out_bot_right_x <= y_min[x_local_min];
-                            //     out_bot_right_y <= y_min[y];
-                            //     out_bot_left_x  <= y_min[x_local_max];
-                            //     out_bot_left_y  <= y_min[y];
-                            //     out_top_left_x  <= y_max[x_local_max];
-                            //     out_top_left_y  <= y_max[y];
-                            //     out_top_right_x <= y_max[x_local_min];
-                            //     out_top_right_y <= y_max[y];
-                            // end
-                            // else begin 
-                            //     out_top_left_x  <= out_top_left_x; 
-                            //     out_top_left_y  <= out_top_left_y; 
-                            //     out_top_right_x <= out_top_right_x; 
-                            //     out_top_right_y <= out_top_right_y; 
-                            //     out_bot_right_x <= out_bot_right_x; 
-                            //     out_bot_right_y <= out_bot_right_y; 
-                            //     out_bot_left_x  <= out_bot_left_x; 
-                            //     out_bot_left_y  <= out_bot_left_y; 
-                            // end
+                            end
+                            else if (y_thresh_TR) begin
+                                out_top_right_x <= y_min_offset[x_local_min];
+                                out_top_right_y <= y_min_offset[y];
+                                out_bot_right_x <= y_min_offset[x_local_max];
+                                out_bot_right_y <= y_min_offset[y];
+                                out_bot_left_x  <= y_max_offset[x_local_max];
+                                out_bot_left_y  <= y_max_offset[y];
+                                out_top_left_x  <= y_max_offset[x_local_min];
+                                out_top_left_y  <= y_max_offset[y];
+                            end
+                            else if (y_thresh_BL) begin
+                                out_bot_left_x  <= y_min_offset[x_local_min];
+                                out_bot_left_y  <= y_min_offset[y];
+                                out_top_left_x  <= y_min_offset[x_local_max];
+                                out_top_left_y  <= y_min_offset[y];
+                                out_top_right_x <= y_max_offset[x_local_max];
+                                out_top_right_y <= y_max_offset[y];
+                                out_bot_right_x <= y_max_offset[x_local_min];
+                                out_bot_right_y <= y_max_offset[y];
+                            end
+                            else if (y_thresh_BR) begin
+                                out_bot_right_x <= y_min_offset[x_local_min];
+                                out_bot_right_y <= y_min_offset[y];
+                                out_bot_left_x  <= y_min_offset[x_local_max];
+                                out_bot_left_y  <= y_min_offset[y];
+                                out_top_left_x  <= y_max_offset[x_local_max];
+                                out_top_left_y  <= y_max_offset[y];
+                                out_top_right_x <= y_max_offset[x_local_min];
+                                out_top_right_y <= y_max_offset[y];
+                            end
+                            else begin 
+                                out_top_left_x  <= out_top_left_x; 
+                                out_top_left_y  <= out_top_left_y; 
+                                out_top_right_x <= out_top_right_x; 
+                                out_top_right_y <= out_top_right_y; 
+                                out_bot_right_x <= out_bot_right_x; 
+                                out_bot_right_y <= out_bot_right_y; 
+                                out_bot_left_x  <= out_bot_left_x; 
+                                out_bot_left_y  <= out_bot_left_y;  
+                            end
 
                             
                         end
                         // x and y thresh exceeded
                         else if ((x_min_exceeded || x_max_exceeded) && (y_min_exceeded || y_max_exceeded)) begin
                             //if the coordinates of xmin are closest to the old top left: 
-                            // if (xy_thresh_TL) begin
+                            if (xy_thresh_TL) begin
                                 out_top_left_x  <= x_min_offset[x];
                                 out_top_left_y  <= y_min_offset[y];
                                 out_top_right_x <= x_max_offset[x];
@@ -719,54 +719,54 @@ always @ (posedge clk) begin
                                 out_bot_right_y <= y_max_offset[y];
                                 out_bot_left_x  <= x_min_offset[x];
                                 out_bot_left_y  <= y_max_offset[y];
-                            // end
-                            // else if (xy_thresh_TR) begin
-                            //     out_top_right_x <= x_min[x];
-                            //     out_top_right_y <= y_min[y];
-                            //     out_bot_right_x <= x_max[x];
-                            //     out_bot_right_y <= y_min[y];
-                            //     out_bot_left_x  <= x_max[x];
-                            //     out_bot_left_y  <= y_max[y];
-                            //     out_top_left_x  <= x_min[x];
-                            //     out_top_left_y  <= y_max[y];
-                            // end
-                            // else if (xy_thresh_BL) begin
-                            //     out_bot_left_x  <= x_min[x];
-                            //     out_bot_left_y  <= y_min[y];
-                            //     out_top_left_x  <= x_max[x];
-                            //     out_top_left_y  <= y_min[y];
-                            //     out_top_right_x <= x_max[x];
-                            //     out_top_right_y <= y_max[y];
-                            //     out_bot_right_x <= x_min[x];
-                            //     out_bot_right_y <= y_max[y];
-                            // end
-                            // else if (xy_thresh_BR) begin
-                            //     out_bot_right_x <= x_min[x];
-                            //     out_bot_right_y <= y_min[y];
-                            //     out_bot_left_x  <= x_max[x];
-                            //     out_bot_left_y  <= y_min[y];
-                            //     out_top_left_x  <= x_max[x];
-                            //     out_top_left_y  <= y_max[y];
-                            //     out_top_right_x <= x_min[x];
-                            //     out_top_right_y <= y_max[y];
-                            // end
-                            // else begin 
-                            //     out_top_left_x  <= out_top_left_x; 
-                            //     out_top_left_y  <= out_top_left_y; 
-                            //     out_top_right_x <= out_top_right_x; 
-                            //     out_top_right_y <= out_top_right_y; 
-                            //     out_bot_right_x <= out_bot_right_x; 
-                            //     out_bot_right_y <= out_bot_right_y; 
-                            //     out_bot_left_x  <= out_bot_left_x; 
-                            //     out_bot_left_y  <= out_bot_left_y; 
-                            // end
+                            end
+                            else if (xy_thresh_TR) begin
+                                out_top_right_x <= x_min_offset[x];
+                                out_top_right_y <= y_min_offset[y];
+                                out_bot_right_x <= x_max_offset[x];
+                                out_bot_right_y <= y_min_offset[y];
+                                out_bot_left_x  <= x_max_offset[x];
+                                out_bot_left_y  <= y_max_offset[y];
+                                out_top_left_x  <= x_min_offset[x];
+                                out_top_left_y  <= y_max_offset[y];
+                            end
+                            else if (xy_thresh_BL) begin
+                                out_bot_left_x  <= x_min_offset[x];
+                                out_bot_left_y  <= y_min_offset[y];
+                                out_top_left_x  <= x_max_offset[x];
+                                out_top_left_y  <= y_min_offset[y];
+                                out_top_right_x <= x_max_offset[x];
+                                out_top_right_y <= y_max_offset[y];
+                                out_bot_right_x <= x_min_offset[x];
+                                out_bot_right_y <= y_max_offset[y];
+                            end
+                            else if (xy_thresh_BR) begin
+                                out_bot_right_x <= x_min_offset[x];
+                                out_bot_right_y <= y_min_offset[y];
+                                out_bot_left_x  <= x_max_offset[x];
+                                out_bot_left_y  <= y_min_offset[y];
+                                out_top_left_x  <= x_max_offset[x];
+                                out_top_left_y  <= y_max_offset[y];
+                                out_top_right_x <= x_min_offset[x];
+                                out_top_right_y <= y_max_offset[y];
+                            end
+                            else begin 
+                                out_top_left_x  <= out_top_left_x; 
+                                out_top_left_y  <= out_top_left_y; 
+                                out_top_right_x <= out_top_right_x; 
+                                out_top_right_y <= out_top_right_y; 
+                                out_bot_right_x <= out_bot_right_x; 
+                                out_bot_right_y <= out_bot_right_y; 
+                                out_bot_left_x  <= out_bot_left_x; 
+                                out_bot_left_y  <= out_bot_left_y; 
+                            end
 
                             
                         end
                         //no thresh exceeded
                         else begin
                             //if the coordinates of xmin are closest to the old top left: 
-                            // if (no_thresh_TL) begin
+                            if (no_thresh_TL) begin
                                 out_top_left_x  <= x_min_offset[x];
                                 out_top_left_y  <= x_min_offset[y_local_min];
                                 out_top_right_x <= y_min_offset[x_local_min];
@@ -775,47 +775,47 @@ always @ (posedge clk) begin
                                 out_bot_right_y <= x_max_offset[y_local_max];
                                 out_bot_left_x  <= y_max_offset[x_local_min];
                                 out_bot_left_y  <= y_max_offset[y];
-                            // end
-                            // else if (no_thresh_TR) begin
-                            //     out_top_right_x <= x_min[x];
-                            //     out_top_right_y <= x_min[y_local_min];
-                            //     out_bot_right_x <= y_min[x_local_min];
-                            //     out_bot_right_y <= y_min[y];
-                            //     out_bot_left_x  <= x_max[x];
-                            //     out_bot_left_y  <= x_max[y_local_max];
-                            //     out_top_left_x  <= y_max[x_local_min];
-                            //     out_top_left_y  <= y_max[y];
-                            // end
-                            // else if (no_thresh_BL) begin
-                            //     out_bot_left_x  <= x_min[x];
-                            //     out_bot_left_y  <= x_min[y_local_min];
-                            //     out_top_left_x  <= y_min[x_local_min];
-                            //     out_top_left_y  <= y_min[y];
-                            //     out_top_right_x <= x_max[x];
-                            //     out_top_right_y <= x_max[y_local_max];
-                            //     out_bot_right_x <= y_max[x_local_min];
-                            //     out_bot_right_y <= y_max[y];
-                            // end
-                            // else if (no_thresh_BR) begin
-                            //     out_bot_right_x <= x_min[x];
-                            //     out_bot_right_y <= x_min[y_local_min];
-                            //     out_bot_left_x  <= y_min[x_local_min];
-                            //     out_bot_left_y  <= y_min[y];
-                            //     out_top_left_x  <= x_max[x];
-                            //     out_top_left_y  <= x_max[y_local_max];
-                            //     out_top_right_x <= y_max[x_local_min];
-                            //     out_top_right_y <= y_max[y];
-                            // end
-                            // else begin 
-                            //     out_top_left_x  <= out_top_left_x; 
-                            //     out_top_left_y  <= out_top_left_y; 
-                            //     out_top_right_x <= out_top_right_x; 
-                            //     out_top_right_y <= out_top_right_y; 
-                            //     out_bot_right_x <= out_bot_right_x; 
-                            //     out_bot_right_y <= out_bot_right_y; 
-                            //     out_bot_left_x  <= out_bot_left_x; 
-                            //     out_bot_left_y  <= out_bot_left_y; 
-                            // end
+                            end
+                            else if (no_thresh_TR) begin
+                                out_top_right_x <= x_min_offset[x];
+                                out_top_right_y <= x_min_offset[y_local_min];
+                                out_bot_right_x <= y_min_offset[x_local_min];
+                                out_bot_right_y <= y_min_offset[y];
+                                out_bot_left_x  <= x_max_offset[x];
+                                out_bot_left_y  <= x_max_offset[y_local_max];
+                                out_top_left_x  <= y_max_offset[x_local_min];
+                                out_top_left_y  <= y_max_offset[y];
+                            end
+                            else if (no_thresh_BL) begin
+                                out_bot_left_x  <= x_min_offset[x];
+                                out_bot_left_y  <= x_min_offset[y_local_min];
+                                out_top_left_x  <= y_min_offset[x_local_min];
+                                out_top_left_y  <= y_min_offset[y];
+                                out_top_right_x <= x_max_offset[x];
+                                out_top_right_y <= x_max_offset[y_local_max];
+                                out_bot_right_x <= y_max_offset[x_local_min];
+                                out_bot_right_y <= y_max_offset[y];
+                            end
+                            else if (no_thresh_BR) begin
+                                out_bot_right_x <= x_min_offset[x];
+                                out_bot_right_y <= x_min_offset[y_local_min];
+                                out_bot_left_x  <= y_min_offset[x_local_min];
+                                out_bot_left_y  <= y_min_offset[y];
+                                out_top_left_x  <= x_max_offset[x];
+                                out_top_left_y  <= x_max_offset[y_local_max];
+                                out_top_right_x <= y_max_offset[x_local_min];
+                                out_top_right_y <= y_max_offset[y];
+                            end
+                            else begin 
+                                out_top_left_x  <= out_top_left_x; 
+                                out_top_left_y  <= out_top_left_y; 
+                                out_top_right_x <= out_top_right_x; 
+                                out_top_right_y <= out_top_right_y; 
+                                out_bot_right_x <= out_bot_right_x; 
+                                out_bot_right_y <= out_bot_right_y; 
+                                out_bot_left_x  <= out_bot_left_x; 
+                                out_bot_left_y  <= out_bot_left_y; 
+                            end
                             
                         end
                     end

@@ -434,8 +434,8 @@ wire			TV_DVAL;
 wire	[9:0]	mRed;
 wire	[9:0]	mGreen;
 wire	[9:0]	mBlue;
-wire	[10:0]	VGA_X;
-wire	[10:0]	VGA_Y;
+wire	[10:0]	VGA_X_d0;
+wire	[10:0]	VGA_Y_d0;
 wire			VGA_Read;	//	VGA data request
 wire			m1VGA_Read;	//	Read odd field
 wire			m2VGA_Read;	//	Read even field
@@ -500,9 +500,9 @@ assign	AUD_XCK	=	AUD_CTRL_CLK;
 // assign	LEDG	=	VGA_Y;
 // assign	LEDR	=	VGA_X;
 
-assign	m1VGA_Read	=	VGA_Y[0]		?	1'b0		:	VGA_Read	;
-assign	m2VGA_Read	=	VGA_Y[0]		?	VGA_Read	:	1'b0		;
-assign	mYCbCr_d	=	!VGA_Y[0]		?	m1YCbCr		:
+assign	m1VGA_Read	=	VGA_Y_d0[0]		?	1'b0		:	VGA_Read	;
+assign	m2VGA_Read	=	VGA_Y_d0[0]		?	VGA_Read	:	1'b0		;
+assign	mYCbCr_d	=	!VGA_Y_d0[0]		?	m1YCbCr		:
 											      m2YCbCr		;
 assign	mYCbCr		=	m5YCbCr;
 
@@ -610,58 +610,58 @@ YUV422_to_444		u7	(	//	YUV 4:2:2 Input
 							.oCb(mCb),
 							.oCr(mCr),
 							//	Control Signals
-							.iX(VGA_X-160),
+							.iX(VGA_X_d0-160),
 							.iCLK(TD_CLK27),
 							.iRST_N(DLY0));
 
 wire [7:0] Y, Cb, Cr;
 //	YCbCr 8-bit to RGB-10 bit 
 YCbCr2RGB 			u8	(	//	Output Side
-							.Red(mRed),
-							.Green(mGreen),
-							.Blue(mBlue),
-							.oDVAL(mDVAL),
-							.Y_out(Y), 
-							.Cb_out(Cb), 
-							.Cr_out(Cr),
+							.Red 	(mRed),
+							.Green 	(mGreen),
+							.Blue 	(mBlue),
+							.oDVAL 	(mDVAL),
+							.Y_out 	(Y), 
+							.Cb_out (Cb), 
+							.Cr_out (Cr),
 							//	Input Side
-							.iY(mY),
-							.iCb(mCb),
-							.iCr(mCr),
-							.iDVAL(VGA_Read),
+							.iY 	(mY),
+							.iCb 	(mCb),
+							.iCr 	(mCr),
+							.iDVAL 	(VGA_Read),
 							//	Control Signal
-							.iRESET(!DLY2),
-							.iCLK(TD_CLK27));
+							.iRESET (!DLY2),
+							.iCLK 	(TD_CLK27));
 
 //	VGA Controller
-wire [9:0] vga_r10;
-wire [9:0] vga_g10;
-wire [9:0] vga_b10;
+wire [9:0] VGA_R10_d0;
+wire [9:0] VGA_G10_d0;
+wire [9:0] VGA_B10_d0;
 
 //////////-------------jsw267
-wire VGA_HS_, VGA_VS_, VGA_SYNC_N_, VGA_BLANK_N_;
-wire [2:0] color_, color;
+wire VGA_HS_d0, VGA_VS_d0, VGA_SYNC_N_d0, VGA_BLANK_N_d0;
+wire [2:0] color_d3, color_d20;
 wire [7:0] VGA_R_, VGA_G_, VGA_B_;
 wire [21:0] VGA_Addr_full;
-wire [18:0] VGA_Addr = VGA_Addr_full[18:0];
+wire [18:0] VGA_Addr_d0 = VGA_Addr_full[18:0];
 
 VGA_Ctrl	u9	(	
 	//	Host Side
 	.iRed 		(mRed),
 	.iGreen 	(mGreen),
 	.iBlue 		(mBlue),
-	.oCurrent_X (VGA_X),
-	.oCurrent_Y (VGA_Y),
+	.oCurrent_X (VGA_X_d0),
+	.oCurrent_Y (VGA_Y_d0),
 	.oAddress 	(VGA_Addr_full), 
 	.oRequest 	(VGA_Read),
 	//	VGA Side
-	.oVGA_R 	(vga_r10 ),
-	.oVGA_G 	(vga_g10 ),
-	.oVGA_B 	(vga_b10 ),
-	.oVGA_HS 	(VGA_HS_),
-	.oVGA_VS 	(VGA_VS_),
-	.oVGA_SYNC 	(VGA_SYNC_N_),
-	.oVGA_BLANK (VGA_BLANK_N_),
+	.oVGA_R 	(VGA_R10_d0),
+	.oVGA_G 	(VGA_G10_d0),
+	.oVGA_B 	(VGA_B10_d0),
+	.oVGA_HS 	(VGA_HS_d0),
+	.oVGA_VS 	(VGA_VS_d0),
+	.oVGA_SYNC 	(VGA_SYNC_N_d0),
+	.oVGA_BLANK (VGA_BLANK_N_d0),
 	.oVGA_CLOCK (VGA_CLK),
 	//	Control Signal
 	.iCLK 		(TD_CLK27),
@@ -679,23 +679,23 @@ assign scale = {2'b00, 2'd0, 4'b1111};
 delay #( .DATA_WIDTH(24), .DELAY(3) ) delay_rgb_3
 ( 
 	.clk 		(VGA_CLK), 
-	.data_in 	({vga_r10[9:2], vga_g10[9:2], vga_b10[9:2]}), 
+	.data_in 	({VGA_R10_d0[9:2], VGA_G10_d0[9:2], VGA_B10_d0[9:2]}), 
 	.data_out 	({VGA_R_d3, VGA_G_d3, VGA_B_d3})
 );
 delay #( .DATA_WIDTH(1), .DELAY(3) ) vga_blank_n
 (
 	.clk 		(VGA_CLK), 
-	.data_in	(VGA_BLANK_N_), 
+	.data_in	(VGA_BLANK_N_d0), 
 	.data_out   (VGA_BLANK_N_d3)
 );
 harris_corner_detect find_corners(
 	.clk(VGA_CLK), 
 	.reset(reset), 
-	.ram_clr(!VGA_VS_),
-	.VGA_BLANK_N(VGA_BLANK_N_), 
-	.VGA_R(vga_r10[9:2]), //vga_r10[9:2]
-	.VGA_G(vga_g10[9:2]), //vga_g10[9:2]
-	.VGA_B(vga_b10[9:2]), //vga_b10[9:2]
+	.ram_clr(!VGA_VS_d0),
+	.VGA_BLANK_N(VGA_BLANK_N_d0), 
+	.VGA_R(VGA_R10_d0[9:2]), //VGA_R10_d0[9:2]
+	.VGA_G(VGA_G10_d0[9:2]), //VGA_G10_d0[9:2]
+	.VGA_B(VGA_B10_d0[9:2]), //VGA_B10_d0[9:2]
 	.scale(scale),
 	.harris_feature(harris_feature_)
 );
@@ -717,14 +717,14 @@ wire [7:0] Cb_d3, Cr_d3;
 delay #( .DATA_WIDTH(4), .DELAY(20) ) delay_vga_ctrl_20
 ( 
 	.clk 		(VGA_CLK), 
-	.data_in 	({VGA_HS_, VGA_VS_, VGA_SYNC_N_, VGA_BLANK_N_}), 
+	.data_in 	({VGA_HS_d0, VGA_VS_d0, VGA_SYNC_N_d0, VGA_BLANK_N_d0}), 
 	.data_out 	({VGA_HS, VGA_VS, VGA_SYNC_N, VGA_BLANK_N})
 );
 //Delay RGB values
 delay #( .DATA_WIDTH(24), .DELAY(20) ) delay_rgb_20
 ( 
 	.clk 		(VGA_CLK), 
-	.data_in 	({vga_r10[9:2], vga_g10[9:2], vga_b10[9:2]}), 
+	.data_in 	({VGA_R10_d0[9:2], VGA_G10_d0[9:2], VGA_B10_d0[9:2]}), 
 	.data_out 	({VGA_R_, VGA_G_, VGA_B_})
 );
 
@@ -732,21 +732,21 @@ delay #( .DATA_WIDTH(24), .DELAY(20) ) delay_rgb_20
 delay #( .DATA_WIDTH(22), .DELAY(20) ) delay_x_y_20
 ( 
 	.clk 		(VGA_CLK), 
-	.data_in 	({VGA_X,VGA_Y}), 
+	.data_in 	({VGA_X_d0,VGA_Y_d0}), 
 	.data_out 	({VGA_X_d20, VGA_Y_d20})
 );
 
 delay #( .DATA_WIDTH(1), .DELAY(3) ) vga_vsync_delay3
 (
 	.clk 		(VGA_CLK), 
-	.data_in	(VGA_VS_), 
+	.data_in	(VGA_VS_d0), 
 	.data_out   (VGA_VS_d3)
 );
 
 delay #( .DATA_WIDTH(1), .DELAY(7) ) vga_vsync_delay7
 (
 	.clk 		(VGA_CLK), 
-	.data_in	(VGA_VS_), 
+	.data_in	(VGA_VS_d0), 
 	.data_out   (VGA_VS_d7)
 );
 
@@ -782,9 +782,9 @@ color_history color_hist (
 	.write_data(color_write_data), 
 	.write_en(color_we), 
 
-	.read_x(VGA_X), 
-	.read_y(VGA_Y),
-	.read_addr(VGA_Addr),
+	.read_x(VGA_X_d0), 
+	.read_y(VGA_Y_d0),
+	.read_addr(VGA_Addr_d0),
 	.read_data(color_read_data), 
 	.data_valid(color_data_valid), 
 	.just_read_x(color_just_read_x), 
@@ -836,7 +836,7 @@ color_detect color_detect (
 	.threshold_Cr_green(8'b01111000),
 	.threshold_history(2'b11), 
 
-	.color_detected(color_), //3 bits -> color of pixel
+	.color_detected(color_d3), //3 bits -> color of pixel
 	.color_x(color_x), 
 	.color_y(color_y),
 
@@ -856,8 +856,8 @@ color_detect color_detect (
 delay #( .DATA_WIDTH(3), .DELAY(17) ) color_detected_delay
 ( 
 	.clk 		(VGA_CLK), 
-	.data_in 	(color_), 
-	.data_out 	(color)
+	.data_in 	(color_d3), 
+	.data_out 	(color_d20)
 );
 delay #( .DATA_WIDTH(80), .DELAY(17) ) old_corner_delay
 (
@@ -881,7 +881,7 @@ delay #(.DATA_WIDTH(20), .DELAY(4)) delay_color_xy
 );
 
 wire median_color_, median_color;
-wire color_detected = (color_ == GREEN);
+wire color_detected = (color_d3 == GREEN);
 //delays output by 4
 // should the controls on this be delayed? todo
 median_filter median_filter_color (
@@ -928,8 +928,8 @@ fsm corner_follower (
 
     .state(LEDG[3:0]), 
     .thresh_exceeded_flags(LEDG[7:4]),
-    .count(LEDR[10:0]),
-    .thresh_flags(), 
+    .count(),
+    .thresh_flags(LEDR[15:0]), 
     .test_x_max(test_x_max), 
     .test_x_min(test_x_min), 
     .test_y_max(test_y_max),
@@ -998,7 +998,7 @@ always @ (*) begin
 				end
 
 			//Green area : pink
-			else if (color == GREEN) begin
+			else if (color_d20 == GREEN) begin
 				VGA_R = 8'hFF;
 				VGA_G = 8'h00;
 				VGA_B = 8'hFF;
@@ -1158,7 +1158,7 @@ always @ (*) begin
 		end
 
 		default: begin
-			if (harris_feature > threshold && color==GREEN) begin
+			if (harris_feature > threshold && color_d20==GREEN) begin
 				VGA_R = 8'hFF;
 				VGA_G = 8'hFF;
 				VGA_B = 8'h00;
@@ -1208,7 +1208,7 @@ wire [10:0] draw_end   [0:1]; //(x,y) coordinates of where to stop drawing
 assign draw_start[x] = 11'd100; 
 assign draw_start[y] = 11'd100;
 wire signed [16:0] rom_addr_d20;
-wire signed [16:0] rom_addr = 7'd80 * (VGA_Y-draw_start[y]) + (VGA_X-draw_start[x]);
+wire signed [16:0] rom_addr = 7'd80 * (VGA_Y_d0-draw_start[y]) + (VGA_X_d0-draw_start[x]);
 wire [7:0] rom_R, rom_G, rom_B, rom_R_d20, rom_G_d20, rom_B_d20;
 rom_clocktower clocktower (
 	.clock(VGA_CLK), 
