@@ -24,22 +24,23 @@ module color_history (
 	assign just_read_x = shift_buffer_read_x[2];
 	assign just_read_y = shift_buffer_read_y[2];
 
-reg [18:0] addr_a, addr_b;
-reg [3:0]  data_in_a, data_in_b;
-reg        we_a, we_b;
-wire [3:0] data_out_a, data_out_b;  
-dual_SRAM color_history_buffer (
-    .clock(clk), 
-    .address_a(addr_a), 
-    .data_a(data_in_a), 
-    .wren_a(we_a), 
-    .q_a(data_out_a), 
+    reg [18:0] addr_a, addr_b;
+    reg [3:0]  data_in_a, data_in_b;
+    reg        we_a, we_b;
+    wire [3:0] data_out_a, data_out_b;  
+    
+    dual_SRAM color_history_buffer (
+        .clock(clk), 
+        .address_a(addr_a), 
+        .data_a(data_in_a), 
+        .wren_a(we_a), 
+        .q_a(data_out_a), 
 
-    .address_b(addr_b), 
-    .data_b(data_in_b), 
-    .wren_b(we_b), 
-    .q_b(data_out_b)
-);
+        .address_b(addr_b), 
+        .data_b(data_in_b), 
+        .wren_b(we_b), 
+        .q_b(data_out_b)
+    );
 
 
 reg [3:0] state; 
