@@ -39,6 +39,7 @@ module fsm (
 
 
     );
+
 // assign test_x_max = x_max[x][9:0]; 
 // assign test_x_min = x_min[x][9:0]; 
 // assign test_y_max = y_max[y][9:0]; 
@@ -102,6 +103,12 @@ reg signed [10:0]    bot_right_y_prev;
 //------------I/o of top_left_x_PREV, should be using OUT_top_left_x
 //because current is x_min, past is the out's
 
+//sort the distances
+localparam top_left  = 2'd0;
+localparam top_right = 2'd1;
+localparam bot_left  = 2'd2;
+localparam bot_right = 2'd3;
+
 //Distance calculations: xthreshold exceeded. so current TL = (x_min[x], x_min[y_local_min])
 wire signed [10:0] x_thresh_TL_x = (x_min_prev[x]             - out_top_left_x);
 wire signed [10:0] x_thresh_TL_y = (x_min_offset[y_local_min] - out_top_left_y);
@@ -128,41 +135,25 @@ squarer_s11 square_x_thresh_BL_y(x_thresh_BL_y, x_thresh_BL_y2);
 squarer_s11 square_x_thresh_BR_x(x_thresh_BR_x, x_thresh_BR_x2);
 squarer_s11 square_x_thresh_BR_y(x_thresh_BR_y, x_thresh_BR_y2);
 
-wire x_thresh_TL = ((x_thresh_TL_sum <= x_thresh_TR_sum)
-                && (x_thresh_TL_sum <= x_thresh_BL_sum) 
-                && (x_thresh_TL_sum < x_thresh_BR_sum)); 
-wire x_thresh_TR = ((x_thresh_TR_sum <= x_thresh_TL_sum)
-                && (x_thresh_TR_sum < x_thresh_BL_sum) 
-                && (x_thresh_TR_sum <= x_thresh_BR_sum)); 
-wire x_thresh_BL = ((x_thresh_BL_sum <= x_thresh_TL_sum)
-                && (x_thresh_BL_sum < x_thresh_TR_sum) 
-                && (x_thresh_BL_sum <= x_thresh_BR_sum)); 
-wire x_thresh_BR = ((x_thresh_BR_sum < x_thresh_TL_sum)
-                && (x_thresh_BR_sum <= x_thresh_TR_sum) 
-                && (x_thresh_BR_sum <= x_thresh_BL_sum)); 
+// wire x_thresh_TL = ((x_thresh_TL_sum <= x_thresh_TR_sum)
+//                 && (x_thresh_TL_sum <= x_thresh_BL_sum) 
+//                 && (x_thresh_TL_sum < x_thresh_BR_sum)); 
+// wire x_thresh_TR = ((x_thresh_TR_sum <= x_thresh_TL_sum)
+//                 && (x_thresh_TR_sum < x_thresh_BL_sum) 
+//                 && (x_thresh_TR_sum <= x_thresh_BR_sum)); 
+// wire x_thresh_BL = ((x_thresh_BL_sum <= x_thresh_TL_sum)
+//                 && (x_thresh_BL_sum < x_thresh_TR_sum) 
+//                 && (x_thresh_BL_sum <= x_thresh_BR_sum)); 
+// wire x_thresh_BR = ((x_thresh_BR_sum < x_thresh_TL_sum)
+//                 && (x_thresh_BR_sum <= x_thresh_TR_sum) 
+//                 && (x_thresh_BR_sum <= x_thresh_BL_sum));
 
-//sort the distances
-localparam top_left  = 2'd0;
-localparam top_right = 2'd1;
-localparam bot_left  = 2'd2;
-localparam bot_right = 2'd3;
-//sorted[0] = closest point
-//sorted[1] = next closest
-//sorted[2] = next closes
-//sorted[3] = farthest
-// reg [1:0] sorted [0:4];
-// always @ (*) begin
-//     if ((x_thresh_TL_sum < x_thresh_TR_sum) && (x_thresh_TL_sum < x_thresh_BL_sum) && (x_thresh_TL_sum < x_thresh_BR_sum))
-//         sorted[0] = top_left;
-//     else if ((x_thresh_TR_sum < x_thresh_TL_sum) && (x_thresh_TR_sum < x_thresh_BL_sum) && (x_thresh_TR_sum < x_thresh_BR_sum))
-//         sorted[0] = top_right;
-//     else if ((x_thresh_BL_sum < x_thresh_TL_sum) && (x_thresh_BL_sum < x_thresh_TR_sum) && (x_thresh_BL_sum < x_thresh_BR_sum))
-//         sorted[0] = bot_left;
-//     else if ((x_thresh_BR_sum < x_thresh_TL_sum) && (x_thresh_BR_sum < x_thresh_TR_sum) && (x_thresh_BR_sum < x_thresh_BL_sum))
-//         sorted[0] = bot_right;
-//     else if ((x_thresh_TL_sum == x_thresh_TR_sum) && (x_thresh_TL_sum != x_thresh_BL_sum))
-// end
-
+wire [1:0] x_thresh_nc [0:3]; //nc = nearest corner
+always @ (x_thresh_TL_sum, x_thresh_TR_sum, x_thresh_BL_sum, x_thresh_BR_sum) begin
+    sort (x_thresh_TL_sum, x_thresh_TR_sum, x_thresh_BL_sum, x_thresh_BR_sum, 
+          top_left, top_right, bot_left, bot_right, 
+          x_thresh_nc[0], x_thresh_nc[1], x_thresh_nc[2], x_thresh_nc[3]);
+end
 
 //Distance calculations: y_thresh exceeded. So current TL = (y_min[x_local_min], y_min[y])
 wire signed [10:0] y_thresh_TL_x = (y_min_offset[x_local_min] - out_top_left_x);
@@ -190,18 +181,24 @@ squarer_s11 square_y_thresh_BL_y(y_thresh_BL_y, y_thresh_BL_y2);
 squarer_s11 square_y_thresh_BR_x(y_thresh_BR_x, y_thresh_BR_x2);
 squarer_s11 square_y_thresh_BR_y(y_thresh_BR_y, y_thresh_BR_y2);
 
-wire y_thresh_TL = ((y_thresh_TL_sum <= y_thresh_TR_sum)
-                && (y_thresh_TL_sum <= y_thresh_BL_sum) 
-                && (y_thresh_TL_sum < y_thresh_BR_sum)); 
-wire y_thresh_TR = ((y_thresh_TR_sum <= y_thresh_TL_sum)
-                && (y_thresh_TR_sum < y_thresh_BL_sum) 
-                && (y_thresh_TR_sum <= y_thresh_BR_sum)); 
-wire y_thresh_BL = ((y_thresh_BL_sum <= y_thresh_TL_sum)
-                && (y_thresh_BL_sum < y_thresh_TR_sum) 
-                && (y_thresh_BL_sum <= y_thresh_BR_sum)); 
-wire y_thresh_BR = ((y_thresh_BR_sum < y_thresh_TL_sum)
-                && (y_thresh_BR_sum <= y_thresh_TR_sum) 
-                && (y_thresh_BR_sum <= y_thresh_BL_sum)); 
+// wire y_thresh_TL = ((y_thresh_TL_sum <= y_thresh_TR_sum)
+//                 && (y_thresh_TL_sum <= y_thresh_BL_sum) 
+//                 && (y_thresh_TL_sum < y_thresh_BR_sum)); 
+// wire y_thresh_TR = ((y_thresh_TR_sum <= y_thresh_TL_sum)
+//                 && (y_thresh_TR_sum < y_thresh_BL_sum) 
+//                 && (y_thresh_TR_sum <= y_thresh_BR_sum)); 
+// wire y_thresh_BL = ((y_thresh_BL_sum <= y_thresh_TL_sum)
+//                 && (y_thresh_BL_sum < y_thresh_TR_sum) 
+//                 && (y_thresh_BL_sum <= y_thresh_BR_sum)); 
+// wire y_thresh_BR = ((y_thresh_BR_sum < y_thresh_TL_sum)
+//                 && (y_thresh_BR_sum <= y_thresh_TR_sum) 
+//                 && (y_thresh_BR_sum <= y_thresh_BL_sum)); 
+wire [1:0] y_thresh_nc [0:3]; //nc = nearest corner
+always @ (y_thresh_TL_sum, y_thresh_TR_sum, y_thresh_BL_sum, y_thresh_BR_sum) begin
+    sort (y_thresh_TL_sum, y_thresh_TR_sum, y_thresh_BL_sum, y_thresh_BR_sum, 
+          top_left, top_right, bot_left, bot_right, 
+          y_thresh_nc[0], y_thresh_nc[1], y_thresh_nc[2], y_thresh_nc[3]);
+end
 
 
 //Distance calculations: xy_threshold both exceeded. So current TL = (x_min[x], y_min[y])
@@ -230,19 +227,24 @@ squarer_s11 square_xy_thresh_BL_y(xy_thresh_BL_y, xy_thresh_BL_y2);
 squarer_s11 square_xy_thresh_BR_x(xy_thresh_BR_x, xy_thresh_BR_x2);
 squarer_s11 square_xy_thresh_BR_y(xy_thresh_BR_y, xy_thresh_BR_y2);
 
-wire xy_thresh_TL = ((xy_thresh_TL_sum <= xy_thresh_TR_sum)
-                && (xy_thresh_TL_sum <= xy_thresh_BL_sum) 
-                && (xy_thresh_TL_sum < xy_thresh_BR_sum)); 
-wire xy_thresh_TR = ((xy_thresh_TR_sum <= xy_thresh_TL_sum)
-                && (xy_thresh_TR_sum < xy_thresh_BL_sum) 
-                && (xy_thresh_TR_sum <= xy_thresh_BR_sum)); 
-wire xy_thresh_BL = ((xy_thresh_BL_sum <= xy_thresh_TL_sum)
-                && (xy_thresh_BL_sum < xy_thresh_TR_sum) 
-                && (xy_thresh_BL_sum <= xy_thresh_BR_sum)); 
-wire xy_thresh_BR = ((xy_thresh_BR_sum < xy_thresh_TL_sum)
-                && (xy_thresh_BR_sum <= xy_thresh_TR_sum) 
-                && (xy_thresh_BR_sum <= xy_thresh_BL_sum)); 
-
+// wire xy_thresh_TL = ((xy_thresh_TL_sum <= xy_thresh_TR_sum)
+//                 && (xy_thresh_TL_sum <= xy_thresh_BL_sum) 
+//                 && (xy_thresh_TL_sum < xy_thresh_BR_sum)); 
+// wire xy_thresh_TR = ((xy_thresh_TR_sum <= xy_thresh_TL_sum)
+//                 && (xy_thresh_TR_sum < xy_thresh_BL_sum) 
+//                 && (xy_thresh_TR_sum <= xy_thresh_BR_sum)); 
+// wire xy_thresh_BL = ((xy_thresh_BL_sum <= xy_thresh_TL_sum)
+//                 && (xy_thresh_BL_sum < xy_thresh_TR_sum) 
+//                 && (xy_thresh_BL_sum <= xy_thresh_BR_sum)); 
+// wire xy_thresh_BR = ((xy_thresh_BR_sum < xy_thresh_TL_sum)
+//                 && (xy_thresh_BR_sum <= xy_thresh_TR_sum) 
+//                 && (xy_thresh_BR_sum <= xy_thresh_BL_sum)); 
+wire [1:0] xy_thresh_nc [0:3]; //nc = nearest corner
+always @ (xy_thresh_TL_sum, xy_thresh_TR_sum, xy_thresh_BL_sum, xy_thresh_BR_sum) begin
+    sort (xy_thresh_TL_sum, xy_thresh_TR_sum, xy_thresh_BL_sum, xy_thresh_BR_sum, 
+                top_left, top_right, bot_left, bot_right, 
+                xy_thresh_nc[0], xy_thresh_nc[1], xy_thresh_nc[2], xy_thresh_nc[3]);
+end
 //Distance calculations: no_threshold exceeded. so current TL = (x_min[x], x_min[y_local_min])
 wire signed [10:0] no_thresh_TL_x = (x_min_prev[x]             - out_top_left_x);
 wire signed [10:0] no_thresh_TL_y = (x_min_offset[y_local_min] - out_top_left_y);
@@ -269,19 +271,24 @@ squarer_s11 square_no_thresh_BL_y(no_thresh_BL_y, no_thresh_BL_y2);
 squarer_s11 square_no_thresh_BR_x(no_thresh_BR_x, no_thresh_BR_x2);
 squarer_s11 square_no_thresh_BR_y(no_thresh_BR_y, no_thresh_BR_y2);
 
-wire no_thresh_TL = ((no_thresh_TL_sum <= no_thresh_TR_sum)
-                && (no_thresh_TL_sum <= no_thresh_BL_sum) 
-                && (no_thresh_TL_sum < no_thresh_BR_sum)); 
-wire no_thresh_TR = ((no_thresh_TR_sum <= no_thresh_TL_sum)
-                && (no_thresh_TR_sum < no_thresh_BL_sum) 
-                && (no_thresh_TR_sum <= no_thresh_BR_sum)); 
-wire no_thresh_BL = ((no_thresh_BL_sum <= no_thresh_TL_sum)
-                && (no_thresh_BL_sum < no_thresh_TR_sum) 
-                && (no_thresh_BL_sum <= no_thresh_BR_sum)); 
-wire no_thresh_BR = ((no_thresh_BR_sum < no_thresh_TL_sum)
-                && (no_thresh_BR_sum <= no_thresh_TR_sum) 
-                && (no_thresh_BR_sum <= no_thresh_BL_sum)); 
-
+// wire no_thresh_TL = ((no_thresh_TL_sum <= no_thresh_TR_sum)
+//                 && (no_thresh_TL_sum <= no_thresh_BL_sum) 
+//                 && (no_thresh_TL_sum < no_thresh_BR_sum)); 
+// wire no_thresh_TR = ((no_thresh_TR_sum <= no_thresh_TL_sum)
+//                 && (no_thresh_TR_sum < no_thresh_BL_sum) 
+//                 && (no_thresh_TR_sum <= no_thresh_BR_sum)); 
+// wire no_thresh_BL = ((no_thresh_BL_sum <= no_thresh_TL_sum)
+//                 && (no_thresh_BL_sum < no_thresh_TR_sum) 
+//                 && (no_thresh_BL_sum <= no_thresh_BR_sum)); 
+// wire no_thresh_BR = ((no_thresh_BR_sum < no_thresh_TL_sum)
+//                 && (no_thresh_BR_sum <= no_thresh_TR_sum) 
+//                 && (no_thresh_BR_sum <= no_thresh_BL_sum)); 
+wire [1:0] no_thresh_nc [0:3]; //nc = nearest corner
+always @ (no_thresh_TL_sum, no_thresh_TR_sum, no_thresh_BL_sum, no_thresh_BR_sum) begin
+    sort (no_thresh_TL_sum, no_thresh_TR_sum, no_thresh_BL_sum, no_thresh_BR_sum, 
+            top_left, top_right, bot_left, bot_right, 
+            no_thresh_nc[0], no_thresh_nc[1], no_thresh_nc[2], no_thresh_nc[3]);
+end
 
 
 
@@ -515,22 +522,22 @@ always @ (posedge clk) begin
 
 
 
-                thresh_flags[15] <= x_thresh_TL;
-                thresh_flags[14] <= x_thresh_TR;
-                thresh_flags[13] <= x_thresh_BL;
-                thresh_flags[12] <= x_thresh_BR;
-                thresh_flags[11] <= y_thresh_TL;
-                thresh_flags[10] <= y_thresh_TR;
-                thresh_flags[9] <= y_thresh_BL;
-                thresh_flags[8] <= y_thresh_BR;
-                thresh_flags[7] <= xy_thresh_TL;
-                thresh_flags[6] <= xy_thresh_TR;
-                thresh_flags[5] <= xy_thresh_BL;
-                thresh_flags[4] <= xy_thresh_BR;
-                thresh_flags[3] <= no_thresh_TL;
-                thresh_flags[2] <= no_thresh_TR;
-                thresh_flags[1] <= no_thresh_BL;
-                thresh_flags[0] <= no_thresh_BR;
+                thresh_flags[15] <= x_thresh_nc[3] == top_left;
+                thresh_flags[14] <= x_thresh_nc[3] == top_right;
+                thresh_flags[13] <= x_thresh_nc[3] == bot_left;
+                thresh_flags[12] <= x_thresh_nc[3] == bot_right;
+                thresh_flags[11] <= y_thresh_nc[3] == top_left;
+                thresh_flags[10] <= y_thresh_nc[3] == top_right;
+                thresh_flags[9] <= y_thresh_nc[3] == bot_left;
+                thresh_flags[8] <= y_thresh_nc[3] == bot_right;
+                thresh_flags[7] <= xy_thresh_nc[3] == top_left;
+                thresh_flags[6] <= xy_thresh_nc[3] == top_right;
+                thresh_flags[5] <= xy_thresh_nc[3] == bot_left;
+                thresh_flags[4] <= xy_thresh_nc[3] == bot_right;
+                thresh_flags[3] <= no_thresh_nc[3] == top_left;
+                thresh_flags[2] <= no_thresh_nc[3] == top_right;
+                thresh_flags[1] <= no_thresh_nc[3] == bot_left;
+                thresh_flags[0] <= no_thresh_nc[3] == bot_right;
                 thresh_exceeded_flags[3] <= x_max_exceeded;
                 thresh_exceeded_flags[2] <= x_min_exceeded;
                 thresh_exceeded_flags[1] <= y_max_exceeded;
@@ -660,7 +667,7 @@ always @ (posedge clk) begin
                         //X thresh exceeded, y thresh not
                         if ((x_min_exceeded || x_max_exceeded) && !(y_min_exceeded || y_max_exceeded)) begin
                             //if the coordinates of xmin are closest to the old top left: 
-                            if (x_thresh_TL) begin
+                            if ( x_thresh_nc[3] == top_left) begin
                                 out_top_left_x  <= x_min_prev[x];
                                 out_top_left_y  <= x_min_offset[y_local_min];
                                 out_top_right_x <= x_max_prev[x];
@@ -672,7 +679,7 @@ always @ (posedge clk) begin
                             end
 
                             //if the coordinates of xmin are closest to the old top right: 
-                            else if (x_thresh_TR) begin
+                            else if (x_thresh_nc[3] == top_right) begin
                                 out_top_right_x <= x_min_prev[x];
                                 out_top_right_y <= x_min_offset[y_local_min];
                                 out_bot_right_x <= x_max_prev[x];
@@ -684,7 +691,7 @@ always @ (posedge clk) begin
                             end
                             
                             //if the coordinates of xmin are closest to the old bot left: 
-                            else if (x_thresh_BL) begin
+                            else if (x_thresh_nc[3] == bot_left) begin
                                 out_bot_left_x  <= x_min_prev[x];
                                 out_bot_left_y  <= x_min_offset[y_local_min];
                                 out_top_left_x  <= x_max_prev[x];
@@ -696,7 +703,7 @@ always @ (posedge clk) begin
                             end
 
                             //if the coordinates of xmin are closest to the old bot right:
-                            else if (x_thresh_BR) begin
+                            else if (x_thresh_nc[3] == bot_right) begin
                                 out_bot_right_x <= x_min_prev[x];
                                 out_bot_right_y <= x_min_offset[y_local_min];
                                 out_bot_left_x  <= x_max_prev[x];
@@ -720,7 +727,7 @@ always @ (posedge clk) begin
                         // y thresh exceeded, x thresh not
                         else if ((y_min_exceeded || y_max_exceeded) && !(x_min_exceeded || x_max_exceeded)) begin
                             //if the coordinates of xmin are closest to the old top left: 
-                            if (y_thresh_TL) begin
+                            if (y_thresh_nc[3] == top_left) begin
                                 out_top_left_x  <= y_min_offset[x_local_min];
                                 out_top_left_y  <= y_min_prev[y];
                                 out_top_right_x <= y_min_offset[x_local_max];
@@ -730,7 +737,7 @@ always @ (posedge clk) begin
                                 out_bot_left_x  <= y_max_offset[x_local_min];
                                 out_bot_left_y  <= y_max_prev[y];
                             end
-                            else if (y_thresh_TR) begin
+                            else if (y_thresh_nc[3] == top_right) begin
                                 out_top_right_x <= y_min_offset[x_local_min];
                                 out_top_right_y <= y_min_prev[y];
                                 out_bot_right_x <= y_min_offset[x_local_max];
@@ -740,7 +747,7 @@ always @ (posedge clk) begin
                                 out_top_left_x  <= y_max_offset[x_local_min];
                                 out_top_left_y  <= y_max_prev[y];
                             end
-                            else if (y_thresh_BL) begin
+                            else if (y_thresh_nc[3] == bot_left) begin
                                 out_bot_left_x  <= y_min_offset[x_local_min];
                                 out_bot_left_y  <= y_min_prev[y];
                                 out_top_left_x  <= y_min_offset[x_local_max];
@@ -750,7 +757,7 @@ always @ (posedge clk) begin
                                 out_bot_right_x <= y_max_offset[x_local_min];
                                 out_bot_right_y <= y_max_prev[y];
                             end
-                            else if (y_thresh_BR) begin
+                            else if (y_thresh_nc[3] == bot_right) begin
                                 out_bot_right_x <= y_min_offset[x_local_min];
                                 out_bot_right_y <= y_min_prev[y];
                                 out_bot_left_x  <= y_min_offset[x_local_max];
@@ -776,7 +783,7 @@ always @ (posedge clk) begin
                         // x and y thresh exceeded
                         else if ((x_min_exceeded || x_max_exceeded) && (y_min_exceeded || y_max_exceeded)) begin
                             //if the coordinates of xmin are closest to the old top left: 
-                            if (xy_thresh_TL) begin
+                            if (xy_thresh_nc[3] == top_left) begin
                                 out_top_left_x  <= x_min_prev[x];
                                 out_top_left_y  <= y_min_prev[y];
                                 out_top_right_x <= x_max_prev[x];
@@ -786,7 +793,7 @@ always @ (posedge clk) begin
                                 out_bot_left_x  <= x_min_prev[x];
                                 out_bot_left_y  <= y_max_prev[y];
                             end
-                            else if (xy_thresh_TR) begin
+                            else if (xy_thresh_nc[3] == top_right) begin
                                 out_top_right_x <= x_min_prev[x];
                                 out_top_right_y <= y_min_prev[y];
                                 out_bot_right_x <= x_max_prev[x];
@@ -796,7 +803,7 @@ always @ (posedge clk) begin
                                 out_top_left_x  <= x_min_prev[x];
                                 out_top_left_y  <= y_max_prev[y];
                             end
-                            else if (xy_thresh_BL) begin
+                            else if (xy_thresh_nc[3] == bot_left) begin
                                 out_bot_left_x  <= x_min_prev[x];
                                 out_bot_left_y  <= y_min_prev[y];
                                 out_top_left_x  <= x_max_prev[x];
@@ -806,7 +813,7 @@ always @ (posedge clk) begin
                                 out_bot_right_x <= x_min_prev[x];
                                 out_bot_right_y <= y_max_prev[y];
                             end
-                            else if (xy_thresh_BR) begin
+                            else if (xy_thresh_nc[3] == bot_right) begin
                                 out_bot_right_x <= x_min_prev[x];
                                 out_bot_right_y <= y_min_prev[y];
                                 out_bot_left_x  <= x_max_prev[x];
@@ -832,7 +839,7 @@ always @ (posedge clk) begin
                         //no thresh exceeded
                         else begin
                             //if the coordinates of xmin are closest to the old top left: 
-                            if (no_thresh_TL) begin
+                            if (no_thresh_nc[3] == top_left) begin
                                 out_top_left_x  <= x_min_prev[x];
                                 out_top_left_y  <= x_min_prev[y_local_min];
                                 out_top_right_x <= y_min_prev[x_local_min];
@@ -842,7 +849,7 @@ always @ (posedge clk) begin
                                 out_bot_left_x  <= y_max_prev[x_local_min];
                                 out_bot_left_y  <= y_max_prev[y];
                             end
-                            else if (no_thresh_TR) begin
+                            else if (no_thresh_nc[3] == top_right) begin
                                 out_top_right_x <= x_min_prev[x];
                                 out_top_right_y <= x_min_prev[y_local_min];
                                 out_bot_right_x <= y_min_prev[x_local_min];
@@ -852,7 +859,7 @@ always @ (posedge clk) begin
                                 out_top_left_x  <= y_max_prev[x_local_min];
                                 out_top_left_y  <= y_max_prev[y];
                             end
-                            else if (no_thresh_BL) begin
+                            else if (no_thresh_nc[3] == bot_left) begin
                                 out_bot_left_x  <= x_min_prev[x];
                                 out_bot_left_y  <= x_min_prev[y_local_min];
                                 out_top_left_x  <= y_min_prev[x_local_min];
@@ -862,7 +869,7 @@ always @ (posedge clk) begin
                                 out_bot_right_x <= y_max_prev[x_local_min];
                                 out_bot_right_y <= y_max_prev[y];
                             end
-                            else if (no_thresh_BR) begin
+                            else if (no_thresh_nc[3] == bot_right) begin
                                 out_bot_right_x <= x_min_prev[x];
                                 out_bot_right_y <= x_min_prev[y_local_min];
                                 out_bot_left_x  <= y_min_prev[x_local_min];
@@ -899,4 +906,65 @@ always @ (posedge clk) begin
         end
     end
 end
+
+//sort an array of 3 eleemnts. sorted[3] = biggest, sorted[0] = smallest
+task sort;
+input unsigned [22:0] in_unsorted_array_0;
+input unsigned [22:0] in_unsorted_array_1;
+input unsigned [22:0] in_unsorted_array_2;
+input unsigned [22:0] in_unsorted_array_3;
+
+input [1:0]           in_unsorted_array_name_0;
+input [1:0]           in_unsorted_array_name_1;
+input [1:0]           in_unsorted_array_name_2;
+input [1:0]           in_unsorted_array_name_3;
+
+output [1:0]          sorted_array_name_0;
+output [1:0]          sorted_array_name_1;
+output [1:0]          sorted_array_name_2;
+output [1:0]          sorted_array_name_3;
+
+reg [22:0] temp;
+reg [1:0] temp_name;
+
+reg unsigned [22:0] unsorted_array[0:3];
+reg unsigned [1:0] unsorted_array_name[0:3];
+begin
+    integer i;
+    integer n;
+    integer newn;
+    unsorted_array[0] = in_unsorted_array_0;
+    unsorted_array[1] = in_unsorted_array_1;
+    unsorted_array[2] = in_unsorted_array_2;
+    unsorted_array[3] = in_unsorted_array_3;
+    unsorted_array_name[0] = in_unsorted_array_name_0;
+    unsorted_array_name[1] = in_unsorted_array_name_1;
+    unsorted_array_name[2] = in_unsorted_array_name_2;
+    unsorted_array_name[3] = in_unsorted_array_name_3;
+
+    newn = 0;
+    for (n = 0; n < 4; n = n + 1) begin
+        for (i = 1; i < 3; i = i + 1) begin
+            if (unsorted_array[i-1] > unsorted_array[i]) begin
+                //swap actual values
+                temp = unsorted_array[i]; 
+                unsorted_array[i] = unsorted_array[i-1];
+                unsorted_array[i-1] = temp;
+                newn = i;
+
+                //swap the names of the values
+                temp_name = unsorted_array_name[i]; 
+                unsorted_array_name[i] = unsorted_array_name[i-1];
+                unsorted_array_name[i-1] = temp_name;
+            end
+        end
+    end
+    sorted_array_name_3 = unsorted_array_name[3];
+    sorted_array_name_2 = unsorted_array_name[2];
+    sorted_array_name_1 = unsorted_array_name[1];
+    sorted_array_name_0 = unsorted_array_name[0];
+end
+endtask
+
+
 endmodule
