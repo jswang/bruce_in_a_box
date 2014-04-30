@@ -21,3 +21,15 @@ always @ (posedge clk) begin
 end
     
 endmodule
+
+module single_delay
+#(parameter DATA_WIDTH = 1)
+(
+    input clk,
+    input [DATA_WIDTH-1:0] data_in, 
+    output reg [DATA_WIDTH-1:0] data_out
+);
+always @ (posedge clk) begin
+    data_out <= data_in;
+end
+endmodule

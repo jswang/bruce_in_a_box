@@ -7,7 +7,6 @@ module fsm (
     input signed [10:0] pixel_y,
     input signed [10:0] threshold,
     input unsigned [5:0] offset,
-    // input unsigned [10:0] movement_threshold,
 
     output reg signed [10:0]    out_top_left_x,
     output reg signed [10:0]    out_top_left_y,
@@ -555,7 +554,7 @@ always @ (posedge clk) begin
                     bot_left_y_prev         <= out_bot_left_y;
                     bot_right_x_prev        <= out_bot_right_x;
                     bot_right_y_prev        <= out_bot_right_y;
-                
+
                     x_max_prev[x]           <= x_max[x]; 
                     x_max_prev[y_local_max] <= x_max[y_local_max];
                     x_max_prev[y_local_min] <= x_max[y_local_min];
@@ -623,6 +622,8 @@ always @ (posedge clk) begin
                     end
 
                     state_rotating: begin
+                        // if (corner_flip) state <= state_init;
+                        // else             state <= state_rotating;
 
                         //X thresh exceeded, y thresh not
                         if ((x_min_exceeded || x_max_exceeded) && !(y_min_exceeded || y_max_exceeded)) begin

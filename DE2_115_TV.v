@@ -527,6 +527,8 @@ localparam TOP_RIGHT  	= 3'd2;
 localparam BOTTOM_LEFT  = 3'd3; 
 localparam BOTTOM_RIGHT = 3'd4;
 localparam GREEN  		= 3'd5;
+localparam threshold_Cb_green = 8'b01111100;
+localparam threshold_Cr_green = 8'b01111000;
 
 //=============================================================================
 // Structural coding
@@ -867,14 +869,14 @@ color_detect color_detect (
 	.read_addr 			(color_just_read_addr_d3),
 	.read_x 			(color_just_read_x_d3), 
 	.read_y 			(color_just_read_y_d3),
-	.threshold_Cb_green (8'b01111100),
-	.threshold_Cr_green (8'b01111000),
+	.threshold_Cb_green (threshold_Cb_green),
+	.threshold_Cr_green (threshold_Cr_green),
 	.threshold_history 	(2'b11), 
 
+	//outputs
 	.color_detected 	(color_d3), //3 bits -> color of pixel
 	.color_x      		(color_x_d3), 
 	.color_y      		(color_y_d3),
-
 	.top_left_prev_x 	(top_left_d3 [x]), 
 	.top_right_prev_x 	(top_right_d3[x]), 
 	.bot_left_prev_x 	(bot_left_d3 [x]), 
@@ -884,19 +886,83 @@ color_detect color_detect (
 	.bot_left_prev_y 	(bot_left_d3 [y]),
 	.bot_right_prev_y 	(bot_right_d3[y]),
 
+	//outputs where timing doesn't matter
+	.updated_color_history(), 
+	.we 				(), 
+	.write_addr 		()
+);
+
+wire VGA_VS_d4;
+wire [3:0] color_read_data_d4;
+wire [18:0] color_just_read_addr_d4;
+wire [9:0] color_just_read_x_d4, color_just_read_y_d4;
+//Delay the x y just for referencing
+single_delay #( .DATA_WIDTH(44))  delay_for_mf
+( 
+	.clk 		(VGA_CLK), 
+	.data_in 	({VGA_VS_d3, color_read_data_d3, color_just_read_addr_d3, 
+				color_just_read_x_d3, color_just_read_y_d3}), 
+	.data_out 	({VGA_VS_d4, color_read_data_d4, color_just_read_addr_d4, 
+				color_just_read_x_d4, color_just_read_y_d4})
+); 
+delay #( .DATA_WIDTH(3), .DELAY(16) ) delay_for_mf_colordetected
+( 
+	.clk 		(VGA_CLK), 
+	.data_in 	(color_d4), 
+	.data_out 	(color_medianafter_d20)
+); 
+
+wire [2:0] color_d4, color_medianafter_d20;
+color_detect_after_medianfilter color_detect_after_mf (
+	.clk 				(VGA_CLK), 
+	.reset 				(reset), 
+	.VGA_VS 			(VGA_VS_d3),
+	.median_color 		(median_color_d4),
+	.color_history 		(color_read_data_d4),
+	.color_valid 		(color_data_valid_d3), //not used
+	.read_addr 			(color_just_read_addr_d4),
+	.read_x 			(color_just_read_x_d4), 
+	.read_y 			(color_just_read_y_d4),
+	.threshold_history 	(2'b11), 
+
+	//outputs
+	.color_detected 	(color_d4), //3 bits -> color of pixel
+	.color_x      		(), 
+	.color_y      		(),
+	.top_left_prev_x 	(), 
+	.top_right_prev_x 	(), 
+	.bot_left_prev_x 	(), 
+	.bot_right_prev_x 	(),
+	.top_left_prev_y 	(),
+	.top_right_prev_y 	(),
+	.bot_left_prev_y 	(),
+	.bot_right_prev_y 	(),
+
+	//outputs where timing doesn't matter
 	.updated_color_history(color_write_data), 
 	.we 				(color_we), 
 	.write_addr 		(color_write_addr)
 );
 
 //delays output by 4
-median_filter median_filter_color (
+median_filter median_filter_color_aftertimeavg (
 	.clk 				(VGA_CLK), 
 	.reset 				(reset), 
 	.ram_clr 			(!VGA_VS_d3),
 	.VGA_BLANK_N 		(VGA_BLANK_N_d3), 
 	.data_in 			(color_detected_d3), 
 	.data_out 			(median_color_d7)
+);
+
+wire median_filter_green_d0 = ((Cb_d0 < threshold_Cb_green) && (Cr_d0 <threshold_Cr_green));
+wire median_color_d4;
+median_filter median_filter_color_beforetimeavg (
+	.clk 				(VGA_CLK), 
+	.reset 				(reset), 
+	.ram_clr 			(!VGA_VS_d0),
+	.VGA_BLANK_N 		(VGA_BLANK_N_d0), 
+	.data_in 			(median_filter_green_d0), 
+	.data_out 			(median_color_d4)
 );
 
 //delays corner (x,y) by 1
@@ -1121,7 +1187,7 @@ always @ (*) begin
 
 		//median filtering
 		2'd3: begin
-			if (median_color_d20) begin
+			if (color_medianafter_d20) begin
 				VGA_R = 8'hFF;
 				VGA_G = 8'h00;
 				VGA_B = 8'hFF;
