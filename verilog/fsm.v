@@ -135,6 +135,28 @@ wire x_thresh_BR = ((x_thresh_BR_sum < x_thresh_TL_sum)
                 && (x_thresh_BR_sum <= x_thresh_TR_sum) 
                 && (x_thresh_BR_sum <= x_thresh_BL_sum)); 
 
+//sort the distances
+localparam top_left  = 2'd0;
+localparam top_right = 2'd1;
+localparam bot_left  = 2'd2;
+localparam bot_right = 2'd3;
+//sorted[0] = closest point
+//sorted[1] = next closest
+//sorted[2] = next closes
+//sorted[3] = farthest
+// reg [1:0] sorted [0:4];
+// always @ (*) begin
+//     if ((x_thresh_TL_sum < x_thresh_TR_sum) && (x_thresh_TL_sum < x_thresh_BL_sum) && (x_thresh_TL_sum < x_thresh_BR_sum))
+//         sorted[0] = top_left;
+//     else if ((x_thresh_TR_sum < x_thresh_TL_sum) && (x_thresh_TR_sum < x_thresh_BL_sum) && (x_thresh_TR_sum < x_thresh_BR_sum))
+//         sorted[0] = top_right;
+//     else if ((x_thresh_BL_sum < x_thresh_TL_sum) && (x_thresh_BL_sum < x_thresh_TR_sum) && (x_thresh_BL_sum < x_thresh_BR_sum))
+//         sorted[0] = bot_left;
+//     else if ((x_thresh_BR_sum < x_thresh_TL_sum) && (x_thresh_BR_sum < x_thresh_TR_sum) && (x_thresh_BR_sum < x_thresh_BL_sum))
+//         sorted[0] = bot_right;
+//     else if ((x_thresh_TL_sum == x_thresh_TR_sum) && (x_thresh_TL_sum != x_thresh_BL_sum))
+// end
+
 
 //Distance calculations: y_thresh exceeded. So current TL = (y_min[x_local_min], y_min[y])
 wire signed [10:0] y_thresh_TL_x = (y_min_offset[x_local_min] - top_left_x_prev);
