@@ -555,7 +555,7 @@ always @ (posedge clk) begin
                     bot_left_y_prev         <= out_bot_left_y;
                     bot_right_x_prev        <= out_bot_right_x;
                     bot_right_y_prev        <= out_bot_right_y;
-
+                
                     x_max_prev[x]           <= x_max[x]; 
                     x_max_prev[y_local_max] <= x_max[y_local_max];
                     x_max_prev[y_local_min] <= x_max[y_local_min];
