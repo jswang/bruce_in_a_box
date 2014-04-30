@@ -622,8 +622,6 @@ always @ (posedge clk) begin
                     end
 
                     state_rotating: begin
-                        // if (corner_flip) state <= state_init;
-                        // else             state <= state_rotating;
 
                         //X thresh exceeded, y thresh not
                         if ((x_min_exceeded || x_max_exceeded) && !(y_min_exceeded || y_max_exceeded)) begin
