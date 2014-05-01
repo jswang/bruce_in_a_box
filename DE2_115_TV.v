@@ -508,7 +508,7 @@ wire 	[9:0] 	color_just_read_x_d3, color_just_read_y_d3;
 //  For Delayers
 wire  	[7:0]  	VGA_R_d20, VGA_G_d20, VGA_B_d20;
 wire 			VGA_VS_d4, VGA_VS_d5;
-wire  	[10:0] 	VGA_X_d20, VGA_Y_d20;
+wire unsigned 	[10:0] 	VGA_X_d20, VGA_Y_d20;
 wire 	[53:0] 	harris_feature_d5, harris_feature_d20;
 wire			median_color_d4, median_color_d20;
 wire 	[2:0] 	color_d20;
@@ -899,6 +899,7 @@ fsm corner_follower (
 	.pixel_x 			({1'b0, color_x_d5}),
 	.pixel_y 			({1'b0, color_y_d5}),
 	.threshold 			({3'b000, SW[15:8]}),
+	.threshold_flip     (11'd0), //not used 
 	.offset 			(SW[7:2]),
 	.out_top_left_x 	(top_left_fsm_d6[x]),
     .out_top_left_y 	(top_left_fsm_d6[y]),
@@ -931,39 +932,39 @@ fsm corner_follower (
 
 always @ (*) begin
 	case (SW[1:0])
-		//old corners
+		// Line and drawing clocktower
 		2'd0: begin
 			//Red: top left
-			if (VGA_X_d20 < top_left_d20[x] + 5 && VGA_X_d20 >= top_left_d20[x] - 5
-			 && VGA_Y_d20 < top_left_d20[y] + 5 && VGA_Y_d20 >= top_left_d20[y] - 5) begin
+			if (VGA_X_d20 < top_left_fsm_d20[x] + 5 && VGA_X_d20 >= top_left_fsm_d20[x] - 5
+			 && VGA_Y_d20 < top_left_fsm_d20[y] + 5 && VGA_Y_d20 >= top_left_fsm_d20[y] - 5) begin
 					VGA_R = 8'hFF;
 					VGA_G = 8'h00;
 					VGA_B = 8'h00;
 				end
 			//orange: top right
-			else if (VGA_X_d20 < top_right_d20[x] + 5 && VGA_X_d20 >= top_right_d20[x] - 5
-			 	  && VGA_Y_d20 < top_right_d20[y] + 5 && VGA_Y_d20 >= top_right_d20[y] - 5) begin
+			else if (VGA_X_d20 < top_right_fsm_d20[x] + 5 && VGA_X_d20 >= top_right_fsm_d20[x] - 5
+			 	  && VGA_Y_d20 < top_right_fsm_d20[y] + 5 && VGA_Y_d20 >= top_right_fsm_d20[y] - 5) begin
 					VGA_R = 8'hFF;
 					VGA_G = 8'd125;
 					VGA_B = 8'h00;
 				end
 			//yellow: bottom left
-			else if (VGA_X_d20 < bot_left_d20[x] + 5 && VGA_X_d20 >= bot_left_d20[x] - 5
-			      && VGA_Y_d20 < bot_left_d20[y] + 5 && VGA_Y_d20 >= bot_left_d20[y] - 5) begin
+			else if (VGA_X_d20 < bot_left_fsm_d20[x] + 5 && VGA_X_d20 >= bot_left_fsm_d20[x] - 5
+			      && VGA_Y_d20 < bot_left_fsm_d20[y] + 5 && VGA_Y_d20 >= bot_left_fsm_d20[y] - 5) begin
 					VGA_R = 8'hFF;
 					VGA_G = 8'hFF;
 					VGA_B = 8'h00;
 				end
 			//cyan: bottom right
-			else if (VGA_X_d20 < bot_right_d20[x] + 5 && VGA_X_d20 >= bot_right_d20[x] - 5
-			      && VGA_Y_d20 < bot_right_d20[y] + 5 && VGA_Y_d20 >= bot_right_d20[y] - 5) begin
+			else if (VGA_X_d20 < bot_right_fsm_d20[x] + 5 && VGA_X_d20 >= bot_right_fsm_d20[x] - 5
+			      && VGA_Y_d20 < bot_right_fsm_d20[y] + 5 && VGA_Y_d20 >= bot_right_fsm_d20[y] - 5) begin
 					VGA_R = 8'h00;
 					VGA_G = 8'hFF;
 					VGA_B = 8'hFF;
 				end
 
 			//Green area : pink
-			else if (color_d20 == GREEN) begin
+			else if (color_d20) begin
 				VGA_R = 8'hFF;
 				VGA_G = 8'h00;
 				VGA_B = 8'hFF;
@@ -973,6 +974,18 @@ always @ (*) begin
 				VGA_R = VGA_R_d20;
 				VGA_G = VGA_G_d20;
 				VGA_B = VGA_B_d20;
+			end
+
+			//If I am within the window where I want to draw
+			if (	VGA_X_d20 >= draw_start[x] && VGA_X_d20 < draw_start[x] + image_width_x
+				&&  VGA_Y_d20 >= draw_start[y] && VGA_Y_d20 < draw_start[y] + image_height_y
+				) begin
+				if (!(image_R_d20 == 8'd43 && image_G_d20 == 8'd213 && image_B_d20 == 8'd55)) begin
+					VGA_R = image_R_d20;
+					VGA_G = image_G_d20;
+					VGA_B = image_B_d20;
+				end
+				
 			end
 		end
 
@@ -1164,35 +1177,32 @@ I2C_AV_Config 	u1	(	//	Host Side
 						.I2C_SDAT(I2C_SDAT)	);	
 
 //----------Read from the ROM------------//
-wire [10:0] draw_start [0:1]; //(x,y) coordinates of where to start drawing
-wire [10:0] draw_end   [0:1]; //(x,y) coordinates of where to stop drawing
-assign draw_start[x] = 11'd100; 
-assign draw_start[y] = 11'd100;
-wire signed [16:0] rom_addr_d20;
-wire signed [16:0] rom_addr = 7'd80 * (VGA_Y_d0-draw_start[y]) + (VGA_X_d0-draw_start[x]);
-wire [7:0] rom_R, rom_G, rom_B, rom_R_d20, rom_G_d20, rom_B_d20;
-rom_clocktower clocktower (
+localparam image_width_x = 80;
+localparam image_height_y = 480;
+wire unsigned [10:0] draw_start [0:1];
+wire unsigned [10:0] draw_end [0:1];
+assign draw_start[x] = SW[17:7]; 
+assign draw_start[y] = {SW[6:2], 6'd0};
+
+//generate addresses to read from rom one time
+wire unsigned [15:0] rom_addr_d18 = (VGA_X_d18 - draw_start[x]) + image_width_x * (VGA_Y_d18 - draw_start[y]);
+
+wire [7:0] image_R_d20, image_G_d20, image_B_d20;
+rom_clocktower clocktower_full (
 	.clock(VGA_CLK), 
-	.address_a(rom_addr[15:0]), 
+	.address_a(rom_addr_d18), 
 	.address_b(), 
-	.q_a({rom_R, rom_G, rom_B}), 
+	.q_a({image_R_d20, image_G_d20, image_B_d20}), 
 	.q_b()
 );
 
-delay #( .DATA_WIDTH(24), .DELAY(18) ) delay_rom_rgb
-( 
+wire [10:0] VGA_X_d18, VGA_Y_d18;
+delay #( .DATA_WIDTH(22), .DELAY(18) ) delay_xy
+(
 	.clk 		(VGA_CLK), 
-	.data_in 	({rom_R, rom_G, rom_B}), 
-	.data_out 	({rom_R_d20, rom_G_d20, rom_B_d20})
+	.data_in 	({VGA_X_d0, VGA_Y_d0}), 
+	.data_out 	({VGA_X_d18, VGA_Y_d18})
 );
-delay #( .DATA_WIDTH(17), .DELAY(18) ) delay_rom_addr
-( 
-	.clk 		(VGA_CLK), 
-	.data_in 	(rom_addr), 
-	.data_out 	(rom_addr_d20)
-
-);
-
 
 endmodule
 
