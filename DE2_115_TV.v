@@ -1184,17 +1184,20 @@ delay #( .DATA_WIDTH(22), .DELAY(18) ) delay_xy
 
 wire draw_image;
 wire [7:0] image_R_d20, image_G_d20, image_B_d20;
-boundary_select #(80, 480) bounds(
+boundary_select 
+#( 	.p_image_width(80), 
+	.p_image_height(480)
+)	bounds(
 	//inputs
 	.clk 			(VGA_CLK), 
 	.reset 			(reset), 
 	.SW 			(SW[17:0]), 
 	.VGA_X      	(VGA_X_d18), 
 	.VGA_Y 			(VGA_Y_d18), 
-	.top_left_x 	(top_left_d6[x]),
-	.top_right_x 	(top_right_d6[x]),
-	.bot_left_x 	(bot_left_d6[x]),
-	.bot_right_x 	(bot_right_d6[x]),
+	.top_left_x 	(top_left_fsm_d6[x]),
+	.top_right_x 	(top_right_fsm_d6[x]),
+	.bot_left_x 	(bot_left_fsm_d6[x]),
+	.bot_right_x 	(bot_right_fsm_d6[x]),
 
 	//outputs
 	.draw_image  	(draw_image), 

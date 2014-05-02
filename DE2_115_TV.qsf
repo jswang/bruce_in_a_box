@@ -1134,6 +1134,9 @@ set_global_assignment -name SMART_RECOMPILE ON
 set_global_assignment -name NUM_PARALLEL_PROCESSORS ALL
 set_global_assignment -name RAPID_RECOMPILE_MODE ON
 set_global_assignment -name CYCLONEII_OPTIMIZATION_TECHNIQUE SPEED
+set_global_assignment -name VERILOG_FILE verilog/trig_functions.v
+set_global_assignment -name VERILOG_FILE verilog/boundary_select.v
+set_global_assignment -name VERILOG_FILE verilog/div_s12.v
 set_global_assignment -name VERILOG_FILE verilog/squarer_s11.v
 set_global_assignment -name VERILOG_FILE verilog/fsm.v
 set_global_assignment -name VERILOG_FILE verilog/median_filter.v

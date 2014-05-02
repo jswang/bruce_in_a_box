@@ -1,7 +1,7 @@
 module boundary_select 
 #(
     parameter p_image_width = 80,
-    parameter p_image_heigth = 480
+    parameter p_image_height = 480
     )
 (
     input clk,
@@ -18,7 +18,7 @@ module boundary_select
     input  unsigned [10:0] bot_right_x,
     input  unsigned [10:0] bot_right_y, 
 
-    output reg draw_image, 
+    output draw_image, 
     output [7:0] image_R, 
     output [7:0] image_G, 
     output [7:0] image_B, 
@@ -49,8 +49,8 @@ div_s12 div_arctan(
     .numer(draw_end_offset[y]), 
     .denom(draw_end_offset[x]), 
     .quotient(quotient), 
-    .remainder(remainder)
-)
+    .remain(remainder)
+);
 
 wire signed [11:0] abs_quotient = (quotient < 0) ? 12'd0 - quotient : quotient;
 wire signed [9:0] theta;
@@ -59,18 +59,18 @@ arctan_LUT arctan(
     .remainder(remainder), 
     .sign_x(draw_end_offset[x][11]), 
     .sign_y(draw_end_offset[y][11]), 
-    .theta(theta)
+    .theta(theta) // [0, 359]
 );
 
 //1b sign, 11bit integer, 8 bit precision
 wire signed [19:0] cos_theta, sine_theta;
 cosine_LUT cos_x(
     .theta(theta), 
-    .cos_theta(cos_theta)
+    .cos_theta_out(cos_theta)
 );
 sine_LUT sine_y(
     .theta(theta), 
-    .sine_theta(sine_theta)
+    .sine_theta_out(sine_theta)
 );
 wire signed [19:0] cos_times_x, sine_times_y;
 fp_s20 fp_mult_cos_x(
@@ -89,11 +89,19 @@ assign txfm_VGA_XY[x] = cos_times_x[19:8] - sine_times_y[19:8];
 assign txfm_VGA_XY[y] = sine_times_y[19:8] + sine_times_y[19:8];
 
 //generate addresses to read from rom
-wire unsigned [15:0] rom_addr_d18 = txfm_VGA_XY[x] + p_image_width * txfm_VGA_XY[y];
-draw_image = ((txfm_VGA_XY[x] >= 0) && (txfm_VGA_XY < p_image_width)
-                && (txfm_VGA_XY[y] >= 0) && (txfm_VGA_XY[y] < p_image_height);
+// wire unsigned [15:0] rom_addr_d18 = txfm_VGA_XY[x] + p_image_width * txfm_VGA_XY[y];
+wire unsigned [15:0] rom_addr_d18 = (VGA_X - offset[x]) + p_image_width * (VGA_Y - offset[y]);
+// assign draw_image = ((txfm_VGA_XY[x] >= 0) && (txfm_VGA_XY[x] < p_image_width)
+//                 && (txfm_VGA_XY[y] >= 0) && (txfm_VGA_XY[y] < p_image_height));
+
+wire signed [11:0] temp [0:1];
+assign temp[x] = offset[x] + p_image_width;
+assign temp[y] = offset[y] + p_image_height;
+assign draw_image = ((VGA_X >= offset[x]) && (VGA_X < temp[x])
+                    && (VGA_Y >= offset[y]) && (VGA_Y  < temp[y]));
+
 rom_clocktower clocktower_full (
-    .clock(VGA_CLK), 
+    .clock(clk), 
     .address_a(rom_addr_d18), 
     .address_b(), 
     .q_a({image_R, image_G, image_B}), 
