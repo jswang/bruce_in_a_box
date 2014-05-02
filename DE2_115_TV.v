@@ -509,7 +509,7 @@ wire 	[9:0] 	color_just_read_x_d3, color_just_read_y_d3;
 wire  	[7:0]  	VGA_R_d20, VGA_G_d20, VGA_B_d20;
 wire 			VGA_VS_d4, VGA_VS_d5;
 wire unsigned 	[10:0] 	VGA_X_d20, VGA_Y_d20;
-wire 	[53:0] 	harris_feature_d5, harris_feature_d20;
+// wire 	[53:0] 	harris_feature_d5, harris_feature_d20;
 wire			median_color_d4, median_color_d20;
 wire 	[2:0] 	color_d20;
 localparam x  			= 0;
@@ -709,12 +709,12 @@ VGA_Ctrl	u9	(
 
 //---------------------------------Delayers
 
-delay #(.DATA_WIDTH(54), .DELAY(15)) delay_harris_feature
-(
-	.clk 			(VGA_CLK), 
-	.data_in 		(harris_feature_d5), 
-	.data_out 		(harris_feature_d20)
-);
+// delay #(.DATA_WIDTH(54), .DELAY(15)) delay_harris_feature
+// (
+// 	.clk 			(VGA_CLK), 
+// 	.data_in 		(harris_feature_d5), 
+// 	.data_out 		(harris_feature_d20)
+// );
 //Delay the VGA control signals for the VGA Side
 delay #( .DATA_WIDTH(4), .DELAY(20) ) delay_vga_ctrl_20
 ( 
@@ -789,17 +789,17 @@ delay #( .DATA_WIDTH(88), .DELAY(14) ) fsm_corner_delay
 
 //---------------------end delayers
 
-harris_corner_detect find_corners(
-	.clk 	 	 	(VGA_CLK), 
-	.reset 		 	(reset), 
-	.ram_clr 	 	(!VGA_VS_d0),
-	.VGA_BLANK_N 	(VGA_BLANK_N_d0), 
-	.VGA_R 			(VGA_R10_d0[9:2]),
-	.VGA_G 			(VGA_G10_d0[9:2]),
-	.VGA_B 			(VGA_B10_d0[9:2]),
-	.scale 			({2'b00, 2'd0, 4'b1111}),
-	.harris_feature (harris_feature_d5)
-);
+// harris_corner_detect find_corners(
+// 	.clk 	 	 	(VGA_CLK), 
+// 	.reset 		 	(reset), 
+// 	.ram_clr 	 	(!VGA_VS_d0),
+// 	.VGA_BLANK_N 	(VGA_BLANK_N_d0), 
+// 	.VGA_R 			(VGA_R10_d0[9:2]),
+// 	.VGA_G 			(VGA_G10_d0[9:2]),
+// 	.VGA_B 			(VGA_B10_d0[9:2]),
+// 	.scale 			({2'b00, 2'd0, 4'b1111}),
+// 	.harris_feature (harris_feature_d5)
+// );
 
 //Read the history of this (x,y) pixel
 color_history color_hist (
@@ -1129,16 +1129,9 @@ always @ (*) begin
 		end
 
 		default: begin
-			if (harris_feature_d20 > {1'b0, 16'h3fff, 37'd0} && color_d20==GREEN) begin
-				VGA_R = 8'hFF;
-				VGA_G = 8'hFF;
-				VGA_B = 8'h00;
-			end
-			else begin
-				VGA_R = VGA_R_d20;
-				VGA_G = VGA_G_d20;
-				VGA_B = VGA_B_d20;
-			end
+			VGA_R = VGA_R_d20;
+			VGA_G = VGA_G_d20;
+			VGA_B = VGA_B_d20;
 		end
 	 endcase
 end
@@ -1174,12 +1167,12 @@ I2C_AV_Config 	u1	(	//	Host Side
 						.I2C_SDAT(I2C_SDAT)	);	
 
 
-wire [10:0] VGA_X_d18, VGA_Y_d18;
-delay #( .DATA_WIDTH(22), .DELAY(18) ) delay_xy
+wire [10:0] VGA_X_d16, VGA_Y_d16;
+delay #( .DATA_WIDTH(22), .DELAY(16) ) delay_xy
 (
 	.clk 			(VGA_CLK), 
 	.data_in 		({VGA_X_d0, VGA_Y_d0}), 
-	.data_out 		({VGA_X_d18, VGA_Y_d18})
+	.data_out 		({VGA_X_d16, VGA_Y_d16})
 );
 
 wire draw_image;
@@ -1191,13 +1184,13 @@ boundary_select
 	//inputs
 	.clk 			(VGA_CLK), 
 	.reset 			(reset), 
-	.SW 			(SW[17:0]), 
-	.VGA_X      	(VGA_X_d18), 
-	.VGA_Y 			(VGA_Y_d18), 
-	.top_left_x 	(top_left_fsm_d6[x]),
-	.top_right_x 	(top_right_fsm_d6[x]),
-	.bot_left_x 	(bot_left_fsm_d6[x]),
-	.bot_right_x 	(bot_right_fsm_d6[x]),
+	// .SW 			(SW[17:0]), 
+	.VGA_X      	(VGA_X_d16), 
+	.VGA_Y 			(VGA_Y_d16), 
+	// .top_left_x 	(top_left_fsm_d6[x]),
+	// .top_right_x 	(top_right_fsm_d6[x]),
+	// .bot_left_x 	(bot_left_fsm_d6[x]),
+	// .bot_right_x 	(bot_right_fsm_d6[x]),
 
 	//outputs
 	.draw_image  	(draw_image), 

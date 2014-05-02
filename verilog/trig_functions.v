@@ -1,26 +1,88 @@
-module fp_s20 (
-    input signed [19:0] a, 
-    input signed [19:0] b, 
-    output signed [19:0] out
-);
-    wire [39:0] result = a * b;
-    assign out = {result[39], result[26:8]};
-endmodule
+//Lookup table specifically for 80x480 and 8bit fixed precision
+module arctan_LUT #(
+    parameter p_image_width = 80, 
+    parameter p_image_height = 480, 
 
-//Lookup table specifically for 
-module arctan_LUT(
-    input signed [11:0] numer,  
-    input signed [11:0] denom,  
+    //local
+    parameter c_max = (p_image_height > p_image_width) ? p_image_height : p_image_width
+)
+(
+    input               clk,
+    input signed [11:0] numer,  //y in range [-c_max, c_max -1)
+    input signed [11:0] denom,  //x in range [-c_max, c_max -1)
     output signed [9:0]  theta
 );
+	wire signed [11:0] numer_abs_long = 12'd0 - numer;
+    wire signed [11:0] denom_abs_long = 12'd0 - denom;
+
+    wire unsigned [10:0] numer_abs = (numer > 0) ? numer[10:0] : numer_abs_long[10:0];
+    wire unsigned [10:0] denom_abs = (denom > 0) ? denom[10:0] : denom_abs_long[10:0];
+
+    reg unsigned [13:0] div_fp_abs_d0;
+    wire unsigned [13:0] div_fp_abs_d2; //since ingeter range [0, 57]
+    // 6b integer, 8b fraction
+    always @ (*) begin
+        if (numer_abs == 11'd0)                                    div_fp_abs_d0 = 14'd0;
+        else if (denom_abs == 11'd0)                               div_fp_abs_d0 = {6'd57, 8'd0};
+        else if (numer_abs < 11'd57)                               div_fp_abs_d0 = {6'd60, 8'd0}; //use lut
+        else begin
+            if      (denom_abs == 11'd2 && numer_abs < 11'd114)    div_fp_abs_d0 = {6'd60, 8'd0};
+            else if (denom_abs == 11'd3 && numer_abs < 11'd171)    div_fp_abs_d0 = {6'd60, 8'd0};
+            else if (denom_abs == 11'd4 && numer_abs < 11'd228)    div_fp_abs_d0 = {6'd60, 8'd0};
+            else if (denom_abs == 11'd5 && numer_abs < 11'd285)    div_fp_abs_d0 = {6'd60, 8'd0};
+            else if (denom_abs == 11'd6 && numer_abs < 11'd342)    div_fp_abs_d0 = {6'd60, 8'd0};
+            else if (denom_abs == 11'd7 && numer_abs < 11'd399)    div_fp_abs_d0 = {6'd60, 8'd0};
+            else if (denom_abs == 11'd8 && numer_abs < 11'd456)    div_fp_abs_d0 = {6'd60, 8'd0};
+            else if (denom_abs == 11'd9 && numer_abs < 11'd513)    div_fp_abs_d0 = {6'd60, 8'd0};
+            else if (denom_abs == 11'd10 && numer_abs < 11'd570)   div_fp_abs_d0 = {6'd60, 8'd0};
+            else if (denom_abs == 11'd11 && numer_abs < 11'd627)   div_fp_abs_d0 = {6'd60, 8'd0};
+            else                                                   div_fp_abs_d0 = {6'd57, 8'd0};
+        end                                                   
+    end
+
+    reg unsigned [15:0] lut_address;
+    always @ (*) begin
+        if (numer_abs < 11'd57) begin
+            lut_address = (numer_abs - 1) * 639 + (denom_abs -1);
+        end
+        else begin
+            case(denom_abs) 
+                11'd1: lut_address = {1'b0, numer_abs} + 16'd35784;
+                11'd2: lut_address = {1'b0, numer_abs} + 16'd57+ 16'd35784;
+                11'd3: lut_address = {1'b0, numer_abs} + 16'd171+ 16'd35784;
+                11'd4: lut_address = {1'b0, numer_abs} + 16'd342+ 16'd35784;
+                11'd5: lut_address = {1'b0, numer_abs} + 16'd570+ 16'd35784;
+                11'd6: lut_address = {1'b0, numer_abs} + 16'd855+ 16'd35784;
+                11'd7: lut_address = {1'b0, numer_abs} + 16'd1197+ 16'd35784;
+                11'd8: lut_address = {1'b0, numer_abs} + 16'd1596+ 16'd35784;
+                11'd9: lut_address = {1'b0, numer_abs} + 16'd2052+ 16'd35784;
+                11'd10: lut_address = {1'b0, numer_abs} + 16'd2565+ 16'd35784;
+                11'd11: lut_address = {1'b0, numer_abs} + 16'd3135+ 16'd35784;
+                default: lut_address = 12'd0;
+            endcase
+        end
+        
+    end
+
+    //only lookup in the table if result is <57. otherwise doesn' make dif for arctan
+    wire unsigned [13:0] lut_output;
+    rom_fp_divide_new fp_divide_LUT (
+        .clock(clk), 
+        .address(lut_address), 
+        .q(lut_output)
+    );
+    
+    delay #(.DATA_WIDTH(14), .DELAY(2)) delay_div_fp_abs(
+        .clk (clk), 
+        .data_in (div_fp_abs_d0), 
+        .data_out(div_fp_abs_d2)
+    );
+    wire signed [19:0] div_fp_abs = (div_fp_abs_d2 == {6'd60, 8'd0}) ? {6'd0, lut_output} : {6'd0, div_fp_abs_d2};
     reg signed [9:0] temp_theta;
     wire pos_x = !denom[11];
     wire pos_y = !numer[11];
-    wire signed [19:0] numer_fp = {numer, 8'd0};
-
-    wire signed [19:0] div_fp = numer_fp / denom;
-    wire signed [19:0] div_fp_abs = div_fp < 0 ? 20'd0 - div_fp : div_fp;
-    always @ (numer, denom, div_fp, div_fp_abs) begin
+    //using the result of the floating point division, arctan
+    always @ (div_fp_abs) begin
         if (div_fp_abs < 20'b00000000000000000101) temp_theta = 10'd0;
         else if (div_fp_abs < 20'b00000000000000001001) temp_theta = 10'b0000000001;
         else if (div_fp_abs < 20'b00000000000000001110) temp_theta = 10'b0000000010;
@@ -127,9 +189,6 @@ module sine_LUT(
     wire signed [9:0] theta_mod90 = (theta >= 10'd0 && theta <= 10'd90) ? theta : 
         (theta > 10'd90 && theta <= 10'd180) ? 10'd180 - theta : 
         (theta > 10'd180 && theta <= 10'd270) ? 10'd270 - theta : 10'd360 - theta;
-    assign sine_theta_out = (theta >= 10'd0 && theta <= 10'd180) ? 
-                    sine_theta : 20'd0 - sine_theta; 
-
     reg signed [19:0] sine_theta;
 
     always @ (theta, theta_mod90) begin
@@ -228,6 +287,10 @@ module sine_LUT(
             default: sine_theta = 20'd0;
         endcase
     end
+
+    assign sine_theta_out = (theta >= 10'd0 && theta <= 10'd180) ? 
+                sine_theta : 20'd0 - sine_theta; 
+
 endmodule
 
 //1b sign, 11bit integer, 8 bit precision
@@ -239,8 +302,6 @@ module cosine_LUT(
     wire signed [9:0] theta_mod90 = (theta >= 10'd0 && theta <= 10'd90) ? theta : 
         (theta > 10'd90 && theta <= 10'd180) ? 10'd180 - theta : 
         (theta > 10'd180 && theta <= 10'd270) ? 10'd270 - theta : 10'd360 - theta;
-    assign cos_theta_out = (theta >= 10'd0 && theta <= 10'd90) || (theta > 10'd270 && theta <= 10'd360) ? 
-                    cos_theta : 20'd0 - cos_theta; 
 
     reg signed [19:0] cos_theta;
     always @ (theta, theta_mod90) begin
@@ -341,6 +402,18 @@ module cosine_LUT(
 
         endcase
     end
+    assign cos_theta_out = (theta >= 10'd0 && theta <= 10'd90) || (theta > 10'd270 && theta <= 10'd360) ? 
+            cos_theta : 20'd0 - cos_theta; 
 
 
+
+endmodule
+
+module fp_s20 (
+    input signed [19:0] a, 
+    input signed [19:0] b, 
+    output signed [19:0] out
+);
+    wire [39:0] result = a * b;
+    assign out = {result[39], result[26:8]};
 endmodule

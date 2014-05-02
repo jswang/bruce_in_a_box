@@ -6,23 +6,22 @@ module boundary_select
 (
     input clk,
     input reset, 
-    input [17:0] SW,
-    input  unsigned [10:0] VGA_X, 
+    // input [17:0] SW,
+    input  unsigned [10:0] VGA_X, //delayed by 16 
     input  unsigned [10:0] VGA_Y,
-    input  unsigned [10:0] top_left_x,
-    input  unsigned [10:0] top_left_y,
-    input  unsigned [10:0] top_right_x,
-    input  unsigned [10:0] top_right_y,
-    input  unsigned [10:0] bot_left_x,
-    input  unsigned [10:0] bot_left_y,
-    input  unsigned [10:0] bot_right_x,
-    input  unsigned [10:0] bot_right_y, 
+    // input  unsigned [10:0] top_left_x,
+    // input  unsigned [10:0] top_left_y,
+    // input  unsigned [10:0] top_right_x,
+    // input  unsigned [10:0] top_right_y,
+    // input  unsigned [10:0] bot_left_x,
+    // input  unsigned [10:0] bot_left_y,
+    // input  unsigned [10:0] bot_right_x,
+    // input  unsigned [10:0] bot_right_y, 
 
     output draw_image, 
     output [7:0] image_R, 
     output [7:0] image_G, 
-    output [7:0] image_B, 
-    output unsigned [7 :0] scale
+    output [7:0] image_B
 
 );
 //----------Read from the ROM------------//
@@ -32,8 +31,8 @@ wire unsigned [10:0] draw_start [0:1];
 wire unsigned [10:0] draw_end   [0:1];
 assign draw_start[x] = 11'd100; 
 assign draw_start[y] = 11'd100;
-assign draw_end[x] = 11'd100 + {3'd0, SW[17:10]};
-assign draw_end[y] = 11'd100 + {3'd0, SW[9:2]};
+assign draw_end[x] = 11'd156;
+assign draw_end[y] = 11'd156;
 
 //Use draw_start to find the offset
 wire signed [11:0] offset [0:1];
@@ -47,8 +46,14 @@ assign draw_end_offset[x] = draw_end[x] - offset[x];
 assign draw_end_offset[y] = draw_end[y] - offset[y];
 
 
+//reads from rom to do division so output delayed by 2 cycles
 wire signed [9:0] theta;
-arctan_LUT arctan(
+arctan_LUT #(
+    .p_image_width(p_image_width), 
+    .p_image_height(p_image_height)
+)
+arctan(
+    .clk(clk),
     .numer(draw_end_offset[y]), 
     .denom(draw_end_offset[x]), 
     .theta(theta) // [0, 359]
@@ -64,15 +69,23 @@ sine_LUT sine_y(
     .theta(theta), 
     .sine_theta_out(sine_theta)
 );
+
+wire unsigned [10:0] VGA_X_d2, VGA_Y_d2;
+delay #(.DATA_WIDTH(22), .DELAY(2)) delay_vgaxy(
+    .clk(clk), 
+    .data_in({VGA_X, VGA_Y}), 
+    .data_out({VGA_X_d2, VGA_Y_d2})
+);
+
 wire signed [19:0] cos_times_x, sine_times_y;
 fp_s20 fp_mult_cos_x(
     .a(cos_theta), 
-    .b({1'b0, VGA_X, 8'd0}), 
+    .b({1'b0, VGA_X_d2, 8'd0}), 
     .out(cos_times_x)
 );
 fp_s20 fp_mult_sine_y(
     .a(sine_theta), 
-    .b({1'b0, VGA_Y, 8'd0}), 
+    .b({1'b0, VGA_Y_d2, 8'd0}), 
     .out(sine_times_y)
 );
 
@@ -99,6 +112,5 @@ rom_clocktower clocktower_full (
     .q_a({image_R, image_G, image_B}), 
     .q_b()
 );
-
 
 endmodule
