@@ -977,15 +977,12 @@ always @ (*) begin
 			end
 
 			//If I am within the window where I want to draw
-			if (	VGA_X_d20 >= draw_start[x] && VGA_X_d20 < draw_start[x] + image_width_x
-				&&  VGA_Y_d20 >= draw_start[y] && VGA_Y_d20 < draw_start[y] + image_height_y
-				) begin
+			if (draw_image) begin
 				if (!(image_R_d20 == 8'd43 && image_G_d20 == 8'd213 && image_B_d20 == 8'd55)) begin
 					VGA_R = image_R_d20;
 					VGA_G = image_G_d20;
 					VGA_B = image_B_d20;
-				end
-				
+				end	
 			end
 		end
 
@@ -1176,32 +1173,35 @@ I2C_AV_Config 	u1	(	//	Host Side
 						.I2C_SCLK(I2C_SCLK),
 						.I2C_SDAT(I2C_SDAT)	);	
 
-//----------Read from the ROM------------//
-localparam image_width_x = 80;
-localparam image_height_y = 480;
-wire unsigned [10:0] draw_start [0:1];
-wire unsigned [10:0] draw_end [0:1];
-assign draw_start[x] = SW[17:7]; 
-assign draw_start[y] = {SW[6:2], 6'd0};
-
-//generate addresses to read from rom one time
-wire unsigned [15:0] rom_addr_d18 = (VGA_X_d18 - draw_start[x]) + image_width_x * (VGA_Y_d18 - draw_start[y]);
-
-wire [7:0] image_R_d20, image_G_d20, image_B_d20;
-rom_clocktower clocktower_full (
-	.clock(VGA_CLK), 
-	.address_a(rom_addr_d18), 
-	.address_b(), 
-	.q_a({image_R_d20, image_G_d20, image_B_d20}), 
-	.q_b()
-);
 
 wire [10:0] VGA_X_d18, VGA_Y_d18;
 delay #( .DATA_WIDTH(22), .DELAY(18) ) delay_xy
 (
-	.clk 		(VGA_CLK), 
-	.data_in 	({VGA_X_d0, VGA_Y_d0}), 
-	.data_out 	({VGA_X_d18, VGA_Y_d18})
+	.clk 			(VGA_CLK), 
+	.data_in 		({VGA_X_d0, VGA_Y_d0}), 
+	.data_out 		({VGA_X_d18, VGA_Y_d18})
+);
+
+wire draw_image;
+wire [7:0] image_R_d20, image_G_d20, image_B_d20;
+boundary_select #(80, 480) bounds(
+	//inputs
+	.clk 			(VGA_CLK), 
+	.reset 			(reset), 
+	.SW 			(SW[17:0]), 
+	.VGA_X      	(VGA_X_d18), 
+	.VGA_Y 			(VGA_Y_d18), 
+	.top_left_x 	(top_left_d6[x]),
+	.top_right_x 	(top_right_d6[x]),
+	.bot_left_x 	(bot_left_d6[x]),
+	.bot_right_x 	(bot_right_d6[x]),
+
+	//outputs
+	.draw_image  	(draw_image), 
+	.image_R 		(image_R_d20),
+	.image_G 		(image_G_d20),
+	.image_B 		(image_B_d20),
+	.scale	 		()
 );
 
 endmodule
