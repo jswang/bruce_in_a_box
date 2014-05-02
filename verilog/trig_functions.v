@@ -7,21 +7,115 @@ module fp_s20 (
     assign out = {result[39], result[26:8]};
 endmodule
 
+//Lookup table specifically for 
 module arctan_LUT(
-    input signed [11:0] quotient,  //quotient and remainder are positive
-    input signed [11:0] remainder,  
-    input               sign_x, 
-    input               sign_y, 
-    input signed [9:0]  theta
+    input signed [11:0] numer,  
+    input signed [11:0] denom,  
+    output signed [9:0]  theta
 );
     reg signed [9:0] temp_theta;
-    always @ (quotient, remainder) begin
-        case({quotient, remainder})
+    wire pos_x = !denom[11];
+    wire pos_y = !numer[11];
+    wire signed [19:0] numer_fp = {numer, 8'd0};
 
-
-        default: temp_theta = 10'd0;
-        endcase
+    wire signed [19:0] div_fp = numer_fp / denom;
+    wire signed [19:0] div_fp_abs = div_fp < 0 ? 20'd0 - div_fp : div_fp;
+    always @ (numer, denom, div_fp, div_fp_abs) begin
+        if (div_fp_abs < 20'b00000000000000000101) temp_theta = 10'd0;
+        else if (div_fp_abs < 20'b00000000000000001001) temp_theta = 10'b0000000001;
+        else if (div_fp_abs < 20'b00000000000000001110) temp_theta = 10'b0000000010;
+        else if (div_fp_abs < 20'b00000000000000010010) temp_theta = 10'b0000000011;
+        else if (div_fp_abs < 20'b00000000000000010111) temp_theta = 10'b0000000100;
+        else if (div_fp_abs < 20'b00000000000000011011) temp_theta = 10'b0000000101;
+        else if (div_fp_abs < 20'b00000000000000100000) temp_theta = 10'b0000000110;
+        else if (div_fp_abs < 20'b00000000000000100100) temp_theta = 10'b0000000111;
+        else if (div_fp_abs < 20'b00000000000000101001) temp_theta = 10'b0000001000;
+        else if (div_fp_abs < 20'b00000000000000101110) temp_theta = 10'b0000001001;
+        else if (div_fp_abs < 20'b00000000000000110010) temp_theta = 10'b0000001010;
+        else if (div_fp_abs < 20'b00000000000000110111) temp_theta = 10'b0000001011;
+        else if (div_fp_abs < 20'b00000000000000111100) temp_theta = 10'b0000001100;
+        else if (div_fp_abs < 20'b00000000000001000000) temp_theta = 10'b0000001101;
+        else if (div_fp_abs < 20'b00000000000001000101) temp_theta = 10'b0000001110;
+        else if (div_fp_abs < 20'b00000000000001001010) temp_theta = 10'b0000001111;
+        else if (div_fp_abs < 20'b00000000000001001111) temp_theta = 10'b0000010000;
+        else if (div_fp_abs < 20'b00000000000001010100) temp_theta = 10'b0000010001;
+        else if (div_fp_abs < 20'b00000000000001011001) temp_theta = 10'b0000010010;
+        else if (div_fp_abs < 20'b00000000000001011110) temp_theta = 10'b0000010011;
+        else if (div_fp_abs < 20'b00000000000001100011) temp_theta = 10'b0000010100;
+        else if (div_fp_abs < 20'b00000000000001101000) temp_theta = 10'b0000010101;
+        else if (div_fp_abs < 20'b00000000000001101101) temp_theta = 10'b0000010110;
+        else if (div_fp_abs < 20'b00000000000001110010) temp_theta = 10'b0000010111;
+        else if (div_fp_abs < 20'b00000000000001111000) temp_theta = 10'b0000011000;
+        else if (div_fp_abs < 20'b00000000000001111101) temp_theta = 10'b0000011001;
+        else if (div_fp_abs < 20'b00000000000010000011) temp_theta = 10'b0000011010;
+        else if (div_fp_abs < 20'b00000000000010001001) temp_theta = 10'b0000011011;
+        else if (div_fp_abs < 20'b00000000000010001110) temp_theta = 10'b0000011100;
+        else if (div_fp_abs < 20'b00000000000010010100) temp_theta = 10'b0000011101;
+        else if (div_fp_abs < 20'b00000000000010011010) temp_theta = 10'b0000011110;
+        else if (div_fp_abs < 20'b00000000000010100000) temp_theta = 10'b0000011111;
+        else if (div_fp_abs < 20'b00000000000010100111) temp_theta = 10'b0000100000;
+        else if (div_fp_abs < 20'b00000000000010101101) temp_theta = 10'b0000100001;
+        else if (div_fp_abs < 20'b00000000000010110100) temp_theta = 10'b0000100010;
+        else if (div_fp_abs < 20'b00000000000010111010) temp_theta = 10'b0000100011;
+        else if (div_fp_abs < 20'b00000000000011000001) temp_theta = 10'b0000100100;
+        else if (div_fp_abs < 20'b00000000000011001001) temp_theta = 10'b0000100101;
+        else if (div_fp_abs < 20'b00000000000011010000) temp_theta = 10'b0000100110;
+        else if (div_fp_abs < 20'b00000000000011010111) temp_theta = 10'b0000100111;
+        else if (div_fp_abs < 20'b00000000000011011111) temp_theta = 10'b0000101000;
+        else if (div_fp_abs < 20'b00000000000011100111) temp_theta = 10'b0000101001;
+        else if (div_fp_abs < 20'b00000000000011101111) temp_theta = 10'b0000101010;
+        else if (div_fp_abs < 20'b00000000000011111000) temp_theta = 10'b0000101011;
+        else if (div_fp_abs < 20'b00000000000100000000) temp_theta = 10'b0000101100;
+        else if (div_fp_abs < 20'b00000000000100001010) temp_theta = 10'b0000101101;
+        else if (div_fp_abs < 20'b00000000000100010011) temp_theta = 10'b0000101110;
+        else if (div_fp_abs < 20'b00000000000100011101) temp_theta = 10'b0000101111;
+        else if (div_fp_abs < 20'b00000000000100100111) temp_theta = 10'b0000110000;
+        else if (div_fp_abs < 20'b00000000000100110010) temp_theta = 10'b0000110001;
+        else if (div_fp_abs < 20'b00000000000100111101) temp_theta = 10'b0000110010;
+        else if (div_fp_abs < 20'b00000000000101001000) temp_theta = 10'b0000110011;
+        else if (div_fp_abs < 20'b00000000000101010100) temp_theta = 10'b0000110100;
+        else if (div_fp_abs < 20'b00000000000101100001) temp_theta = 10'b0000110101;
+        else if (div_fp_abs < 20'b00000000000101101110) temp_theta = 10'b0000110110;
+        else if (div_fp_abs < 20'b00000000000101111100) temp_theta = 10'b0000110111;
+        else if (div_fp_abs < 20'b00000000000110001011) temp_theta = 10'b0000111000;
+        else if (div_fp_abs < 20'b00000000000110011010) temp_theta = 10'b0000111001;
+        else if (div_fp_abs < 20'b00000000000110101011) temp_theta = 10'b0000111010;
+        else if (div_fp_abs < 20'b00000000000110111100) temp_theta = 10'b0000111011;
+        else if (div_fp_abs < 20'b00000000000111001110) temp_theta = 10'b0000111100;
+        else if (div_fp_abs < 20'b00000000000111100010) temp_theta = 10'b0000111101;
+        else if (div_fp_abs < 20'b00000000000111110111) temp_theta = 10'b0000111110;
+        else if (div_fp_abs < 20'b00000000001000001101) temp_theta = 10'b0000111111;
+        else if (div_fp_abs < 20'b00000000001000100101) temp_theta = 10'b0001000000;
+        else if (div_fp_abs < 20'b00000000001000111111) temp_theta = 10'b0001000001;
+        else if (div_fp_abs < 20'b00000000001001011100) temp_theta = 10'b0001000010;
+        else if (div_fp_abs < 20'b00000000001001111010) temp_theta = 10'b0001000011;
+        else if (div_fp_abs < 20'b00000000001010011011) temp_theta = 10'b0001000100;
+        else if (div_fp_abs < 20'b00000000001011000000) temp_theta = 10'b0001000101;
+        else if (div_fp_abs < 20'b00000000001011101000) temp_theta = 10'b0001000110;
+        else if (div_fp_abs < 20'b00000000001100010100) temp_theta = 10'b0001000111;
+        else if (div_fp_abs < 20'b00000000001101000110) temp_theta = 10'b0001001000;
+        else if (div_fp_abs < 20'b00000000001101111101) temp_theta = 10'b0001001001;
+        else if (div_fp_abs < 20'b00000000001110111100) temp_theta = 10'b0001001010;
+        else if (div_fp_abs < 20'b00000000010000000011) temp_theta = 10'b0001001011;
+        else if (div_fp_abs < 20'b00000000010001010101) temp_theta = 10'b0001001100;
+        else if (div_fp_abs < 20'b00000000010010110101) temp_theta = 10'b0001001101;
+        else if (div_fp_abs < 20'b00000000010100100110) temp_theta = 10'b0001001110;
+        else if (div_fp_abs < 20'b00000000010110101100) temp_theta = 10'b0001001111;
+        else if (div_fp_abs < 20'b00000000011001010001) temp_theta = 10'b0001010000;
+        else if (div_fp_abs < 20'b00000000011100011110) temp_theta = 10'b0001010001;
+        else if (div_fp_abs < 20'b00000000100000100101) temp_theta = 10'b0001010010;
+        else if (div_fp_abs < 20'b00000000100110000100) temp_theta = 10'b0001010011;
+        else if (div_fp_abs < 20'b00000000101101101111) temp_theta = 10'b0001010100;
+        else if (div_fp_abs < 20'b00000000111001001101) temp_theta = 10'b0001010101;
+        else if (div_fp_abs < 20'b00000001001100010101) temp_theta = 10'b0001010110;
+        else if (div_fp_abs < 20'b00000001110010100011) temp_theta = 10'b0001010111;
+        else if (div_fp_abs < 20'b00000011100101001011) temp_theta = 10'b0001011000;
+        else                                            temp_theta = 10'b0001011001;
     end
+    assign theta = (pos_x && pos_y) ? temp_theta : 
+                    (!pos_x && pos_y) ? 10'd180 - temp_theta : 
+                    (!pos_x && !pos_y) ? 10'd180 + temp_theta : 
+                                          10'd360 - temp_theta;
 endmodule
 
 

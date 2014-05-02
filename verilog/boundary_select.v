@@ -30,8 +30,10 @@ localparam x = 0;
 localparam y = 1;
 wire unsigned [10:0] draw_start [0:1];
 wire unsigned [10:0] draw_end   [0:1];
-assign draw_start[x] = SW[17:7]; 
-assign draw_start[y] = {SW[6:2], 6'd0};
+assign draw_start[x] = 11'd100; 
+assign draw_start[y] = 11'd100;
+assign draw_end[x] = 11'd100 + {3'd0, SW[17:10]};
+assign draw_end[y] = 11'd100 + {3'd0, SW[9:2]};
 
 //Use draw_start to find the offset
 wire signed [11:0] offset [0:1];
@@ -44,21 +46,11 @@ assign draw_start_offset[y] = draw_start[y] - offset[y];
 assign draw_end_offset[x] = draw_end[x] - offset[x]; 
 assign draw_end_offset[y] = draw_end[y] - offset[y];
 
-wire signed [11:0] quotient, remainder;
-div_s12 div_arctan(
-    .numer(draw_end_offset[y]), 
-    .denom(draw_end_offset[x]), 
-    .quotient(quotient), 
-    .remain(remainder)
-);
 
-wire signed [11:0] abs_quotient = (quotient < 0) ? 12'd0 - quotient : quotient;
 wire signed [9:0] theta;
 arctan_LUT arctan(
-    .quotient(abs_quotient), 
-    .remainder(remainder), 
-    .sign_x(draw_end_offset[x][11]), 
-    .sign_y(draw_end_offset[y][11]), 
+    .numer(draw_end_offset[y]), 
+    .denom(draw_end_offset[x]), 
     .theta(theta) // [0, 359]
 );
 
@@ -89,16 +81,16 @@ assign txfm_VGA_XY[x] = cos_times_x[19:8] - sine_times_y[19:8];
 assign txfm_VGA_XY[y] = sine_times_y[19:8] + sine_times_y[19:8];
 
 //generate addresses to read from rom
-// wire unsigned [15:0] rom_addr_d18 = txfm_VGA_XY[x] + p_image_width * txfm_VGA_XY[y];
-wire unsigned [15:0] rom_addr_d18 = (VGA_X - offset[x]) + p_image_width * (VGA_Y - offset[y]);
-// assign draw_image = ((txfm_VGA_XY[x] >= 0) && (txfm_VGA_XY[x] < p_image_width)
-//                 && (txfm_VGA_XY[y] >= 0) && (txfm_VGA_XY[y] < p_image_height));
+wire unsigned [15:0] rom_addr_d18 = txfm_VGA_XY[x] + p_image_width * txfm_VGA_XY[y];
+// wire unsigned [15:0] rom_addr_d18 = (VGA_X - offset[x]) + p_image_width * (VGA_Y - offset[y]);
+assign draw_image = ((txfm_VGA_XY[x] >= 0) && (txfm_VGA_XY[x] < p_image_width)
+                && (txfm_VGA_XY[y] >= 0) && (txfm_VGA_XY[y] < p_image_height));
 
-wire signed [11:0] temp [0:1];
-assign temp[x] = offset[x] + p_image_width;
-assign temp[y] = offset[y] + p_image_height;
-assign draw_image = ((VGA_X >= offset[x]) && (VGA_X < temp[x])
-                    && (VGA_Y >= offset[y]) && (VGA_Y  < temp[y]));
+// wire signed [11:0] temp [0:1];
+// assign temp[x] = offset[x] + p_image_width;
+// assign temp[y] = offset[y] + p_image_height;
+// assign draw_image = ((VGA_X >= offset[x]) && (VGA_X < temp[x])
+//                     && (VGA_Y >= offset[y]) && (VGA_Y  < temp[y]));
 
 rom_clocktower clocktower_full (
     .clock(clk), 
