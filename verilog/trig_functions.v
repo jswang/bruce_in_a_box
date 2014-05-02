@@ -14,7 +14,14 @@ module arctan_LUT(
     input               sign_y, 
     input signed [9:0]  theta
 );
+    reg signed [9:0] temp_theta;
+    always @ (quotient, remainder) begin
+        case({quotient, remainder})
 
+
+        default: temp_theta = 10'd0;
+        endcase
+    end
 endmodule
 
 
