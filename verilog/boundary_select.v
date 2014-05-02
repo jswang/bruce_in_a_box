@@ -6,7 +6,7 @@ module boundary_select
 (
     input clk,
     input reset, 
-    // input [17:0] SW,
+    input [17:0] SW,
     input  unsigned [10:0] VGA_X, //delayed by 16 
     input  unsigned [10:0] VGA_Y,
     // input  unsigned [10:0] top_left_x,
@@ -31,8 +31,8 @@ wire unsigned [10:0] draw_start [0:1];
 wire unsigned [10:0] draw_end   [0:1];
 assign draw_start[x] = 11'd100; 
 assign draw_start[y] = 11'd100;
-assign draw_end[x] = 11'd156;
-assign draw_end[y] = 11'd156;
+assign draw_end[x] = 11'd100 + {3'd0, SW[17:10]};
+assign draw_end[y] = 11'd100 + {3'd0, SW[9:2]};
 
 //Use draw_start to find the offset
 wire signed [11:0] offset [0:1];

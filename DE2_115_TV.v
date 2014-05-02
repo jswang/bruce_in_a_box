@@ -1184,7 +1184,7 @@ boundary_select
 	//inputs
 	.clk 			(VGA_CLK), 
 	.reset 			(reset), 
-	// .SW 			(SW[17:0]), 
+	.SW 			(SW[17:0]), 
 	.VGA_X      	(VGA_X_d16), 
 	.VGA_Y 			(VGA_Y_d16), 
 	// .top_left_x 	(top_left_fsm_d6[x]),
