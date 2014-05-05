@@ -19,7 +19,7 @@ module boundary_select
     input  unsigned [10:0] bot_right_y, 
     input  unsigned [22:0] scale_dist,
 
-    output draw_image, 
+    output reg draw_image, 
     output [7:0] image_R, 
     output [7:0] image_G, 
     output [7:0] image_B, 
@@ -52,21 +52,24 @@ always @ (*) begin
     else if (scale_dist >= 20'd800)    scale <= 4'd0;
     else if (scale_dist >= 20'd400)    scale <= 4'd1;
     else                               scale <= 4'd2;
+    // scale <= SW[15:12];
 end
 //----------Read from the ROM------------//
 localparam x = 0;
 localparam y = 1;
 wire unsigned [10:0] draw_start [0:1];
 wire unsigned [10:0] draw_end   [0:1];
-assign draw_start[x] = 11'd300; 
-assign draw_start[y] = 11'd200;
-assign draw_end[x] = (SW[17]) ? 11'd300 - {4'd0, SW[16:10]} : 11'd300 + {4'd0, SW[16:10]};
-assign draw_end[y] = (SW[9]) ? 11'd200 - {4'd0, SW[8:2]} : 11'd200 + {4'd0, SW[16:10]};
+// assign draw_start[x] = 11'd300; 
+// assign draw_start[y] = 11'd200;
+// assign draw_end[x]   = 11'd380; 
+// assign draw_end[y]   = 11'd200;
+// assign draw_end[x] = (SW[17]) ? 11'd300 - {4'd0, SW[16:10]} : 11'd300 + {4'd0, SW[16:10]};
+// assign draw_end[y] = (SW[9]) ? 11'd200 - {4'd0, SW[8:2]} : 11'd200 + {4'd0, SW[16:10]};
 
-// assign draw_start[x] = top_left_x;
-// assign draw_start[y] = top_left_y;
-// assign draw_end[x]   = top_right_x;
-// assign draw_end[y]   = top_right_y;
+assign draw_start[x] = top_left_x;
+assign draw_start[y] = (top_left_y + bot_left_y)>>1;
+assign draw_end[x]   = top_right_x;
+assign draw_end[y]   = (top_right_y + bot_right_y)>>1;
 
 assign draw_start_x = draw_start[x];
 assign draw_start_y = draw_start[y];
@@ -92,10 +95,10 @@ arctan(
     .clk(clk),
     .numer(draw_end_offset[y]), 
     .denom(draw_end_offset[x]), 
-    .theta() // [0, 359]
+    .theta(theta) // [0, 359]
 );
 
-assign theta = SW[10:2];
+// assign theta = SW[10:2]; //todo put back into arctan
 
 wire signed [9:0] theta_inverse = 10'd360 -theta;
 //1b sign, 11bit integer, 8 bit precision
@@ -148,13 +151,58 @@ wire signed [11:0] VGA_XY_txfm [0:1];
 assign VGA_XY_txfm[x] = cos_times_x[19:8] - sine_times_y[19:8];
 assign VGA_XY_txfm[y] = sine_times_x[19:8] + cos_times_y[19:8];
 
+reg unsigned [15:0] rom_addr_d18;
 //generate addresses to read from rom
-wire unsigned [15:0] rom_addr_d18 = (scale <= 4'd2) ? (VGA_XY_txfm[x] + p_image_width * VGA_XY_txfm[y]) << scale : 
-                    (VGA_XY_txfm[x] + p_image_width * VGA_XY_txfm[y]) >> (scale - 4'd2);
-assign draw_image = (scale <= 4'd2) ? ((VGA_XY_txfm[x] >= 0) && (VGA_XY_txfm[x] < (p_image_width>>scale))
-                        && (VGA_XY_txfm[y] >= 0) && (VGA_XY_txfm[y] < (p_image_height>>scale)) ) 
-                    : ((VGA_XY_txfm[x] >= 0) && (VGA_XY_txfm[x] < (p_image_width<< (scale - 4'd2) ))
-                        && (VGA_XY_txfm[y] >= 0) && (VGA_XY_txfm[y] < (p_image_height << (scale -4'd2))) );
+always @ (*) begin
+    case (scale) 
+        4'd7: begin
+            rom_addr_d18 = (VGA_XY_txfm[x]>>>5) + p_image_width * (VGA_XY_txfm[y]>>>5);
+            draw_image   = ((VGA_XY_txfm[x]>>>5) >= 0) && ((VGA_XY_txfm[x]>>>5) < p_image_width)
+                        && ((VGA_XY_txfm[y]>>>5) >= 0) && ((VGA_XY_txfm[y]>>>5) < p_image_height);
+        end
+        4'd6: begin
+            rom_addr_d18 = (VGA_XY_txfm[x]>>>4) + p_image_width * (VGA_XY_txfm[y]>>>4);
+            draw_image   = ((VGA_XY_txfm[x]>>>4) >= 0) && ((VGA_XY_txfm[x]>>>4) < p_image_width)
+                        && ((VGA_XY_txfm[y]>>>4) >= 0) && ((VGA_XY_txfm[y]>>>4) < p_image_height);
+        end
+        4'd5: begin
+            rom_addr_d18 = (VGA_XY_txfm[x]>>>3) + p_image_width * (VGA_XY_txfm[y]>>>3);
+            draw_image   = ((VGA_XY_txfm[x]>>>3) >= 0) && ((VGA_XY_txfm[x]>>>3) < p_image_width)
+                        && ((VGA_XY_txfm[y]>>>3) >= 0) && ((VGA_XY_txfm[y]>>>3) < p_image_height);
+        end
+        4'd4: begin
+            rom_addr_d18 = (VGA_XY_txfm[x]>>>2) + p_image_width * (VGA_XY_txfm[y]>>>2);
+            draw_image   = ((VGA_XY_txfm[x]>>>2) >= 0) && ((VGA_XY_txfm[x]>>>2) < p_image_width)
+                        && ((VGA_XY_txfm[y]>>>2) >= 0) && ((VGA_XY_txfm[y]>>>2) < p_image_height);
+        end
+        4'd3: begin
+            rom_addr_d18 = (VGA_XY_txfm[x]>>>1) + p_image_width * (VGA_XY_txfm[y]>>>1);
+            draw_image   = ((VGA_XY_txfm[x]>>>1) >= 0) && ((VGA_XY_txfm[x]>>>1) < p_image_width)
+                        && ((VGA_XY_txfm[y]>>>5) >= 0) && ((VGA_XY_txfm[y]>>>5) < p_image_height);
+        end
+        4'd2: begin
+            rom_addr_d18 = (VGA_XY_txfm[x]>>>0) + p_image_width * (VGA_XY_txfm[y]>>>0);
+            draw_image   = ((VGA_XY_txfm[x]>>>0) >= 0) && ((VGA_XY_txfm[x]>>>0) < p_image_width)
+                        && ((VGA_XY_txfm[y]>>>0) >= 0) && ((VGA_XY_txfm[y]>>>0) < p_image_height);
+        end
+        4'd1: begin
+            rom_addr_d18 = (VGA_XY_txfm[x]<<<1) + p_image_width * (VGA_XY_txfm[y]<<<1);
+            draw_image   = ((VGA_XY_txfm[x]<<<1) >= 0) && ((VGA_XY_txfm[x]<<<1) < p_image_width)
+                        && ((VGA_XY_txfm[y]<<<1) >= 0) && ((VGA_XY_txfm[y]<<<1) < p_image_height);
+        end
+        4'd0: begin
+            rom_addr_d18 = (VGA_XY_txfm[x]<<<2) + p_image_width * (VGA_XY_txfm[y]<<<2);
+            draw_image   = ((VGA_XY_txfm[x]<<<2) >= 0) && ((VGA_XY_txfm[x]<<<2) < p_image_width)
+                        && ((VGA_XY_txfm[y]<<<2) >= 0) && ((VGA_XY_txfm[y]<<<2) < p_image_height);
+        end
+        default: begin
+            rom_addr_d18 = (VGA_XY_txfm[x]>>>0) + p_image_width * (VGA_XY_txfm[y]>>>0);
+            draw_image   = ((VGA_XY_txfm[x]>>>0) >= 0) && ((VGA_XY_txfm[x]>>>0) < p_image_width)
+                        && ((VGA_XY_txfm[y]>>>0) >= 0) && ((VGA_XY_txfm[y]>>>0) < p_image_height);
+        end
+
+    endcase
+end
 
 rom_clocktower clocktower_full (
     .clock(clk), 
