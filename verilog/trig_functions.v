@@ -188,7 +188,7 @@ module sine_LUT(
 );
     wire signed [9:0] theta_mod90 = (theta >= 10'd0 && theta <= 10'd90) ? theta : 
         (theta > 10'd90 && theta <= 10'd180) ? 10'd180 - theta : 
-        (theta > 10'd180 && theta <= 10'd270) ? 10'd270 - theta : 10'd360 - theta;
+        (theta > 10'd180 && theta <= 10'd270) ? theta - 10'd180 : 10'd360 - theta;
     reg signed [19:0] sine_theta;
 
     always @ (theta, theta_mod90) begin
@@ -301,7 +301,7 @@ module cosine_LUT(
 );
     wire signed [9:0] theta_mod90 = (theta >= 10'd0 && theta <= 10'd90) ? theta : 
         (theta > 10'd90 && theta <= 10'd180) ? 10'd180 - theta : 
-        (theta > 10'd180 && theta <= 10'd270) ? 10'd270 - theta : 10'd360 - theta;
+        (theta > 10'd180 && theta <= 10'd270) ? theta - 10'd180 : 10'd360 - theta;
 
     reg signed [19:0] cos_theta;
     always @ (theta, theta_mod90) begin

@@ -914,7 +914,7 @@ fsm corner_follower (
     .state(LEDG[3:0]), 
     .thresh_exceeded_flags(LEDG[7:4]),
     .count(),
-    .thresh_flags(LEDR[15:0]), 
+    .thresh_flags(), 
     .test_x_max(test_x_max), 
     .test_x_min(test_x_min), 
     .test_y_max(test_y_max),
@@ -927,49 +927,27 @@ fsm corner_follower (
     .test_y_max_xlocalmax(test_y_max_xlocalmax),
     .test_y_min_xlocalmin(test_y_min_xlocalmin),
     .test_y_min_xlocalmax(test_y_min_xlocalmax),
-    .corner_flip(LEDR[17])
+    .corner_flip()
 );
 
 always @ (*) begin
 	case (SW[1:0])
 		// Line and drawing clocktower
 		2'd0: begin
-			//Red: top left
-			if (VGA_X_d20 < top_left_fsm_d20[x] + 5 && VGA_X_d20 >= top_left_fsm_d20[x] - 5
-			 && VGA_Y_d20 < top_left_fsm_d20[y] + 5 && VGA_Y_d20 >= top_left_fsm_d20[y] - 5) begin
+			//Red: draw start
+			if (VGA_X_d20 < draw_start_d20[x] + 5 && VGA_X_d20 > draw_start_d20[x] - 5
+			 && VGA_Y_d20 < draw_start_d20[y] + 5 && VGA_Y_d20 > draw_start_d20[y] - 5) begin
 					VGA_R = 8'hFF;
 					VGA_G = 8'h00;
 					VGA_B = 8'h00;
 				end
-			//orange: top right
-			else if (VGA_X_d20 < top_right_fsm_d20[x] + 5 && VGA_X_d20 >= top_right_fsm_d20[x] - 5
-			 	  && VGA_Y_d20 < top_right_fsm_d20[y] + 5 && VGA_Y_d20 >= top_right_fsm_d20[y] - 5) begin
-					VGA_R = 8'hFF;
-					VGA_G = 8'd125;
-					VGA_B = 8'h00;
-				end
-			//yellow: bottom left
-			else if (VGA_X_d20 < bot_left_fsm_d20[x] + 5 && VGA_X_d20 >= bot_left_fsm_d20[x] - 5
-			      && VGA_Y_d20 < bot_left_fsm_d20[y] + 5 && VGA_Y_d20 >= bot_left_fsm_d20[y] - 5) begin
-					VGA_R = 8'hFF;
-					VGA_G = 8'hFF;
-					VGA_B = 8'h00;
-				end
-			//cyan: bottom right
-			else if (VGA_X_d20 < bot_right_fsm_d20[x] + 5 && VGA_X_d20 >= bot_right_fsm_d20[x] - 5
-			      && VGA_Y_d20 < bot_right_fsm_d20[y] + 5 && VGA_Y_d20 >= bot_right_fsm_d20[y] - 5) begin
+			//orange: draw end
+			else if (VGA_X_d20 < draw_end_d20[x] + 5 && VGA_X_d20 >= draw_end_d20[x] - 5
+			 	  && VGA_Y_d20 < draw_end_d20[y] + 5 && VGA_Y_d20 >= draw_end_d20[y] - 5) begin
 					VGA_R = 8'h00;
 					VGA_G = 8'hFF;
 					VGA_B = 8'hFF;
 				end
-
-			//Green area : pink
-			else if (color_d20) begin
-				VGA_R = 8'hFF;
-				VGA_G = 8'h00;
-				VGA_B = 8'hFF;
-			end
-			
 			else begin
 				VGA_R = VGA_R_d20;
 				VGA_G = VGA_G_d20;
@@ -978,12 +956,14 @@ always @ (*) begin
 
 			//If I am within the window where I want to draw
 			if (draw_image) begin
-				if (!(image_R_d20 == 8'd43 && image_G_d20 == 8'd213 && image_B_d20 == 8'd55)) begin
+				// if (!(image_R_d20 == 8'd43 && image_G_d20 == 8'd213 && image_B_d20 == 8'd55)) begin
 					VGA_R = image_R_d20;
 					VGA_G = image_G_d20;
 					VGA_B = image_B_d20;
-				end	
+				// end	
 			end
+
+
 		end
 
 		//new fsm with median filtering
@@ -1177,6 +1157,8 @@ delay #( .DATA_WIDTH(22), .DELAY(16) ) delay_xy
 
 wire draw_image;
 wire [7:0] image_R_d20, image_G_d20, image_B_d20;
+wire unsigned [10:0] draw_start_d20 [0:1];
+wire unsigned [10:0] draw_end_d20   [0:1]; 
 boundary_select 
 #( 	.p_image_width(80), 
 	.p_image_height(480)
@@ -1197,7 +1179,11 @@ boundary_select
 	.image_R 		(image_R_d20),
 	.image_G 		(image_G_d20),
 	.image_B 		(image_B_d20),
-	.scale	 		()
+	.draw_start_x   (draw_start_d20[x]), 
+	.draw_start_y   (draw_start_d20[y]), 
+	.draw_end_x		(draw_end_d20[x]), 
+	.draw_end_y 	(draw_end_d20[y]), 
+	.theta		    (LEDR[9:0])
 );
 
 endmodule
