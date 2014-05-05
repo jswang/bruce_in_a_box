@@ -17,6 +17,7 @@ module boundary_select
     input  unsigned [10:0] bot_left_y,
     input  unsigned [10:0] bot_right_x,
     input  unsigned [10:0] bot_right_y, 
+    input  unsigned [22:0] scale_dist,
 
     output draw_image, 
     output [7:0] image_R, 
@@ -26,9 +27,32 @@ module boundary_select
     output unsigned [10:0] draw_start_y, 
     output unsigned [10:0] draw_end_x, 
     output unsigned [10:0] draw_end_y, 
-    output signed [9:0]    theta
+    output signed [9:0]    theta, 
+
+    output reg [3:0] scale
 
 );
+//determine scale. max = 640^2 = 409600
+/**
+     8: 640^2 = 409600
+     7: 320^2 = 102400
+     6: 160^2 = 25600
+     5: 80^2  = 6400
+     4: 40^2  = 1600
+     3: 20^2  = 400
+     2: 10^2  = 100
+     1: 
+*/
+always @ (*) begin
+    if (scale_dist >= 20'd409599)      scale <= 4'd7;
+    else if (scale_dist >= 20'd102400) scale <= 4'd6;
+    else if (scale_dist >= 20'd25600)  scale <= 4'd5;
+    else if (scale_dist >= 20'd6400)   scale <= 4'd4;
+    else if (scale_dist >= 20'd1600)   scale <= 4'd3;
+    else if (scale_dist >= 20'd800)    scale <= 4'd0;
+    else if (scale_dist >= 20'd400)    scale <= 4'd1;
+    else                               scale <= 4'd2;
+end
 //----------Read from the ROM------------//
 localparam x = 0;
 localparam y = 1;
@@ -125,9 +149,12 @@ assign VGA_XY_txfm[x] = cos_times_x[19:8] - sine_times_y[19:8];
 assign VGA_XY_txfm[y] = sine_times_x[19:8] + cos_times_y[19:8];
 
 //generate addresses to read from rom
-wire unsigned [15:0] rom_addr_d18 = VGA_XY_txfm[x] + p_image_width * VGA_XY_txfm[y];
-assign draw_image = ((VGA_XY_txfm[x] >= 0) && (VGA_XY_txfm[x] < p_image_width)
-                && (VGA_XY_txfm[y] >= 0) && (VGA_XY_txfm[y] < p_image_height));
+wire unsigned [15:0] rom_addr_d18 = (scale <= 4'd2) ? (VGA_XY_txfm[x] + p_image_width * VGA_XY_txfm[y]) << scale : 
+                    (VGA_XY_txfm[x] + p_image_width * VGA_XY_txfm[y]) >> (scale - 4'd2);
+assign draw_image = (scale <= 4'd2) ? ((VGA_XY_txfm[x] >= 0) && (VGA_XY_txfm[x] < (p_image_width>>scale))
+                        && (VGA_XY_txfm[y] >= 0) && (VGA_XY_txfm[y] < (p_image_height>>scale)) ) 
+                    : ((VGA_XY_txfm[x] >= 0) && (VGA_XY_txfm[x] < (p_image_width<< (scale - 4'd2) ))
+                        && (VGA_XY_txfm[y] >= 0) && (VGA_XY_txfm[y] < (p_image_height << (scale -4'd2))) );
 
 rom_clocktower clocktower_full (
     .clock(clk), 

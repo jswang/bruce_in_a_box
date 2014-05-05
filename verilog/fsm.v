@@ -18,6 +18,8 @@ module fsm (
     output reg signed [10:0]    out_bot_right_x,
     output reg signed [10:0]    out_bot_right_y, 
 
+    output unsigned [22:0]      dist_bt_TL_TR,
+
     output reg [3:0] state, 
     output reg [3:0] thresh_exceeded_flags, //test
     output reg [15:0] thresh_flags, //test
@@ -107,6 +109,13 @@ localparam top_left  = 2'd0;
 localparam top_right = 2'd1;
 localparam bot_left  = 2'd2;
 localparam bot_right = 2'd3;
+
+//Calculate distance from top left to top right to get the scale
+
+wire [22:0] junk0, junk2, junk3;
+always @(out_top_left_x, out_top_left_y) begin
+  calculate_distance(out_top_left_x, out_top_left_y, junk0, dist_bt_TL_TR, junk2, junk3);
+end
 
 //Distance calculations: xthreshold exceeded. So:
 

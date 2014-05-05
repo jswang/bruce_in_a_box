@@ -1135,6 +1135,7 @@ set_global_assignment -name NUM_PARALLEL_PROCESSORS ALL
 set_global_assignment -name RAPID_RECOMPILE_MODE ON
 set_global_assignment -name CYCLONEII_OPTIMIZATION_TECHNIQUE SPEED
 set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT FAST
+set_global_assignment -name VERILOG_FILE verilog/rom_bruce.v
 set_global_assignment -name VERILOG_FILE verilog/rom_fp_divide_new.v
 set_global_assignment -name VERILOG_FILE verilog/rom_fp_divide.v
 set_global_assignment -name VERILOG_FILE verilog/rom_sin.v

@@ -1,10 +1,10 @@
-s = sprintf('edited_clocktower');
+s = sprintf('bruce');
 img = imread(s,'bmp');
 t = [s,'.mif'];
 file = fopen(t,'w');
 
 fprintf(file,'WIDTH=24;\n'); %number of bits per entry
-fprintf(file,'DEPTH=38400;\n'); %number of addreses. for 80x480 = 
+fprintf(file,'DEPTH=115304;\n'); %number of addreses. for 80x480 =, for 406x284
 fprintf(file,'\n');
 fprintf(file,'ADDRESS_RADIX=UNS;\n');
 fprintf(file,'DATA_RADIX=UNS;\n');

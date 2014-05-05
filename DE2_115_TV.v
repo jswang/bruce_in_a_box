@@ -901,6 +901,7 @@ wire [9:0] test_x_max_ylocalmin, test_x_max_ylocalmax,
 		   test_x_min_ylocalmin, test_x_min_ylocalmax,
 		   test_y_max_xlocalmin, test_y_max_xlocalmax, 
 		   test_y_min_xlocalmin, test_y_min_xlocalmax;
+wire unsigned [22:0] scale_dist;
 
 fsm corner_follower (
 	.clk 				(VGA_CLK), 
@@ -920,6 +921,7 @@ fsm corner_follower (
     .out_bot_left_y 	(bot_left_fsm_d6[y]),
     .out_bot_right_x 	(bot_right_fsm_d6[x]),
     .out_bot_right_y 	(bot_right_fsm_d6[y]), 
+    .dist_bt_TL_TR 		(scale_dist),
 
     //Test wires	
     .state(LEDG[3:0]), 
@@ -1210,6 +1212,7 @@ boundary_select
 	.bot_left_y 	(bot_left_fsm_d7[y]),
 	.bot_right_x 	(bot_right_fsm_d7[x]),
 	.bot_right_y 	(bot_right_fsm_d7[y]),
+	.scale_dist     (scale_dist),
 
 	//outputs
 	.draw_image  	(draw_image), 
@@ -1220,7 +1223,8 @@ boundary_select
 	.draw_start_y   (draw_start_d20[y]), 
 	.draw_end_x		(draw_end_d20[x]), 
 	.draw_end_y 	(draw_end_d20[y]), 
-	.theta		    (LEDR[9:0])
+	.theta		    (LEDR[9:0]), 
+	.scale          (LEDR[13:10])
 );
 
 endmodule
