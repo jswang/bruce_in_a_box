@@ -478,14 +478,6 @@ wire 	[21:0] 	VGA_Addr_full_d0;
 wire 	[18:0] 	VGA_Addr_d0 = VGA_Addr_full_d0[18:0];
 
 //  Color Detect
-wire unsigned 	[9:0] 	top_left_d4	 		[0:1];
-wire unsigned 	[9:0] 	top_right_d4	 	[0:1];
-wire unsigned 	[9:0] 	bot_left_d4	 		[0:1];
-wire unsigned 	[9:0] 	bot_right_d4	 	[0:1];
-wire unsigned 	[9:0] 	top_left_d20		[0:1];
-wire unsigned 	[9:0] 	top_right_d20		[0:1];
-wire unsigned 	[9:0] 	bot_left_d20		[0:1];
-wire unsigned 	[9:0] 	bot_right_d20		[0:1];
 wire signed 	[10:0]  top_left_fsm_d6 	[0:1];
 wire signed 	[10:0]  top_right_fsm_d6	[0:1];
 wire signed 	[10:0]  bot_left_fsm_d6	 	[0:1];
@@ -514,16 +506,11 @@ wire  	[7:0]  	VGA_R_d20, VGA_G_d20, VGA_B_d20;
 wire 			VGA_VS_d4, VGA_VS_d5, VGA_VS_d6;
 wire unsigned 	[10:0] 	VGA_X_d20, VGA_Y_d20;
 // wire 	[53:0] 	harris_feature_d5, harris_feature_d20;
-wire			median_color_d4, median_color_d20;
-wire 	[2:0] 	color_d20;
+wire			median_color_d4;
+wire 	     	color_d20;
+
 localparam x  			= 0;
 localparam y  			= 1;
-localparam NONE  		= 3'd0;
-localparam TOP_LEFT  	= 3'd1;
-localparam TOP_RIGHT  	= 3'd2;
-localparam BOTTOM_LEFT  = 3'd3; 
-localparam BOTTOM_RIGHT = 3'd4;
-localparam GREEN  		= 3'd5;
 localparam threshold_Cb_green = 8'b01111100;
 localparam threshold_Cr_green = 8'b01111000;
 
@@ -759,32 +746,13 @@ delay #( .DATA_WIDTH(1), .DELAY(6) ) vga_vsync_delay6
 	.data_out   (VGA_VS_d6)
 );
 
-
-delay #( .DATA_WIDTH(80), .DELAY(16) ) old_corner_delay
-(
-	.clk 		(VGA_CLK), 
-	.data_in 	({	top_left_d4[x], top_right_d4[x], 
-					bot_left_d4[x], bot_right_d4[x],
-					top_left_d4[y], top_right_d4[y],
-					bot_left_d4[y], bot_right_d4[y]}), 
-	.data_out   ({	top_left_d20[x], top_right_d20[x], 
-					bot_left_d20[x], bot_right_d20[x],
-					top_left_d20[y], top_right_d20[y],
-					bot_left_d20[y], bot_right_d20[y]})
-);
-
-delay #( .DATA_WIDTH(1), .DELAY(16) ) median_color_delay
-( 
-	.clk 		(VGA_CLK), 
-	.data_in 	(median_color_d4), 
-	.data_out 	(median_color_d20)
-);
-delay #( .DATA_WIDTH(3), .DELAY(15) ) time_avg_color_delay
+delay #( .DATA_WIDTH(1), .DELAY(15) ) time_avg_color_delay
 (
 	.clk 		(VGA_CLK), 
 	.data_in 	(color_d5), 
 	.data_out   (color_d20)
 );
+
 delay #( .DATA_WIDTH(88), .DELAY(13) ) fsm_corner_delay
 (
 	.clk 		(VGA_CLK), 
@@ -846,11 +814,13 @@ median_filter median_filter_color_beforetimeavg (
 	.data_out 			(median_color_d4)
 );
 
-wire [3:0] color_read_data_d4;
+wire [3:0] 	color_read_data_d4;
 wire [18:0] color_just_read_addr_d4;
-wire [9:0] color_just_read_x_d4, color_just_read_y_d4;
-wire [2:0] color_d5;
-wire [9:0] color_x_d5, color_y_d5;
+wire [9:0] 	color_just_read_x_d4, color_just_read_y_d4;
+wire 	    color_d5;
+wire unsigned [18:0] color_count;
+wire [9:0] 	color_x_d5, color_y_d5;
+
 //Delay the x y just for referencing
 single_delay #( .DATA_WIDTH(44))  delay_for_mf
 ( 
@@ -876,18 +846,11 @@ color_detect color_detect (
 	.threshold_history 	(SW[17:16]), 
 
 	//outputs, delays by 
-	.color_detected 	(color_d5), //3 bits -> color of pixel
+	.color_detected 	(color_d5), 
+	.color_count 		(color_count),
 	.color_x      		(color_x_d5), 
 	.color_y      		(color_y_d5),
-	.top_left_prev_x 	(top_left_d4[x]), 
-	.top_right_prev_x 	(top_right_d4[x]), 
-	.bot_left_prev_x 	(bot_left_d4[x]), 
-	.bot_right_prev_x 	(bot_right_d4[x]),
-	.top_left_prev_y 	(top_left_d4[y]),
-	.top_right_prev_y 	(top_right_d4[y]),
-	.bot_left_prev_y 	(bot_left_d4[y]),
-	.bot_right_prev_y 	(bot_right_d4[y]),
-
+	
 	//outputs where timing doesn't matter
 	.updated_color_history 	(color_write_data), 
 	.we 				 	(color_we), 
@@ -907,7 +870,7 @@ fsm corner_follower (
 	.clk 				(VGA_CLK), 
 	.reset 				(reset), 
 	.VGA_VS 			(VGA_VS_d5), 
-	.pixel_valid 		((color_d5 == GREEN)), 
+	.pixel_valid 		(color_d5), 
 	.pixel_x 			({1'b0, color_x_d5}),
 	.pixel_y 			({1'b0, color_y_d5}),
 	.threshold 			(11'b00000111110), //11'b000 00 1111 10
@@ -921,7 +884,6 @@ fsm corner_follower (
     .out_bot_left_y 	(bot_left_fsm_d6[y]),
     .out_bot_right_x 	(bot_right_fsm_d6[x]),
     .out_bot_right_y 	(bot_right_fsm_d6[y]), 
-    .dist_bt_TL_TR 		(scale_dist),
 
     //Test wires	
     .state(LEDG[3:0]), 
@@ -1212,7 +1174,7 @@ boundary_select
 	.bot_left_y 	(bot_left_fsm_d7[y]),
 	.bot_right_x 	(bot_right_fsm_d7[x]),
 	.bot_right_y 	(bot_right_fsm_d7[y]),
-	.scale_dist     (scale_dist),
+	.scale_amt      (color_count),
 
 	//outputs
 	.draw_image  	(draw_image), 

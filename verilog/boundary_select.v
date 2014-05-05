@@ -17,7 +17,7 @@ module boundary_select
     input  unsigned [10:0] bot_left_y,
     input  unsigned [10:0] bot_right_x,
     input  unsigned [10:0] bot_right_y, 
-    input  unsigned [22:0] scale_dist,
+    input  unsigned [18:0] scale_amt,
 
     output reg draw_image, 
     output [7:0] image_R, 
@@ -32,26 +32,13 @@ module boundary_select
     output reg [3:0] scale
 
 );
-//determine scale. max = 640^2 = 409600
-/**
-     8: 640^2 = 409600
-     7: 320^2 = 102400
-     6: 160^2 = 25600
-     5: 80^2  = 6400
-     4: 40^2  = 1600
-     3: 20^2  = 400
-     2: 10^2  = 100
-     1: 
-*/
+//determine scale. max = 640*480 = 307200
 always @ (*) begin
-    if (scale_dist >= 20'd409599)      scale <= 4'd7;
-    else if (scale_dist >= 20'd102400) scale <= 4'd6;
-    else if (scale_dist >= 20'd25600)  scale <= 4'd5;
-    else if (scale_dist >= 20'd6400)   scale <= 4'd4;
-    else if (scale_dist >= 20'd1600)   scale <= 4'd3;
-    else if (scale_dist >= 20'd800)    scale <= 4'd0;
-    else if (scale_dist >= 20'd400)    scale <= 4'd1;
-    else                               scale <= 4'd2;
+    if      (scale_amt >= 19'd154600) scale = 4'd4; //x4
+    else if (scale_amt >= 19'd80000)  scale = 4'd3; //x2
+    else if (scale_amt >= 19'd2000)   scale = 4'd2; //x1
+    else if (scale_amt >= 19'd1000)   scale = 4'd1; //x.5
+    else                              scale = 4'd0; //x.25
     // scale <= SW[15:12];
 end
 //----------Read from the ROM------------//

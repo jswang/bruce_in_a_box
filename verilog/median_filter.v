@@ -59,11 +59,11 @@ endmodule
 
 module median_filter_corner #(
 	parameter p_num_coordinates = 8,
-	parameter p_filter_length = 5,  
+	parameter p_filter_length = 11,  
 	parameter p_bit_width_in = 11, 
 
 	//local
-	parameter c_shift_reg_length = p_filter_length * p_bit_width_in
+	parameter c_shift_reg_length = 11 * p_bit_width_in
 
 )
 (
@@ -74,41 +74,47 @@ module median_filter_corner #(
 	output [p_num_coordinates*p_bit_width_in-1:0] data_out
 );
 
-	reg [p_bit_width_in-1:0] shift_reg0 [0: p_filter_length-1];
-	reg [p_bit_width_in-1:0] shift_reg1 [0: p_filter_length-1];
-	reg [p_bit_width_in-1:0] shift_reg2 [0: p_filter_length-1];
-	reg [p_bit_width_in-1:0] shift_reg3 [0: p_filter_length-1];
-	reg [p_bit_width_in-1:0] shift_reg4 [0: p_filter_length-1];
-	reg [p_bit_width_in-1:0] shift_reg5 [0: p_filter_length-1];
-	reg [p_bit_width_in-1:0] shift_reg6 [0: p_filter_length-1];
-	reg [p_bit_width_in-1:0] shift_reg7 [0: p_filter_length-1];
+	reg [p_bit_width_in-1:0] shift_reg0 [0: 10];
+	reg [p_bit_width_in-1:0] shift_reg1 [0: 10];
+	reg [p_bit_width_in-1:0] shift_reg2 [0: 10];
+	reg [p_bit_width_in-1:0] shift_reg3 [0: 10];
+	reg [p_bit_width_in-1:0] shift_reg4 [0: 10];
+	reg [p_bit_width_in-1:0] shift_reg5 [0: 10];
+	reg [p_bit_width_in-1:0] shift_reg6 [0: 10];
+	reg [p_bit_width_in-1:0] shift_reg7 [0: 10];
 
 	reg VGA_VS_prev;
 	wire falling_edge_VGA_VS = (VGA_VS_prev && ~VGA_VS);
 	integer i;
 	always @ (posedge clk) begin
 		VGA_VS_prev <= VGA_VS;
-		sort(shift_reg0[0], shift_reg0[1], shift_reg0[2], shift_reg0[3], shift_reg0[4], 
-				data_out[p_bit_width_in-1:0]);
-		sort(shift_reg1[0], shift_reg1[1], shift_reg1[2], shift_reg1[3], shift_reg1[4], 
-				data_out[p_bit_width_in*2-1:p_bit_width_in]);
+		sort(shift_reg0[0], shift_reg0[1], shift_reg0[2], shift_reg0[3], shift_reg0[4], shift_reg0[5], shift_reg0[6], shift_reg0[7], shift_reg0[8], shift_reg0[9], shift_reg0[10], data_out[p_bit_width_in-1:0]);
+		sort(shift_reg1[0], shift_reg1[1], shift_reg1[2], shift_reg1[3], shift_reg1[4],
+			 shift_reg1[5], shift_reg1[6], shift_reg1[7], shift_reg1[8], shift_reg1[9],
+			 shift_reg0[10], data_out[p_bit_width_in*2-1:p_bit_width_in]);
 		sort(shift_reg2[0], shift_reg2[1], shift_reg2[2], shift_reg2[3], shift_reg2[4], 
-				data_out[p_bit_width_in*3-1:p_bit_width_in*2]);
+			 shift_reg2[5], shift_reg2[6], shift_reg2[7], shift_reg2[8], shift_reg2[9],
+			 shift_reg0[10], data_out[p_bit_width_in*3-1:p_bit_width_in*2]);
 		sort(shift_reg3[0], shift_reg3[1], shift_reg3[2], shift_reg3[3], shift_reg3[4], 
-				data_out[p_bit_width_in*4-1:p_bit_width_in*3]);
-		sort(shift_reg4[0], shift_reg4[1], shift_reg4[2], shift_reg4[3], shift_reg4[4], 
-				data_out[p_bit_width_in*5-1:p_bit_width_in*4]);
-		sort(shift_reg5[0], shift_reg5[1], shift_reg5[2], shift_reg5[3], shift_reg5[4], 
-				data_out[p_bit_width_in*6-1:p_bit_width_in*5]);
-		sort(shift_reg6[0], shift_reg6[1], shift_reg6[2], shift_reg6[3], shift_reg6[4], 
-				data_out[p_bit_width_in*7-1:p_bit_width_in*6]);
-		sort(shift_reg7[0], shift_reg7[1], shift_reg7[2], shift_reg7[3], shift_reg7[4], 
-				data_out[p_bit_width_in*8-1:p_bit_width_in*7]);
+			 shift_reg3[5], shift_reg3[6], shift_reg3[7], shift_reg3[8], shift_reg3[9],
+			 shift_reg0[10], data_out[p_bit_width_in*4-1:p_bit_width_in*3]);
+		sort(shift_reg4[0], shift_reg4[1], shift_reg4[2], shift_reg4[3], shift_reg4[4],
+			 shift_reg4[5], shift_reg4[6], shift_reg4[7], shift_reg4[8], shift_reg4[9],
+			 shift_reg0[10], data_out[p_bit_width_in*5-1:p_bit_width_in*4]);
+		sort(shift_reg5[0], shift_reg5[1], shift_reg5[2], shift_reg5[3], shift_reg5[4],
+		     shift_reg5[5], shift_reg5[6], shift_reg5[7], shift_reg5[8], shift_reg5[9],
+		     shift_reg0[10], data_out[p_bit_width_in*6-1:p_bit_width_in*5]);
+		sort(shift_reg6[0], shift_reg6[1], shift_reg6[2], shift_reg6[3], shift_reg6[4],
+		     shift_reg6[5], shift_reg6[6], shift_reg6[7], shift_reg6[8], shift_reg6[9],
+		     shift_reg0[10], data_out[p_bit_width_in*7-1:p_bit_width_in*6]);
+		sort(shift_reg7[0], shift_reg7[1], shift_reg7[2], shift_reg7[3], shift_reg7[4],
+		     shift_reg7[5], shift_reg7[6], shift_reg7[7], shift_reg7[8], shift_reg7[9],
+		     shift_reg0[10], data_out[p_bit_width_in*8-1:p_bit_width_in*7]);
 		
 
 
 		if (reset) begin
-			for (i=0; i < p_filter_length; i = i+ 1) begin
+			for (i=0; i < 11; i = i+ 1) begin
 				shift_reg0[i] <= {p_bit_width_in{1'b0}};
 				shift_reg1[i] <= {p_bit_width_in{1'b0}};
 				shift_reg2[i] <= {p_bit_width_in{1'b0}};
@@ -120,7 +126,7 @@ module median_filter_corner #(
 			end
 		end
 		else if (falling_edge_VGA_VS) begin
-			for (i = 1; i < p_filter_length; i = i+1) begin
+			for (i = 1; i < 11; i = i+1) begin
 				shift_reg0[i] <= shift_reg0[i-1];
 				shift_reg1[i] <= shift_reg1[i-1];
 				shift_reg2[i] <= shift_reg2[i-1];
@@ -148,10 +154,16 @@ module median_filter_corner #(
 		input [p_bit_width_in-1:0] unsorted_array_2; 
 		input [p_bit_width_in-1:0] unsorted_array_3; 
 		input [p_bit_width_in-1:0] unsorted_array_4;
+		input [p_bit_width_in-1:0] unsorted_array_5; 
+		input [p_bit_width_in-1:0] unsorted_array_6; 
+		input [p_bit_width_in-1:0] unsorted_array_7; 
+		input [p_bit_width_in-1:0] unsorted_array_8; 
+		input [p_bit_width_in-1:0] unsorted_array_9;
+		input [p_bit_width_in-1:0] unsorted_array_10;
 
 		output [p_bit_width_in-1:0] median_value;
 
-		reg [p_bit_width_in-1:0] unsorted_array[0:4];
+		reg [p_bit_width_in-1:0] unsorted_array[0:10];
 		reg [p_bit_width_in-1:0] temp;
 		integer i; 
 		integer n; 
@@ -161,8 +173,14 @@ module median_filter_corner #(
 			unsorted_array[2] = unsorted_array_2; 
 			unsorted_array[3] = unsorted_array_3; 
 			unsorted_array[4] = unsorted_array_4;
-			for (n = 0; n < p_filter_length+1; n = n + 1) begin
-	        	for (i = 1; i < p_filter_length; i = i + 1) begin
+			unsorted_array[5] = unsorted_array_5; 
+			unsorted_array[6] = unsorted_array_6; 
+			unsorted_array[7] = unsorted_array_7; 
+			unsorted_array[8] = unsorted_array_8; 
+			unsorted_array[9] = unsorted_array_9;
+			unsorted_array[10] = unsorted_array_10;
+			for (n = 0; n < 12; n = n + 1) begin
+	        	for (i = 1; i < 11; i = i + 1) begin
 		            if (unsorted_array[i-1] > unsorted_array[i]) begin
 		                //swap actual values
 		                temp = unsorted_array[i]; 
@@ -171,7 +189,7 @@ module median_filter_corner #(
 		            end
 		        end
         	end
-        	median_value = unsorted_array[2];
+        	median_value = unsorted_array[5];
     	end
 	endtask
 endmodule
