@@ -9,14 +9,14 @@ module boundary_select
     input [17:0] SW,
     input  unsigned [10:0] VGA_X, //delayed by 16 
     input  unsigned [10:0] VGA_Y,
-    // input  unsigned [10:0] top_left_x,
-    // input  unsigned [10:0] top_left_y,
-    // input  unsigned [10:0] top_right_x,
-    // input  unsigned [10:0] top_right_y,
-    // input  unsigned [10:0] bot_left_x,
-    // input  unsigned [10:0] bot_left_y,
-    // input  unsigned [10:0] bot_right_x,
-    // input  unsigned [10:0] bot_right_y, 
+    input  unsigned [10:0] top_left_x,
+    input  unsigned [10:0] top_left_y,
+    input  unsigned [10:0] top_right_x,
+    input  unsigned [10:0] top_right_y,
+    input  unsigned [10:0] bot_left_x,
+    input  unsigned [10:0] bot_left_y,
+    input  unsigned [10:0] bot_right_x,
+    input  unsigned [10:0] bot_right_y, 
 
     output draw_image, 
     output [7:0] image_R, 
@@ -36,8 +36,14 @@ wire unsigned [10:0] draw_start [0:1];
 wire unsigned [10:0] draw_end   [0:1];
 assign draw_start[x] = 11'd300; 
 assign draw_start[y] = 11'd200;
-assign draw_end[x] = 11'd300 + {3'd0, SW[17:10]};
-assign draw_end[y] = 11'd200 + {3'd0, SW[9:2]};
+assign draw_end[x] = (SW[17]) ? 11'd300 - {4'd0, SW[16:10]} : 11'd300 + {4'd0, SW[16:10]};
+assign draw_end[y] = (SW[9]) ? 11'd200 - {4'd0, SW[8:2]} : 11'd200 + {4'd0, SW[16:10]};
+
+// assign draw_start[x] = top_left_x;
+// assign draw_start[y] = top_left_y;
+// assign draw_end[x]   = top_right_x;
+// assign draw_end[y]   = top_right_y;
+
 assign draw_start_x = draw_start[x];
 assign draw_start_y = draw_start[y];
 assign draw_end_x   = draw_end[x];
@@ -62,8 +68,10 @@ arctan(
     .clk(clk),
     .numer(draw_end_offset[y]), 
     .denom(draw_end_offset[x]), 
-    .theta(theta) // [0, 359]
+    .theta() // [0, 359]
 );
+
+assign theta = SW[10:2];
 
 wire signed [9:0] theta_inverse = 10'd360 -theta;
 //1b sign, 11bit integer, 8 bit precision

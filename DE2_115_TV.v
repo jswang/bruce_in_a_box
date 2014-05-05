@@ -490,6 +490,10 @@ wire signed 	[10:0]  top_left_fsm_d6 	[0:1];
 wire signed 	[10:0]  top_right_fsm_d6	[0:1];
 wire signed 	[10:0]  bot_left_fsm_d6	 	[0:1];
 wire signed 	[10:0]  bot_right_fsm_d6	[0:1];
+wire signed 	[10:0]  top_left_fsm_d7 	[0:1];
+wire signed 	[10:0]  top_right_fsm_d7	[0:1];
+wire signed 	[10:0]  bot_left_fsm_d7	 	[0:1];
+wire signed 	[10:0]  bot_right_fsm_d7	[0:1];
 wire signed 	[10:0]  top_left_fsm_d20	[0:1];
 wire signed 	[10:0]  top_right_fsm_d20	[0:1];
 wire signed 	[10:0]  bot_left_fsm_d20	[0:1];
@@ -507,7 +511,7 @@ wire 	[9:0] 	color_just_read_x_d3, color_just_read_y_d3;
 
 //  For Delayers
 wire  	[7:0]  	VGA_R_d20, VGA_G_d20, VGA_B_d20;
-wire 			VGA_VS_d4, VGA_VS_d5;
+wire 			VGA_VS_d4, VGA_VS_d5, VGA_VS_d6;
 wire unsigned 	[10:0] 	VGA_X_d20, VGA_Y_d20;
 // wire 	[53:0] 	harris_feature_d5, harris_feature_d20;
 wire			median_color_d4, median_color_d20;
@@ -748,6 +752,13 @@ delay #( .DATA_WIDTH(1), .DELAY(5) ) vga_vsync_delay5
 	.data_in	(VGA_VS_d0), 
 	.data_out   (VGA_VS_d5)
 );
+delay #( .DATA_WIDTH(1), .DELAY(6) ) vga_vsync_delay6
+(
+	.clk 		(VGA_CLK), 
+	.data_in	(VGA_VS_d0), 
+	.data_out   (VGA_VS_d6)
+);
+
 
 delay #( .DATA_WIDTH(80), .DELAY(16) ) old_corner_delay
 (
@@ -774,13 +785,13 @@ delay #( .DATA_WIDTH(3), .DELAY(15) ) time_avg_color_delay
 	.data_in 	(color_d5), 
 	.data_out   (color_d20)
 );
-delay #( .DATA_WIDTH(88), .DELAY(14) ) fsm_corner_delay
+delay #( .DATA_WIDTH(88), .DELAY(13) ) fsm_corner_delay
 (
 	.clk 		(VGA_CLK), 
-	.data_in 	({	top_left_fsm_d6[x], top_right_fsm_d6[x], 
-					bot_left_fsm_d6[x], bot_right_fsm_d6[x],
-					top_left_fsm_d6[y], top_right_fsm_d6[y],
-					bot_left_fsm_d6[y], bot_right_fsm_d6[y]}), 
+	.data_in 	({	top_left_fsm_d7[x], top_right_fsm_d7[x], 
+					bot_left_fsm_d7[x], bot_right_fsm_d7[x],
+					top_left_fsm_d7[y], top_right_fsm_d7[y],
+					bot_left_fsm_d7[y], bot_right_fsm_d7[y]}), 
 	.data_out   ({	top_left_fsm_d20[x], top_right_fsm_d20[x], 
 					bot_left_fsm_d20[x], bot_right_fsm_d20[x],
 					top_left_fsm_d20[y], top_right_fsm_d20[y],
@@ -898,9 +909,9 @@ fsm corner_follower (
 	.pixel_valid 		((color_d5 == GREEN)), 
 	.pixel_x 			({1'b0, color_x_d5}),
 	.pixel_y 			({1'b0, color_y_d5}),
-	.threshold 			({3'b000, SW[15:8]}),
+	.threshold 			(11'b00000111110), //11'b000 00 1111 10
 	.threshold_flip     (11'd0), //not used 
-	.offset 			(SW[7:2]),
+	.offset 			(6'b000111), //6'b000111
 	.out_top_left_x 	(top_left_fsm_d6[x]),
     .out_top_left_y 	(top_left_fsm_d6[y]),
     .out_top_right_x 	(top_right_fsm_d6[x]),
@@ -928,6 +939,20 @@ fsm corner_follower (
     .test_y_min_xlocalmin(test_y_min_xlocalmin),
     .test_y_min_xlocalmax(test_y_min_xlocalmax),
     .corner_flip()
+);
+
+median_filter_corner #(
+	.p_filter_length(5), 
+	.p_bit_width_in(11)
+) median_filter_corner(
+	.clk(VGA_CLK), 
+	.reset(reset),
+	.VGA_VS(VGA_VS_d6), 
+	.data_in({top_left_fsm_d6[x], top_left_fsm_d6[y], top_right_fsm_d6[x], top_right_fsm_d6[y], 
+	bot_left_fsm_d6[x], bot_left_fsm_d6[y], bot_right_fsm_d6[x], bot_right_fsm_d6[y]}), 
+	.data_out({top_left_fsm_d7[x], top_left_fsm_d7[y], top_right_fsm_d7[x], top_right_fsm_d7[y], 
+	bot_left_fsm_d7[x], bot_left_fsm_d7[y], bot_right_fsm_d7[x], bot_right_fsm_d7[y]})
+
 );
 
 always @ (*) begin
@@ -1042,6 +1067,14 @@ always @ (*) begin
 				VGA_R = 8'h00;
 				VGA_G = 8'hFF;
 				VGA_B = 8'hFF;
+			end
+
+			if (draw_image) begin
+				// if (!(image_R_d20 == 8'd43 && image_G_d20 == 8'd213 && image_B_d20 == 8'd55)) begin
+					VGA_R = image_R_d20;
+					VGA_G = image_G_d20;
+					VGA_B = image_B_d20;
+				// end	
 			end
 
 		end
@@ -1169,10 +1202,14 @@ boundary_select
 	.SW 			(SW[17:0]), 
 	.VGA_X      	(VGA_X_d16), 
 	.VGA_Y 			(VGA_Y_d16), 
-	// .top_left_x 	(top_left_fsm_d6[x]),
-	// .top_right_x 	(top_right_fsm_d6[x]),
-	// .bot_left_x 	(bot_left_fsm_d6[x]),
-	// .bot_right_x 	(bot_right_fsm_d6[x]),
+	.top_left_x 	(top_left_fsm_d7[x]),
+	.top_left_y 	(top_left_fsm_d7[y]),
+	.top_right_x 	(top_right_fsm_d7[x]),
+	.top_right_y 	(top_right_fsm_d7[y]),
+	.bot_left_x 	(bot_left_fsm_d7[x]),
+	.bot_left_y 	(bot_left_fsm_d7[y]),
+	.bot_right_x 	(bot_right_fsm_d7[x]),
+	.bot_right_y 	(bot_right_fsm_d7[y]),
 
 	//outputs
 	.draw_image  	(draw_image), 
