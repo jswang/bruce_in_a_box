@@ -1,0 +1,601 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!--HTML/CSS used with author's permission -->
+
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta http-equiv="Content-Language" content="en-us">
+<title>ECE 4760 Wireless Pedometer</title>
+<link rel="stylesheet" type="text/css" media="all" href="./stylesheets/cornell.css">
+<link rel="stylesheet" type="text/css" media="all" href="./stylesheets/cornell2.css">
+<link rel="stylesheet" type="text/css" media="all" href="./stylesheets/main.css">
+<meta name="author" content="Julie Wang">
+<meta name="copyright" content="Copyright (c) 2014 Julie Wang">
+<meta name="description" content="Bruce In a Box">
+<meta name="keywords" content="Julie Wang ECE5760 Bruce Land Cornell ECE Electrical and Computer Engineering Harris corner detection computer vision">
+</head>
+<body>
+
+<div id="header">
+  <!-- The following div contains the Cornell University logo and search link -->
+  <div id="cu-identity"> 
+		<div id="cu-logo"> 
+			<a href="http://www.ece.cornell.edu"><img src="./images/cu_logo.gif" alt="Cornell University" width="340" height="75" border="0" /></a> 
+		</div> 
+  </div>
+  
+  <div class="linklist"> <a name="top"></a> </div>
+  <!-- The search-form div contains a form that allows the user to search 
+		either pages or people within cornell.edu directly from the banner.	-->
+  <div id="search-form">
+    <form action="http://www.cornell.edu/search/" method="get" enctype="application/x-www-form-urlencoded">
+      <div id="search-input">
+        <label for="search-form-query">SEARCH:</label>
+        <input type="text" id="search-form-query" name="q" value="" size="20">
+        <input type="submit" id="search-form-submit" name="submit" value="go">
+      </div>
+      <div id="search-filters">
+        <input type="radio" id="search-filters1" name="tab" value="" checked="checked">
+        <label for="search-filters1">Pages</label>
+        <input type="radio" id="search-filters2" name="tab" value="people">
+        <label for="search-filters2">People</label>
+        <a href="http://www.cornell.edu/search/">more options</a> </div>
+    </form>
+  </div>
+</div>
+
+<!-- The mainnav div contains links to jump to prominent sections in webpage -->
+<div id="mainnav">
+  <ul>
+    <li><a href="#design">High&nbsp;Level&nbsp;Design</a></li>
+    <li><a href="#hardware">Hardware</a></li>
+    <li><a href="#software">Software</a></li>
+    <li><a href="#results">Testing and Results</a></li>
+    <li><a href="#conclusions">Conclusions</a></li>
+    <li><a href="#appendices">Appendices</a></li>
+  </ul>
+</div>
+<!-- end mainnav -->
+<!-- end header -->
+<div id="sectiontitle">
+  <h4><a href="http://people.ece.cornell.edu/land/courses/ece4760/">ECE 4760</a>: <a href="http://people.ece.cornell.edu/land/courses/ece4760/FinalProjects/">Final Project</a></h4>
+  <h1>Wireless Pedometer</h1>
+  <h2>with Bluetooth communication</h2>
+  <h3>Ellen Chuang(<a href="mailto:esc73@cornell.edu">esc73@cornell.edu</a>)</h3>
+  <h3>Julie Wang (<a href="mailto:jsw267@cornell.edu">jsw267@cornell.edu</a>)</h3>
+</div>
+
+<div id="wrapper">
+  <div id="content">
+    <div id="maincontent" class="hub">
+      
+	  <!--EXAMPLE FOR PLACING AN IMAGE... DELETE LATER!
+      <div class="image"> <a href="./Time System/img/IMG_0318.JPG"><img src="./Time System/img/IMG_0318.JPG" width="672" height="504"></a>
+        <p class="caption">The finished product.</p>
+        </div>
+		-->
+		<!-- bullets example -->
+	<!-- 	<li>v = u + at</li>
+				<li>s = ut + (1/2)at^2</li>
+				<li>v^2 = u^2 + 2as</li> -->
+      
+      	 
+
+		<br><br>
+		<h2>Introduction &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+		
+		<div id="introblurb">
+		
+			<p>There’s a simple question asked by runners, walkers, joggers, and anyone who moves. How fast am I going? Runners want to pace themselves, athletes are trying to train for events, and even on a day to day basis you might wonder how far you are travelling.  There are various existing methods of measuring pace, including step counters, GPS units, and smartphone applications.  Pedometers are a common method of tracking physical activity. However, many pedometers are self-contained units that are often out of sight and out of mind. Our wireless pedometer not only records steps, but sends this information wirelessly to a wrist-mounted module. This wrist unit provides users with easily accessible information about the number of steps they’ve taken, their pace, and the timing of their steps. The tracker also calculates and displays the speed at which the user if moving, given an average stride of the user. </p>
+		  
+		<div class="image"><img src="images/foot_wrist_board.jpeg" width="752" height="238"> <p class="caption">Final foot and wrist modules</p></div><br>
+		
+      
+      	<iframe width="560" height="315" style="display:block; margin-left: auto; margin-right: auto; margin-bottom: 10px" src="http://www.youtube.com/embed/rnJo5zjudGE" frameborder="0" allowfullscreen></iframe>  </div> <br>
+
+      	<div class="linklist"> <a name="design"></a>
+		<h2>High Level Design &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+
+        <h4>Rationale and Source of Our Project Idea</h4>
+			<p>Our team has an interest in running and walking, and we have noticed that existing systems make it difficult to actively monitor your number of steps as well as your pace. Applications on your phone may only work in environments with cell phone coverage, and may not be practical for longer runs that require extended battery life. Pedometers placed on the waist are difficult to check quickly. There are some pedometers, like the Nike FuelBand, which are placed on the wrist, but these suffer in accuracy due to their placement. Our idea was to take the best of both worlds: create an easily read, low cost pedometer that displays its information on the wrist while still accurately measuring the number of steps with a detector placed near the foot. </p>
+
+		<h4>Background Math</h4>
+			<p>The mathematical grounding of our project are Newton’s equations of motion as well as the acceleration equations. </p>
+			
+				<div class="image"> <img src="./tables/background_math_formulas.jpeg"> </div>
+			
+			<p>Using Equation 1, we know that taking the derivative of acceleration with respect to time results in the jerk of the system. By looking at the zero crossing of jerk from a positive to a negative value, we recover the peak acceleration of the accelerometer. This peak in acceleration corresponds to a foot hitting the ground or a foot rising very quickly from the ground. However, depending on our threshold, we may not be able to catch all steps if we have the accelerometer on one ankle. This is because the acceleration on a step up is oftentimes less than the acceleration on a step down. An example of this behavior is included in the section Software Design: Step Detection Algorithm. Because of this, it is also helpful to consider the jerk, as upward foot movements still have a unique jerk signature. We can look for these upward foot movements by scanning for data with high absolute jerk, and then processing them with a lower peak acceleration threshold. By finding appropriate peaks in acceleration on a single foot, we can accurately measure the number of steps that a person has taken using one single-axis accelerometer. More information about existing footstep detection algorithms can be found in the References Section. </p>
+			<p>Using equation 2, we can extract the user’s velocity directly from an accelerometer orientated parallel to the direction of motion. The initial velocity and initial time are set by the detection of a footstep using the jerk scheme described above. Until the next footstep, the acceleration readings are summed. Then, upon detection of the next footstep, that accumulated acceleration is divided by the change in time, resulting in the final velocity in the direction of motion. We were able to implement this functionality in our system. However, our accuracy was extremely low because we were using a one-axis accelerometer. In order to get decent accuracy, the accelerometer would have had to been perfectly aligned and oriented. Had we used a three axis accelerometer, we would have been able to recover the user’s velocity, among other benefits. This extension will be discussed further in the Conclusions section. Our current system discards this x-axis information, and uses the user configured step length to give an accurate estimate of the user’s pace.  </p>
+
+
+		<h4>Logical Structure</h4>
+			<p> At a high level, our system has two main logical and physical units:</p>
+			<ul>
+				<li>Foot Module</li>
+				<li>Wrist Module</li>
+			</ul><br>
+			<div class="image"><img src="./diagrams/logical.jpeg" width="625" height="605"> 
+			<p class="caption">Logical Structure of Foot and Wrist Modules</p>
+			</div>
+			<p>The foot module uses an accelerometer to measure the acceleration and deceleration of the foot in the z-axis. It does light processing of the data, then packages this information and sends it over Bluetooth to the wrist module. The wrist module uses information received from the foot to calculate whether a step has occurred. It then displays this information to the user on an LCD screen. The wrist module also takes inputs from the user to set the desired pace and stride length. Both modules contain an ATMega1284P microcontroller running on the Tiny Real Time (TRT) Kernel and an HC-05 Bluetooth master/slave transceiver. </p>
+			<p>The user interfaces with the device using the wrist module. The wrist module powers up in a configuration mode. In this mode the user can use the two push buttons to adjust his or her stride length and also the desired speed. An enter button allows the user to enter into pace display mode. At any point the user can re-enter configuration mode by toggling a switch on the wrist module. In configuration mode, the wrist module is still capable of collecting and processing data. It is only the information that’s displayed on the LCD that has changed.</p>
+			
+		<h4>Hardware and Software Tradeoffs</h4>
+			<p>There are several important software and hardware tradeoffs in our system. When dealing with the accelerometers, there were a few occasions when we had to decide between implementing a feature in hardware or in software.  The accelerometers have the option of a self-test to recover from hardware errors and verify that the chips are functional. The self test results are output on pin 4 of the accelerometer. Should this result be high, as it is upon power-up, the accelerometer is compromised and the self-test must be run. This self-test involves setting and resetting a pin on the chip. We could have done this with software in our initialization code, or set-up an interrupt handler to reset the accelerometer when needed, but we chose to implement it in hardware using LEDs and switches. This is because various hardware events cause the accelerometers to malfunction and require a reset - power cycling, wire shorts, popping out of the breadboard, and many other malfunctions more probable in prototypes than a polished product. A hardware reset alerts us to a possible hardware malfunction so that we can address it, rather than continuing to receive potentially faulty data. </p>
+			<p> We also chose to use accelerometers that output an analog value rather than a pre-converted digital value. The reasons for this include: cost, ease of use, and transparency in functionality. First off, accelerometers that output an analog value corresponding to acceleration are cheaper and more widely available from vendors. Furthermore, as we were going through the implementation process, it is much easier to hook up an oscilloscope to an accelerometer outputting an analog value. Had we used a digital accelerometer, we would need to use pulse width modulation in the MCU or some similar scheme in order to visualize the changes in acceleration during human motion. Also, when connecting the accelerometer to the board, we can simply attach the output to an internal A/D converter in the MCU. A digital accelerometer would need to communicate over some serial communication protocol - SPI, I2C, or UART - to name a few. Finally, by using an analog accelerometer, our MCU get’s to control exactly how many digital samples it receives and at what accuracy. We are the ones who actually get to control how we take in data. </p>
+			<p> Lastly, we chose to use 1.5g accelerometers simply because they were the most appropriate range of parts that were free for us to use, and because we did not have the time in our schedule to sample some parts we were interested in. The class of accelerometers we ended up using are only available as 1-axis components.</p>
+			<p> There was a major tradeoff within the software as well. To maximize the number of readings that we get from the accelerometer, the foot would ideally only be running the A/D conversion. However, this raw acceleration information must be processed to calculate jerk and detect a step. To do this, we chose to send the information over Bluetooth to the wrist module. The wrist module does not have that same A/D computation constraint. It can take its time doing the long jerk calculations and determining when a step has occurred, leaving the foot module to focus on just grabbing the analog acceleration data, converting it, and sending it over Bluetooth. </p>
+			<p> The foot module, in order to both read and write the measured A/D value, must protect this variable with semaphores. Because of this constraint, we chose to run the multitasking TRT kernel on the foot module. Although some cycle time is lost in order to run TRT, this is offset by the ability to execute atomic reads and writes of a shared variable. The wrist module also has several tasks that it must run at once with shared variables among those tasks. For this reason, we run TRT on the wrist module as well. </p>
+			<p> Finally, there is a software tradeoff in choosing when to send the acceleration information from the foot to the wrist. If we sent all of the information from the z-axis and x-axis accelerometers, the wrist starts to spend more and more time in the task that receives the data, leaving little room for other important tasks like calculating jerk and updating the LCD. Furthermore, as the load increases on the Bluetooth channel, the latency increases as well, and at a certain point, packets are dropped. To mitigate this slowdown we do some preprocessing on the foot module to determine what data actually should be sent. We carefully balance doing pre computations on the foot that reduce the wrist’s amount of receive work with the need to avoid excessive computation on the foot that prevents the A/D conversion from running as much as possible. The details of this are described further in the software design portion. </p>
+
+        <h4>Standards</h4>
+			<p>The Bluetooth HC-05 boards that we purchased follow the Bluetooth standard as set by the Bluetooth Special Interest Group (SIG) and connect to the MCU via UART. There is no packet structure standard to follow, so we implemented our own. The Bluetooth protocol is described in detail in Appendix D: Bluetooth and HC-05 Bluetooth Configuration and Usage.</p>
+			<p>While testing our modules we used the RS232 protocol via a MAX232 converter to probe Bluetooth communication on the PC. However, we removed all traces of the RS232 probe from our final board to reduce our hardware footprint and to make the unit fully wireless and mobile.</p>
+
+		<h4>Relevant Copyrights</h4>
+			<p>Both of the MCU’s that we use in our project are running the Tiny Real Time kernel developed by Dan Henriksson  and Anton Cervin at Lund University. TRT was originally a kernel developed for the Atmel AVR Mega8 microcontroller. The version we use has been modified by Bruce Land, ECE 4760 instructor, to run on the Atmel AVR Mega1284. </p>
+			<p>We use a modified LCD library and header from scienceprog.com to initialize and communicate with the LCD screen. Modifications were made and documented by ECE 4760.</p>
+			<p>To help develop the step algorithms of our project we looked at an ECE 4760 final project: “Intelligent Wireless Pedometer” by Andrew Chin and Ping-Hong Lu. This project was reviewed for its information about how to find speed from acceleration information, a feature that we ended up not including in our final product. We also looked at the ECE 4760 project “A Wireless Programmable Pace Clock” by Paul Swirhun and Shao-Yu Liang for their implementation of a Bluetooth module. However, in our project we chose to use a much different, much cheaper Bluetooth module than this project. Finally, we looked at various A/D converter code examples on the ECE 4760 website to implement A/D conversion. Further discussion of relevant existing patents, copyrights, and trademarks is included in the Conclusions Section.</p>
+
+		<br><br>
+        <div class="linklist"> <a name="hardware"></a>
+        <h2>Hardware &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+        
+        <h4>Hardware Overview</h4>
+        	<p>As mentioned in the high level overview, our project consists of two main hardware units: a foot module and a wrist module.  The electrical schematics for our design are included in Appendix A: Schematics. A table of all ports used on both microcontrollers is included below. We will now examine the hardware on each module in detail. </p>
+		<div class="image"><img src="./tables/port_listing_foot.jpeg">
+		<p class="caption">Port Listing: Foot Module</p>
+		</div>
+		<div class="image"><img src="./tables/port_listing_wrist.jpeg">
+		<p class="caption">Port Listing: Wrist Module</p>
+		</div>
+		
+		<h4>Hardware Design: Foot Unit</h4>
+			<p> The foot unit connects to a 1.5g accelerometer orientated with its positive measurement axis pointed away from the center of the Earth. This direction will now be referred to as the z-axis. The implementation or our original idea uses an additional accelerometer oriented with its measurement axis pointed perpendicular to the z-axis parallel to the plane of the solder board it is mounted on. This axis will now be referred to as the x-axis. The figure below illustrates these axis. </p>
+		<div class="image"><img src="./images/foot_axis.jpeg" width="268" height="338">
+		<p class="caption">Foot Axis</p>
+		</div>
+			<p> The analog acceleration data from either accelerometer is very noisy. To filter out this excessive noise, the accelerometer data passes through a low-pass filter with a cutoff frequency around 33 Hz using a 10kOhm resistor and 470 nF capacitor on the z-axis accelerometer. The x-axis accelerometer, when still evaluated, was passed through an identical low pass filter. However, after we decided not to use this data, an extra 110kOhms were added to the filter due to confusion of accelerometers in an attempt to clean up noise. Since the addition of this resistance has no effect on the system and due to time constraints, they were not removed. Additionally, to fully utilize the 10 bit range of the internal A/D converter we drop the voltage across a 20kOhm resistor. There are also various indicator LEDs and a hardware switch on the foot module to reset the accelerometers as needed. This reset functionality was described in detail in the hardware/software tradeoffs section of the high level overview. </p>
+			<p>Once the MCU takes in acceleration information, it uses software to determine what to package up and send to the wrist unit over Bluetooth. The Bluetooth chip on the foot unit acts as a slave device. It can both send and receive information from the master Bluetooth device located on the wrist. The Bluetooth transceiver is attached to the MCU through USART0 and pairs with the master Bluetooth device prior to use. The Bluetooth module we use, the HC-05, communicates via UART lines that can be directly hooked up to the RX and TX ports of the MCU. A detailed description of the Bluetooth protocol and instructions on how to start up, set-up, and configure the HC-05 Bluetooth modules are included in Appendix D: Bluetooth and HC-05 Bluetooth Configuration and Usage. To attach the foot unit to the user,  we use state-of-the-art duct tape.</p>
+			<h4>Hardware Design: Wrist Unit</h4>
+			<p>The wrist unit connects to a 16x2 LCD display, a number of user input buttons/switches, status-linked LEDs, and a Bluetooth transceiver. Two of the buttons on the board are used to raise or lower a number that is displayed on the LCD screen when the wrist module is in configuration mode. The user is first prompted for their stride length -- the average length of one step -- then their targeted speed in minutes per mile. The interface task can be triggered at any time by toggling the one switch on the board. The user must press the enter button twice to exit configuration mode.</p>
+			<p>In pace display mode, the LCD displays the user’s pace in minutes/mile, desired pace in minutes/mile, and cumulative step count. Additionally, we have a red LED on the board that toggles every time a step is detected. The software on the MCU manages all of these tasks.</p>
+		
+		<br><br>
+        <div class="linklist"> <a name="software"></a>
+        <h2>Software &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+        
+		<h4>Software Overview</h4>
+			<p> To facilitate timing and concurrent processes, we use the Tiny Real Time (TRT) Kernel developed by Dan Henriksson and Anton Cervin at Lund University on both microcontrollers. This kernel allows us to schedule and run several tasks at once. It also implements semaphores to protect shared resources. The figure below shows the flow of data through our system and what information each module sends to the other. </p>
+			<div class="image"><img src="./diagrams/dataflow.jpeg" width="576" height="486"/>
+			<p class="caption">Software Dataflow</p></div>
+			<p> Below is a table of all of the functions in both the foot and the wrist modules. The important ones will be explored in further detail. </p>
+			<div class="image"><img src="./tables/sw_fxn_foot.jpeg"/>
+			<p class="caption">Software Functions: Foot Module</p> </div>
+			<div class="image"><img src="./tables/sw_fxn_wrist.jpeg"/>
+			<p class="caption">Software Functions: Wrist Module</p> </div>
+		
+		<h4>Software Design: Foot Unit</h4>	
+			<p> The foot unit has 2 main tasks. First, the MCU reads the result of the A to D conversion once every approximately 1 ms. We control the polling of the ADC by setting the ADSC bit, which kicks off an A/D conversion, only when the poll ADC task is scheduled. That task is put to sleep for 1 ms after every execution, which is plenty of time for the 13 instruction conversion to run. The A/D conversion itself is set to have a prescalar of 128. That means that if it were running continuously we would start a new conversion every 8 us: </p>
+			<div class="image"><img src="./tables/speed_execution.jpeg"/></div>
+			<p>However, the scheduling of the ADC task slows this down so that we have better accuracy on our step detection. We utilize two ADC channels, one for the z-axis acceleration data and one for the x-axis. The x-axis channel is an artifact of our original implementation, and the data it produces is not actually used in our final product. We left it there as a proof of concept and to preserve our original timing and scheduling, around which our hard coded thresholds were determined. We were reluctant to remove the x-axis channel due to its unknown effect on our thresholds, and our time constraints. So effectively, we poll the z-axis accelerometer roughly every 2 ms. </p>
+			<p>After polling the z-axis data, if we determine that if it is above a certain threshold, we package the z-axis acceleration and send it over Bluetooth to the wrist module. After polling the x-axis data, we add it to an accumulator variable that holds the sum of all accelerations seen since the last footstep. It also contains an overflow variable that increments every time the accumulator overflows.</p>
+			<p>The second task is to scan the Bluetooth channel for any packets received from the wrist unit. In particular, the wrist unit sends a packet to the foot for every step it detects. Should the foot unit see this acknowledgement, it sends the accumulated x-axis acceleration and resets the accumulator variable. The packet structure for z-axis and x-axis data are show in the figure below: </p>
+			<div class="image"><img src="./tables/packet_z_axis.jpeg"/>
+			<p class="caption">Z-axis Packet Structure</p> </div>
+			<div class="image"><img src="./tables/packet_x_axis.jpeg"/>
+			<p class="caption">X-axis Packet Structure</p> </div>
+
+		
+		<h4>Software Design: Wrist Unit</h4>
+			<p>The wrist unit software can be divided into three concurrent tasks. First, we have a configuration task. This task runs on power up and interfaces with the user via buttons, switches, and the 16x2 LCD screen. It sets global variables as needed that are used later by the update LCD task. </p>
+			<p>Our next task is to scan the Bluetooth channel for packets arriving over the USART interface. Because we are scanning for a certain input pattern, our task will hang indefinitely if we do not see the correct packet structure. This problem is an area of improvement that is expounded upon in our conclusions. Once a correct packet is received and unpacked, we analyze the received data to detect steps, as described below in the Step Detection Algorithm section. If a step is detected, we save relevant data to global variables and then continue to process more packets.</p>
+			<p>The last task managed by the wrist unit is printing to the LCD screen. This task is decoupled from our Bluetooth receive task. The shared variables between the tasks are protected by semaphores for atomic reads and writes. By decoupling the tasks the wrist unit can both continuously receive packets from the foot and also process those packets to calculate velocity. The velocity calculation algorithm is described below in Velocity Calculation Algorithm. After calculating the pace in minutes/mile, that value is displayed on the LCD. Additionally, the LCD update task takes raw data from the global variables updated by the configuration task to calculate and display the desired speed. Finally, the LCD task displays the step count as calculated by the Bluetooth receive task.</p>
+
+		<h4>Step Detection Algorithm</h4>
+			<p> Our step detection algorithm is based on the physics of human movement. Z-axis acceleration spikes when the foot hits the ground and rises up again: both sudden changes in velocity. For reference, we have included below the low-pass filtered output of our z-axis and x-axis accelerometer data. Note that approximately, 0V = -1.5 g,  2.5V = 0g, and 5.0V = +1.5g. </p>
+			<div class="image"><img src="./images/TEK0000.BMP"/>
+			<p class="caption">Five steps of the right foot only</p> </div>
+			<div class="image"><img src="./images/TEK0001.BMP"/>
+			<p class="caption">Four steps, right foot followed by left</p> </div>
+			<p>When a step “ends”, i.e. a foot lands on the ground, the z velocity changes from negative to zero. The z-axis accelerometer is oriented such that this velocity change produces a positive acceleration spike. Thus, the MCU observes a large positive spike in acceleration. The low pass filter on the Vout of the accelerometer removes high frequencies and produces a smooth acceleration spike.</p>
+			<p>We isolate values of interest on the foot unit by only transmitting acceleration values that exceed a hard-coded threshold, which is set to slightly above +1g.  If we achieve +1g, we are likely to have taken a step. We also need to collect large accelerations around the maximum acceleration to calculate jerk. So, we send all accelerations above that threshold. In this manner we capture the “tops” of the peaks in acceleration, which are the areas necessary to compute the local acceleration maxima. Values of interest also include periods where the jerk is high in magnitude. This is to capture the non-dominant leg steps, or steps using the leg on which the foot unit is not attached, as explained under our Background Math section. Each z-axis acceleration sent from the foot to the wrist also includes a timestamp, as determined by the TRT kernel running on the foot.</p>
+			<p>On the wrist side the Bluetooth receive function does further processing to detect a step.  If the jerk crosses x= 0 from positive to negative, then we have found a local maximum in acceleration. We then run another set of tighter thresholds and check if the acceleration point we’re claiming to be a peak is actually high enough to be a peak. We set this tighter threshold based on empirical data collected from the user. Next, we debounce the peaks. When testing our unit on an actual person, we noticed that there would often be a “double bounce”, where on one footfall there were two peaks that exceeded the threshold we had set. This possibly occurs due to the construct of the accelerometer, or the low-pass filter on the accelerometer output. So, we empirically determined that any two peaks within about 200ms of each other would only count as a single step. Finally, if an acceleration data point passes all of these constraints, the wrist determines that a footstep has indeed occurred. It increments the global step count variable and records the timestamps from that packet as the time of the last step. </p>
+
+			
+		<h4>Velocity Calculation Algorithm</h4>
+			<p>We implemented two velocity calculation algorithms. Our original algorithm utilizes the x-axis accelerometer as well as equation (2) in background motivation to calculate the velocity. However, this approach did not yield accurate results for reasons described in the Conclusions section. So, we decided to implement a different velocity calculation based on the user-defined length of stride.</p>
+			<p>In our original algorithm, the wrist unit alerts the foot that a step has been detected. The foot has been continuously accumulating the x-axis accelerations. When it knows that a step has occurred the foot sends over its accumulated acceleration data along with the time since the last footstep. The wrist unit receives this data in the Bluetooth receive task and places it in a global variable. In the LCD update task, which has less strict timing constraints, the wrist unit does a float division of the accumulated acceleration data by the time difference along with several unit conversions to determine the final velocity. We fully implemented this algorithm. However, after extensive testing and adjusting of parameters, we concluded that with a one-axis accelerometer it simply was not possible to accurately measure the x-velocity using this technique. We then decided to rethink our approach.</p>
+			<p>With our second velocity algorithm, in the Bluetooth receive function every time a step is detected the function shifts in the timestamp associated with that step into a sliding window averager with four slots. The LCD update function checks this sliding window and calculates the time difference between the first entry in the sliding window and the last entry. It then performs a speed calculation by multiplying the user’s input stride length by four and dividing by the total time between those two steps. A couple unit conversion later and we have an average velocity over four steps ready to be displayed on the LCD. The size of the sliding window averager is a tradeoff between resilience to outliers (large window size) and fast response to new data (small window size). Through testing we found that a window size of 10 tended to take too long to initialize and update with new velocity information. A window size of 1 was far too susceptible to variation in footstep timing. Thus, we settle on a window size of four. The average can eliminate small variations while still responding quickly to new data. </p>
+        
+        <br><br>
+        <div class="linklist"> <a name="results"></a>
+        <h2>Testing and Results &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+		<h4>Testing and Development Process</h4>
+			<p>At every point in the development of our project we unit tested both hardware and software. We had an incremental approach to design.  We began by getting the accelerometers working. It is at this time that we realized that the datasheet pinout diagram for the MMA2260D is incorrect. To incrementally verify the operation of the accelerometers, we initially looked at just the analog output with an oscilloscope. We then connected the accelerometers to the A-to-D conversion channels of the MCU and printed the converted digital values to a UART debug terminal on the PC. Once we verified that digital values corresponded to analog values, we began the process of implementing Bluetooth communication. We utilized the stdio library to send and receive Bluetooth packets through a file stream. We directly probed the MCU-Bluetooth wired and wireless interactions using a separate RS232 with MAX233 converter connected to the Bluetooth and/or USART channel. This probe does not affect the timing nor operation of the MCU and allows us to debug without modifying the state of the system with costly fprintf statements. After successful implementation and verification of the Bluetooth link, we began experimenting with different footstep detection algorithms. Concurrently, we began implementing the user interface: LCD, pushbuttons, and switches. This was an easy hardware task to test as it was our primary user interface and therefore easily accessible. </p>
+			<p>We initially encountered problems due to conflicting stdio library definitions caused by a mismatch between AVR studio versions 4.15 and 4.19. This error was marked by the board resetting upon any print statements. to get to the root cause of this error, our debug strategy was to remove functionality until the problem disappeared. We then isolated and analyzed the segment of code where the bug originated, which ended up being any print statements. Because print is an imported function, we rightly suspected the libraries as the source of the problem, and asked our peers for suggestions and insight as to why a problem might arise. Another debug strategy, especially important in the presence of synchronization semaphores and concurrent processes, was to stress test our system. For example we made the foot send data as quickly and as frequently as possible to stress the Bluetooth link. Using this strategy in conjunction with RS232 probes, we discovered an unprotected fprintf statement from the foot unit that caused hangups on the wrist unit.</p>
+		<h4>Speed of Execution</h4>
+			<p>The clock frequency of both boards is 16MHz. The Analog to Digital Converter completes one conversion per channel approximately every millisecond, and we are using two of the eight channels. Our LCD is updated approximately every 300 ms with the newly calculated pace, desired pace, and number of steps. We chose 300 ms arbitrarily to give the function more time to process incoming packets from the foot unit and because it is not crucial for the LCD to update exactly at the human reaction speed.</p>
+			<p>We also tested and measured the latency between sending the acceleration data from the foot to receiving and processing the data on the wrist. The table containing test data from Ellen, one of the team members, lists the average latency from the last step to the last update of the LCD display. When about 90 steps were detected there was a latency of 6 seconds from the last executed step to the last update. When 15 steps were detected there was a latency of 3 seconds.  Our latency is on the order of seconds. This could be due to the time it takes the foot unit to send a packet being significantly smaller than the time it takes the wrist unit to process a packet. </p>
+
+
+		<h4>Accuracy</h4>
+			<p>The tables below show test data taken for distances of 100 ft., 200 ft., and 300 ft. with a stride length of .74-.75 meters on Julie Wang. Julie is a female team member who is approximately 5’8”. All tests were done with a normal walking gait. Actual steps were counted by the test subject. Actual pace was calculated by measuring the time needed to traverse the appropriate distance. The time was converted to minutes, the distance converted to miles, and the two were divided. Stride length was calculated by dividing the distance by the actual number of steps.</p>
+			<div class="image"><img src="./tables/results_julie_100.jpeg"/>
+			<p class="caption">Julie, normal walking gait, 100ft. Stride length set as .75m</p> </div>
+			<div class="image"><img src="./tables/results_julie_200.jpeg"/>
+			<p class="caption">Julie, normal walking gait, 200ft. Stride length set as .75m</p> </div>
+			<div class="image"><img src="./tables/results_julie_300.jpeg"/>
+			<p class="caption">Julie, normal walking gait, 300ft. Stride length set as .75m</p> </div>
+			<p> As seen here, the step accuracy is reasonably accurate and the average error among all test trials is about 2.3% error. Pace accuracy is a different story and is very likely related to differences between the user’s estimate of his or her stride and the user’s actual stride length when moving. Subsequent tests when Julie tiptoed or stomped around resulted in low accuracy in both pace and step detection. The wrist unit correctly detect approximately 50% of steps. This was due to our hard-coded thresholds that were optimized for a walking gait and misalignment of the foot unit.</p>
+			<p> We have also included below the data of the normal walking pace of Ellen, a female member who is approximately 5’4”. in order to detect Ellen’s footsteps we had to use different thresholds on jerk and acceleration, as well as carefully align the z-axis accelerometer parallel with the direction of gravitational acceleration. </p>
+			<div class="image"><img src="./tables/results_ellen.jpeg"/>
+			<p class="caption">Ellen, normal walking gait, 100ft.</p> </div>
+			<p> One thing to note about the pace calculation is that in reality, someone’s stride length varies over time, especially when they are initially beginning to move and when they are slowing down.  Because the speed calculation depends on user input, it is important to properly measure and input one’s stride length as the accuracy of the speed calculation depends on it.</p>
+
+		<h4>Safety</h4>
+			<p>Our design does not currently have electrical components that are in direct skin contact, nor do we expect high current draw beyond a few microamps. Should we further our implementation, however, we will likely compress the size of and encase the leg and wrist unit in electrostatic discharge (ESD) resistant material, as friction from movement may cause ESD. We would also encase both units in water and mud proof casings. Many times running or walking weather conditions can take a turn for the worse, or there may be puddles, water, or mud on the ground. To avoid harming both the user and the actual devices, it would be important to properly encase the wrist and foot modules. </p>
+			<p>There is a risk of the foot module falling off and potentially tripping or otherwise impeding the user. To mitigate this risk we rebuilt the entire foot module on a specialized PCB. All components are soldered down and the unit itself is firmly harnessed. Better harnessing practices that could be used include securing the device to the ankle with a strap or even securing the foot unit to the top of the shoe, the tongue of the shoe, or on the shoe laces.</p>
+			<p>Another possible risk is that the user, while looking down at their wrist unit, would not be paying attention to his or her surroundings and could either run off the road or impact another object. Unfortunately this is an inherent risk with any devices used while running or walking. However, we believe that our device is actually less prone to cause harm in this way than devices like a waist pedometer or a phone app. Rather than having to bend down and look at one’s waist or dig up one’s phone, it is pretty quick and easy to glance down at a watch unit on the wrist. </p>
+		
+		<h4>Interference with Other Designs</h4>
+			<p>Our module utilizes Bluetooth to transfer data between the foot and wrist units. However, there is little risk of interference between our module and other Bluetooth enabled devices. By design, the Bluetooth protocols employs frequency hopping, which means that the transceiver automatically scans, finds, and utilizes unused bandwidth to avoid RF interference with other modules.</p>
+		
+		<h4>Usability</h4>
+			<p>This system is optimized for use on or near the foot. It is capable of detecting steps for normal walking gaits. However, as seen in our test results, hard-coded thresholds are very finicky and must be calibrated specifically to a person, and it is very possible for the system to fail from person to person and even on a day to day basis. When the system was working for one team member but not the other, lowering the acceleration threshold allowed us to accurately detect the second team member’s footsteps. However, this isn’t really a practical way to go about calibration.</p>
+			<p>If a user is unable to place the device on his or her foot, our “foot” module is sensitive enough to still work on the hip or thigh of a user. However, the accuracy will be diminished due to missed footsteps as the step signature will have changed. At the hip level, we expect a diminished but still large acceleration spike on the dominant leg, and a much more diminished spike on the non-dominant foot. These changes in acceleration are smaller than the changes when the foot unit is placed on the foot, and our pedometer may not be able to detect steps. Also, due to the nature of our step detection algorithm, if the user is unable to move in a bipodal manner, our system will not function properly for him or her. </p>
+      
+      <br><br>
+        <div class="linklist"> <a name="conclusions"></a>
+        <h2>Conclusions &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+        
+        <h4>Accomplishments and Further Extensions</h4>
+			<p>Our goal for this project was to design a wireless pedometer and speedometer for keeping track of a user’s walking or running pace using microcontrollers. We have met these expectations. we have implemented two algorithms for detecting pace, one that measures the average walking pace reasonably accurately and a one that is a full proof of concept.  Though we did not reach the level of accuracy that we wanted, we are pleased with what we have accomplished.  There are several things we would do differently given more time.</p>
+			<p>Through the testing process we discovered that our use of the fscanf function included in the stdio library would sometimes cause the wrist unit to freeze. Even though we had semaphore protection on the foot’s packet sending, improper formatting of Bluetooth packets would halt our system. We suspect that when packets were sent very quickly, a value in the transmit buffer was overwritten. Decreasing the send rate also decreased the frequency of hang ups in fscanf. However, a more robust and complete solution would be to build a receive function that can recover from these send errors.</p>
+			<p>In order to accurately measure a runner’s pace without assuming a stride length, we need a 2- or 3-axis accelerometer. This is because in order to remove the requirement for a calibrated stride length, we need to know the lateral velocity instead. This velocity can be isolated from a 3-axis accelerometer, but not from a 1-axis accelerometer. Using a 3-axis accelerometer, we would first determine the gravitational acceleration vector using the z-axis data. Once we have this, we can calculate the acceleration vector in just the forward-moving direction. The crucial difference is that using a 3-axis accelerometer, we do not have to worry about alignment issues of the foot with the user’s direction of motion. We know all three axis, so we know the exact position of the foot in space. Using some vector calculations, we can extract just the forward moving velocity vector. When using a 1-axis accelerometer, the only information we have is the acceleration in a single direction, which may or may not correspond to the user’s actual direction of motion. Unfortunately we came to this realization late in the design cycle. Our hope is that future students who may attempt a similar project will read our report and not make the same mistake. </p>
+			<p>Perhaps the difference that would create the largest impact would be implementing dynamic acceleration and jerk thresholds. We currently hard code thresholds for step detection, and these values need to be re-tuned given different environments. As seen in our test data, our algorithm differed from person to person, day to day, and could possibly differ on a chip to chip basis. Hard-coded threshold values are quite sensitive, must be carefully measured and tuned, and are in general too specialized to be of much use. One thing to note about dynamic thresholding is that we need to anticipate the difference in acceleration data between a step with the dominant leg (the leg with the foot unit attached) and a step with the non-dominant leg. Although these accelerations differ, we can still capture both footsteps by looking at the jerk over time. This is because even though the acceleration on a nondominant leg step is not greatly positive, there is a large change in acceleration, which corresponds to a measurable jerk.</p>
+			<p>We would also have liked to reduce the footprint of our design. Due to the fact that our final design does not use one of the accelerometers on the board, we could scale down both the hardware footprint and the size of our code to better fit onto a leg/ankle and wrist. We would also have liked to have a better harness than duct tape. As versatile as duct tape is, it is not the best harness, and we encountered some hardware problems and connection shorts that probably would not happen if we had a better method of mounting the board. Lastly, it would be nice to have been able to clean up our user interface. We would remove unnecessary LEDs and implement an optional LED system to notify users how their current pace is matching up to their desired pace. We could the devote the second row in the LCD display to show the number of steps.</p>
+			<p>Some extensions that could be explored include implementing a stop watch/watch function and linking the pedometer to a smart phone. A stop watch could easily be implemented using timers on the MCU and some extra user interface to switch between a ‘stop-watch mode’ and ‘normal mode’. We could also extend the stop watch into an actual watch that displays the time. After an initial set of the time, we could track the time of day using an external crystal that is always powered. As for linking to a smart phone or even laptops, we deliberately chose to use Bluetooth as a means of wireless connection to allow connection with other Bluetooth devices. The pedometer could collect data and sync to a phone or computer application for long-term step and pace tracking.</p>
+
+
+        <h4>Did Our Design Conform to Standards?</h4>
+			<p>The HC-05 Bluetooth module is a Class II Bluetooth device that operates in the 2.4-2.485 GHz Industrial, Scientific, and Medical frequency band. As a licensed Bluetooth device, this module complies to Part 18 of FCC standard. It also employs a UART link for its host controller interface, the details of which are entailed in Appendix D: Bluetooth and HC-05 Bluetooth Configuration and Usage. Communication in AT mode (configuration mode of the HC-05) was conducted at 38400 baud. Functional communication of data was conducted at 9600 baud.</p>
+
+		<h4>Intellectual Property Considerations</h4>
+			<p>Our code is built upon the Tiny Real Time kernel developed by Dan Henriksson and Anton Cervin at Lund University in Sweden. </p>
+			<p>The LCD library source and header files are from Scienceprog.com.</p>
+			<p>Our uart code for communication with the Bluetooth modules was edited from general code developed by Joerg Wunsch and modified by ECE 4760 course staff for use in the TRT kernel.</p>
+			<p>Our pedometry algorithm was inspired by various papers (See References) and previous pedometry projects in ECE 4760 such as Exercise Monitoring System by Tim Hu and Aaron Ho (we especially liked the inclusion of jerk) but the details of our particular implementation were our own design.</p>
+			<p>The rest of the code is our own.</p>
+
+		<h4>Ethical Considerations</h4>
+			<p>We adhered to the IEEE Code of Ethics throughout the development of our design. In particular, and most applicably, we made every attempt to be “honest and realistic in stating claims or estimates based on available data” by sharing our unedited test data. If our test data shows an area of improvement for our design, we address and publicize our errors on this site rather than making false claims on the performance of our pedometer. Similarly, we “seek, accept, and offer honest criticism of technical work, to acknowledge and correct errors, and to credit properly the contributions of others.” This project would not have been successful without critiques and suggestions from ECE 4760 staff and peers. Throughout the development of our design, we sought advice from the ECE 4760 staff. We discussed tradeoffs of different implementations such as our proof of concept, where to put our foot unit, how to communicate to Bluetooth, our pedometry algorithm and more between ourselves and with other ECE 4760 project groups. For example, when determining where to place the “foot unit” we consulted Bruce Land, instructor of this course, about the optimal placement to get the highest accelerations and de-accelerations. When faced with the software tradeoff of doing algebraic computations or A/D conversion, we consulted Cameron Glass, a teaching assistant in this class, about how to count cycles and squeeze in useful work between conversions.</p>
+			<p>We also strove to “maintain and improve our technical competence and to undertake technological tasks for others only if qualified by training or experience, or after full disclosure of pertinent limitations” by teaching, evaluating, and asking ECE 4760 staff and peers best practices. For example, we learned a lot about good soldering practices through talking to the qualified people around us, and were able to share that knowledge with other people learning to solder. Lastly, we “assisted colleagues and co-workers in their professional development and to support them in following this code of ethics.” When a project doesn’t quite meet up to full expectations, it is tempting to want to edit out bad test data and present a fully successful project, as all members in this group have experienced. However, that would also be incredibly unethical, as we would be outright lying about our performance. We encouraged each other to remain ethical in our conduct and to provide as accurate a report as possible for anyone reading this right now.</p>
+
+		<h4>Legal Considerations</h4>
+			<p>We do not believe there are any legal considerations for our project. All design material we used is available for use provided proper citation, which we have done. The RF portion of our design is accomplished with a Bluetooth module, which is strictly regulated by FCC standards to prevent excessive radio interference. Otherwise, our design does not produce any excessive EMF radiation or sounds. Our group is uninterested in pursuing any patent for our project as we are unsure of the presence of any novel feature of our design, and due to the plethora of pedometer and pace-tracking devices available today.</p>
+      
+        <br><br>
+        <div class="linklist"> <a name="appendices"></a>
+        <h2>Appendices &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+        <h3>Appendix A: Schematic</h3>
+		<!--
+		<object data="schematic.pdf" type="application/pdf" width="100%"  height="500">
+			<p>It appears you do not have a PDF plugin for this browser. You can click below to download the PDF file.</a></p>
+		</object>
+		-->
+		<div class="image"><img src="./diagrams/foot.bmp" width="714" height="539">
+		<p class="caption">Schematic of foot unit</p>
+		<a href="./diagrams/foot.bmp">Click for foot image file</a></div>
+
+		<div class="image"><img src="./diagrams/wrist.bmp" width="714" height="539">
+		<p class="caption">Schematic of wrist unit</p>
+		<a href="./diagrams/wrist.bmp">Click for wrist image file</a></div>
+		
+		<h3>Appendix B: Parts List and Costs</h3>
+		<table width="100%" border="1">
+		<thead>
+			<tr>
+				<th>Part</th>
+				<th>Vendor</th>
+				<th>Cost/Unit</th>
+				<th>Quantity</th>
+				<th>Total Cost</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>Atmega 1284</td>
+				<td>Lab Stock</td>
+				<td>$5.00</td>
+				<td>2</td>
+				<td>$10.00</td>
+			</tr>
+			<tr>
+				<td>MMA2260D X-Axis 1.5G Accelerometer</td>
+				<td>Freescale Semiconductor/Lab Stock</td>
+				<td>$0.00</td>
+				<td>2</td>
+				<td>$0.00</td>
+			</tr>
+			<tr>
+				<td>2-pack HC-05 Bluetooth Modules</td>
+				<td>NY Platform (eBay)</td>
+				<td>$16.58</td>
+				<td>1</td>
+				<td>$16.58</td>
+			</tr>
+			<tr>
+				<td>White board</td>
+				<td>Lab Stock</td>
+				<td>$6.00</td>
+				<td>1</td>
+				<td>$6.00</td>
+			</tr>
+			<tr>
+				<td>Solder Board (6")</td>
+				<td>Lab Stock</td>
+				<td>$2.50</td>
+				<td>1</td>
+				<td>$2.50</td>
+			</tr>
+				<td>LCD (16x2)</td>
+				<td>Lab Stock</td>
+				<td>$8.00</td>
+				<td>1</td>
+				<td>$8.00</td>
+			</tr>
+				<td>SOIC Carrier Board/Breakout Board</td>
+				<td>Lab Stock</td>
+				<td>$1.00</td>
+				<td>2</td>
+				<td>$2.00</td>
+			</tr>
+			<tr>
+				<td>9 Volt Battery</td>
+				<td>Generic</td>
+				<td>$2.00</td>
+				<td>2</td>
+				<td>$4.00</td>
+			</tr>
+			<tr>
+				<td>Two Pin Flat Jumper Cables</td>
+				<td>Lab Stock</td>
+				<td>$1.00</td>
+				<td>2</td>
+				<td>$2.00</td>
+			</tr>
+			<tr>
+				<td>Duct Tape</td>
+				<td>Lab Stock</td>
+				<td>$0.00</td>
+				<td>1</td>
+				<td>$0.00</td>
+			</tr>
+			<tr>
+				<td>Potentiometer</td>
+				<td>Lab Stock</td>
+				<td>$0.00</td>
+				<td>1</td>
+				<td>$0.00</td>
+			</tr>
+			<tr>
+				<td>Wires,Resistors,Capacitors</td>
+				<td>Lab Stock</td>
+				<td>$0.00</td>
+				<td>several</td>
+				<td>$0.00</td>
+			</tr>
+			<tr>
+				<td>Buttons, Switches, LED's</td>
+				<td>Lab Stock</td>
+				<td>$0.00</td>
+				<td>several</td>
+				<td>$0.00</td>
+			</tr>
+			<tr>
+				<td></td><td></td><td></td>
+				<td><b>TOTAL:</b></td>
+				<td><b>$51.08</b></td>
+			</tr>
+		</tbody>
+		</table>
+	
+        <h3>Appendix C: Division of Labor</h3>
+		<p>Every portion of this project was worked on by both team members, whether through brainstorming, coding, or debugging. Due to the enormity of our task though, there were certain areas that one team member had greater responsibility for. These are detailed below.  </p>
+		<div class="group1">
+		<h4>Ellen Chuang</h4>
+		<ul>
+			<li>Bluetooth Communication and Testing</li>
+			<li>Calibration Mode</li>
+			<li>LCD code</li>
+			<li>Wrist Unit Hardware</li>
+			<li>MCU Hardware and Debug</li>
+		</ul>
+		<h4>Ellen and Julie</h4>
+		<ul>
+			<li>Step Detection Algorithm</li>
+			<li>Debug</li>
+			<li>Testing</li>
+			<li>Writeup</li>
+		</ul>
+		</div>
+		<div class="group2">
+		<h4>Julie Wang</h4>
+		<ul>
+			<li>A to D Conversion </li>
+			<li>Bluetooth Pairing</li>
+			<li>Original and Secondary Pace Algorithm and Calculation</li>
+			<li>Foot Unit Hardware</li>
+			<li>Data Collection</li>
+		</ul>
+		
+		</div>
+
+        <h3>Appendix D: Bluetooth and HC-05 Bluetooth Configuration and Usage</h3>
+        <h4>Bluetooth Protocol</h4>
+        	<p>Bluetooth is a short-ranged RF communication device. It has a master slave configuration where one master is connected and can communicate with up to 8 slaves.  Bluetooth communicates on a frequency of 2.4GHz and can connect with up to eight devices simultaneously. These devices do not interfere with each other because Bluetooth uses a very weak signal (about 1mW) and a technique called adaptive spread-spectrum frequency hopping to minimize interference. </p>
+        	<p>This Appendix details our use of the HC-05 module, which consists of the HC-05 chip, which features a Bluetooth serial port profile, on a baseboard. This Bluetooth profile allows for emulation of a serial cable and connects easily to the MCU. The HC-05 handles the implementation of the Bluetooth stack, contains the necessary hardware for a radio and link controller, and contains the firmware for the link manager. The entire Bluetooth stack is implemented by this chip, and facilitates communication of data packets defined and formatted by our MCU.</p>
+        <h4>HC-05 Bluetooth Technical Specifications</h4>
+          	<p>Protocol: Bluetooth Specification v2.0+EDR<br>
+			Frequency: 2.4 GHz ISM Band<br>
+			Modulation: Gaussian FSK<br>
+			Emission Power: Class 2, &lt; 4dBm<br>
+			Sensitivity: &lt; -84dBm at 0.1% BER<br>
+			Speed: Asynchronous, 2.1Mbps(Max) / 160 kbps; Synchronous, 1Mbps/1Mbps<br>
+			Security: Authentication and Encryption<br>
+			Default Passkey: 1234<br>
+			Profiles: Bluetooth Serial Port (SPP)<br>
+			Power Supply: +3.3V<br>
+			Operating Temperature: -20 - +75 Celcius<br>
+			Storage Temperature: -40 - +85 Celcius<br>
+			Nominal Current: Pairing, 30-40mA; Communication, 8mA<br>
+			</p>
+		<h4>Configuring the HC-05 boards using an RS232 Serial to USB converter</h4>
+		
+		<ol>
+			<li>Power off the HC-05 </li>
+			<li>Connect the following ports on the HC-05 chip with serial adapter:
+				<ul>
+					<li>TXD to the receive of the appropriate chip (i.e. TX of RS232)</li>
+					<li>RXD to the transmit of the appropriate chip (i.e. RX of RS232)</li>
+					<li>5V to power (3.6 - 6V)</li>
+					<li>GND to gnd</li>
+					<li>KEY to power to start up in AT mode</li>
+				</ul>
+			</li>
+			<li>Connect other end of serial cord to the USB port of your machine</li>
+			<li>Open up a puTTy terminal, or serial terminal program of your choice, with the following parameters: 
+				<ul>
+				<li>Serial Line: Find using Device Manager. For RS232 usually COM1</li>
+				<li>BAUD: 38400 bps, 8 bits, 1 stop bit</li>
+				<li>Parity: None</li>
+				<li>Flow Control: None</li>
+				<li>Implicit CR in every LF: Yes</li>
+				<li>Implicit LF in every CR: Yes</li>
+				<li>Local Echo: Yes</li>
+				</ul>
+			</li>
+			<li>Power on the HC-05. It will come up in AT command mode. AT command mode is signified by the 1 Hz toggling of the state LED (LED2/PIN32 of the HC-05 chip, see Datasheet under Project References). Verify that you have connected everything properly and configured puTTy correctly by issuing the command: AT&lt;enter&gt;</li>
+			<li>The HC-05 should respond with a number of “OK”’s. It will often send multiple OK’s. To end its response hit enter a couple of times, it should make it stop.<br>
+			If you get a response that says ERROR=0 that means you formatted the AT command error incorrectly. CASE MATTERS. Double check your puTTy configuration and baud rate. If all else fails power cycle. We found the device to be pretty finicky.</li>
+			<li> Set one of your devices as master and the other as slave. Default mode is slave mode
+				<ul>
+					<li> Set as Master: Issue the command: AT+ROLE=1&lt;enter&gt;</li>
+					<li>Set as Slave: Issue the command: AT+ROLE=0&lt;enter&gt;</li>
+				</ul>
+				You should once again get a number of “OK”s. This is once again normal, just press enter again to stop the stream.<br>
+				The difference between a master and slave arises when attempting to pair. The master initiates and maintains connections, and can connect to up to 8 slave modules. The slave can only connect to one master module.
+			</li>
+			<li> Verify that you have correctly set each by issuing the query:
+				<ul>
+					<li>AT+ROLE?&lt;enter&gt;</li>
+				</ul>
+				Possible responses are
+				<ul>
+						<li>0 -- slave role</li>
+						<li>1 -- master role</li>
+						<li>2 -- slave-loop role (repeats data received back to the master)</li>
+				</ul>
+			</li>
+			<li> Power off the device. Remove the connection from Power to KEY, change the BAUD to 9600, and power on both of the devices.</li>
+			<li>The master sets up the pairing. Both will power up in an unpaired state where the master and slave blink quickly. The units will automatically pair. Once paired, the state LED, if connected to the HC-05 chip, will begin a cycle of flashing twice then turning off for a period of time.</li>
+			<li> Congrats! You just set up Bluetooth pairing. For more information see the datasheets linked in the References Section. </li>
+		</ol>
+		</p>
+		<p>To connect to the MCU (via UART), simply connect RX (D.0 for USART0) to the TXD pin of the baseboard and vice versa for TX.</p>
+
+		<h4> Debugging Tips </h4>
+		<p>If you aren’t receiving anything on serial communication
+		<ul>
+			<li>Make sure nothing else is connected to the Bluetooth when pairing if you aren’t able to communicate. For example, if you are interfacing via RS232, make sure you aren’t also connecting the RXD/TXD pins on Bluetooth.</li>
+			<li>Try switching the RX and TX connections. It’s possible something got switched between your computer and the Bluetooth module.</li>
+		</ul>
+		</p>
+		<p>If you are not pairing
+		<ul>
+			<li>You MUST have at least one master and one slave. They will automatically pair if they are within range.</li>
+		</ul></p>
+		<p>If your data transmitting through the Bluetooth link is garbage
+		<ul>
+			<li>Check the baud rate. In AT mode it defaults to 38400 BAUD. In communication mode it defaults to 9600, but that can be changed in AT mode.</li>
+		</ul>
+		<p>If you are using UART to communicate, make sure that there is no echo back upon receiving a packet. This will emulate slave loop functionality, which you may not be intending to do</p>
+		
+		<h3> Appendix E: Source Code </h3>
+        <p>Please feel free to contact us via email for the source code used on the foot and wrist modules. </p>
+
+        <br><br>
+        <div class="linklist"> <a name="references"></a>
+        <h2>References &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+
+        <div class="group1">
+
+
+          <ul>
+            <li><a href="http://people.ece.cornell.edu/land/courses/ece4760/AtmelStuff/mega1284full.pdf">Mega1284 Datasheet</a></li>
+			<li><a href="./datasheets/HC-05.pdf">HC-05 Datasheet (Bluetooth transceiver)</a></li>
+			<li><a href="./datasheets/AT_Command.pdf">HC-05 AT Command Set</a></li>
+			<li><a href="./datasheets/MMA2260D.pdf">MMA2260D Datasheet (1-axis accelerometer)</a> Note that the pinout diagram is incorrect, but the table is correct.</li>
+          </ul>
+		  <h4>Vendors</h4>
+		  <ul>	  
+            <li><a href="http://www.freescale.com/">Freescale SemiConductor</a></li>
+          </ul>
+        </div>
+        <div class="group2">
+          <h4>References</h4>
+          <ul>
+            <li><a href="http://ubicomp.cs.washington.edu/uwar/libby_peak_detection.pdf">Footstep Detection Algorithm</a></li>
+			<li><a href="http://www.control.lth.se/~anton/tinyrealtime/">Tiny Real Time</a></li>
+			<li><a href="http://winavr.scienceprog.com/">LCD Library</a></li>
+			<li><a href="http://people.ece.cornell.edu/land/courses/ece4760/FinalProjects/s2008/hc454_pl328/hc454_pl328/index.html">Intelligent Wireless Pedometer</a></li>
+			<li><a href="http://people.ece.cornell.edu/land/courses/ece4760/FinalProjects/s2011/pss83/Website/index.html">Wireless Programmable Pace Clock </a></li>
+			<li><a href="http://walking.about.com/od/Computer-Linked-Pedometers/fr/Nike-Fuelband-Review.htm">Nike FuelWatch</a></li>
+			<li><a href="http://support-en-us.nikeplus.com/app/answers/detail/a_id/20944/p/3169,3171">Nike Plus Specialized Shoes</a></li>
+		  </ul>
+        </div>
+		</div>
+        
+           
+        <div class="linklist"> <a name="ack"></a>
+        <h2>Acknowledgements &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+		<p>We would like to thank Bruce Land and the 2013 TA's for all of their help throughout the semester. Whether it was debugging, bouncing around ideas, or just talking, the instructor and TA's were invaluable resources.  In particular we'd like to thank Bruce for always being available to brainstorm, debug, and explain various concepts. We would also like to thank Cameron Glass and Roland Krieger for helping us debug various hardware and software issues. Also we would like to thank Cameron for allowing us to utilize his group's web site layout.</p>
+      </div>
+
+        
+           </div>
+    <!-- end maincontent -->
+  </div>
+  <!-- end content -->
+  <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-22818013-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+  <!-- content out -->
+  <hr>
+  <!-- footer in -->
+  <div id="footerwrap">
+    <div id="footer">
+      <div id="copyright">
+        <div class="copyright">&copy;2013 Ellen Chuang, Julie Wang</div>
+        <div class="copyright">Layout &copy;2010 Cornell University</div>
+      </div>
+    </div>
+    <!-- end footer -->
+  </div>
+  <!-- end footerwrap -->
+  <!-- footer out -->
+</div>
+<!-- end wrapper -->
+
+
+<embed type="application/x-shockwave-flash" width="0" height="0"></body></html>
