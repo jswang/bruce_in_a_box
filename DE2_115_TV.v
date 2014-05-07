@@ -537,11 +537,7 @@ assign	OTG_LSPEED	=	1'bz;
 
 //	Turn On TV Decoder
 assign	TD_RESET_N	=	1'b1;
-
 assign	AUD_XCK	=	AUD_CTRL_CLK;
-
-// assign	LEDG	=	VGA_Y;
-// assign	LEDR	=	VGA_X;
 
 assign	m1VGA_Read	=	VGA_Y_d0[0]		?	1'b0		:	VGA_Read	;
 assign	m2VGA_Read	=	VGA_Y_d0[0]		?	VGA_Read	:	1'b0		;
@@ -555,16 +551,15 @@ assign	Tmp3	=	Tmp1[8:2]+m3YCbCr[7:1];
 assign	Tmp4	=	Tmp2[8:2]+m3YCbCr[15:9];
 assign	m5YCbCr	=	{Tmp4,Tmp3};
 
-//	7 segment LUT
-SEG7_LUT_8 			u0	(	.oSEG0(HEX0),
-							.oSEG1(HEX1),
-							.oSEG2(HEX2),
-							.oSEG3(HEX3),
-							.oSEG4(HEX4),
-							.oSEG5(HEX5),
-							.oSEG6(HEX6),
-							.oSEG7(HEX7),
-							.iDIG(SW) );
+//turn off 7 segment LUT
+assign HEX0 = 7'd0;
+assign HEX1 = 7'd0;
+assign HEX2 = 7'd0;
+assign HEX3 = 7'd0;
+assign HEX4 = 7'd0;
+assign HEX5 = 7'd0;
+assign HEX6 = 7'd0;
+assign HEX7 = 7'd0;
 							
 //	TV Decoder Stable Check
 TD_Detect			u2	(	.oTD_Stable(TD_Stable),
@@ -905,6 +900,45 @@ fsm corner_follower (
     .corner_flip()
 );
 
+// fsm corner_follower (
+// 	.clk 				(VGA_CLK), 
+// 	.reset 				(reset), 
+// 	.VGA_VS 			(VGA_VS_d5), 
+// 	.pixel_valid 		(color_d5), 
+// 	.pixel_x 			({1'b0, color_x_d5}),
+// 	.pixel_y 			({1'b0, color_y_d5}),
+// 	.threshold 			(11'b00000111110), //11'b000 00 1111 10
+// 	.threshold_flip     (11'd0), //not used 
+// 	.offset 			(6'b000111), //6'b000111
+// 	.out_top_left_x 	(top_left_fsm_d6[x]),
+//     .out_top_left_y 	(top_left_fsm_d6[y]),
+//     .out_top_right_x 	(top_right_fsm_d6[x]),
+//     .out_top_right_y 	(top_right_fsm_d6[y]),
+//     .out_bot_left_x 	(bot_left_fsm_d6[x]),
+//     .out_bot_left_y 	(bot_left_fsm_d6[y]),
+//     .out_bot_right_x 	(bot_right_fsm_d6[x]),
+//     .out_bot_right_y 	(bot_right_fsm_d6[y]),
+
+//     //Test wires	
+//     .state(LEDG[3:0]), 
+//     .thresh_exceeded_flags(LEDG[7:4]),
+//     .count(),
+//     .thresh_flags(), 
+//     .test_x_max(test_x_max), 
+//     .test_x_min(test_x_min), 
+//     .test_y_max(test_y_max),
+//     .test_y_min(test_y_min), 
+//     .test_x_max_ylocalmin(test_x_max_ylocalmin),
+//     .test_x_max_ylocalmax(test_x_max_ylocalmax),
+//     .test_x_min_ylocalmin(test_x_min_ylocalmin),
+//     .test_x_min_ylocalmax(test_x_min_ylocalmax),
+//     .test_y_max_xlocalmin(test_y_max_xlocalmin),
+//     .test_y_max_xlocalmax(test_y_max_xlocalmax),
+//     .test_y_min_xlocalmin(test_y_min_xlocalmin),
+//     .test_y_min_xlocalmax(test_y_min_xlocalmax),
+//     .corner_flip()
+// );
+
 median_filter_corner #(
 	.p_filter_length(5), 
 	.p_bit_width_in(11)
@@ -1157,13 +1191,14 @@ wire [7:0] image_R_d20, image_G_d20, image_B_d20;
 wire unsigned [10:0] draw_start_d20 [0:1];
 wire unsigned [10:0] draw_end_d20   [0:1]; 
 boundary_select 
-#( 	.p_image_width(80), 
-	.p_image_height(480)
+#( 	.p_image_width(406), 
+	.p_image_height(284)
 )	bounds(
 	//inputs
 	.clk 			(VGA_CLK), 
 	.reset 			(reset), 
-	.SW 			(SW[17:0]), 
+	.SW 			(SW[17:0]),
+	.clocktower     (SW[2]),
 	.VGA_X      	(VGA_X_d16), 
 	.VGA_Y 			(VGA_Y_d16), 
 	.top_left_x 	(top_left_fsm_d7[x]),

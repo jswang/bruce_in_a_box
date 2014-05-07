@@ -1,12 +1,13 @@
 module boundary_select 
 #(
-    parameter p_image_width = 80,
-    parameter p_image_height = 480
+    parameter p_image_width = 406, //80
+    parameter p_image_height = 284 //480
     )
 (
     input clk,
     input reset, 
     input [17:0] SW,
+    input                  clocktower, //1 if should display clocktowers
     input  unsigned [10:0] VGA_X, //delayed by 16 
     input  unsigned [10:0] VGA_Y,
     input  unsigned [10:0] top_left_x,
@@ -17,7 +18,7 @@ module boundary_select
     input  unsigned [10:0] bot_left_y,
     input  unsigned [10:0] bot_right_x,
     input  unsigned [10:0] bot_right_y, 
-    input  unsigned [18:0] color_count,
+
 
     output reg draw_image, 
     output [7:0] image_R, 
@@ -32,7 +33,7 @@ module boundary_select
     output reg [3:0] scale
 
 );
-//determine scale. max = 640*480 = 307200
+//determine scale. 
 wire unsigned [22:0] scale_dist;
 always @ (top_left_x, top_left_y, top_right_x, top_right_y) begin
     calculate_distance(top_left_x, top_left_y, top_right_x, top_right_y, scale_dist);
@@ -42,8 +43,16 @@ always @ (top_left_x, top_left_y, top_right_x, top_right_y) begin
     else if (scale_dist >= 23'd36864)   scale = 4'd2; //x1
     else if (scale_dist >= 23'd100)     scale = 4'd1; //x.5
     else                                scale = 4'd0; //x.25
-    // scale <= SW[15:12];
 end
+
+//Select correct image to output on RGB
+wire [7:0] R_clocktower, G_clocktower, B_clocktower;
+wire [7:0] R_bruce, G_bruce, B_bruce;
+assign image_R = clocktower ? R_clocktower : R_bruce;
+assign image_G = clocktower ? G_clocktower : G_bruce;
+assign image_B = clocktower ? B_clocktower : B_bruce;
+
+
 //----------Read from the ROM------------//
 localparam x = 0;
 localparam y = 1;
@@ -192,12 +201,21 @@ always @ (*) begin
     endcase
 end
 
-rom_clocktower clocktower_full (
-    .clock(clk), 
-    .address_a(rom_addr_d18), 
-    .address_b(), 
-    .q_a({image_R, image_G, image_B}), 
-    .q_b()
+// rom_clocktower clocktower_full (
+//     .clock      (clk), 
+//     .address_a  (rom_addr_d18), 
+//     .address_b  (), 
+//     .q_a        ({R_clocktower, G_clocktower, B_clocktower}), 
+//     .q_b        ()
+// );
+assign R_clocktower = 8'd0;
+assign G_clocktower = 8'd0;
+assign B_clocktower = 8'd0;
+
+rom_bruce bruce (
+    .clock      (clk), 
+    .address    (rom_addr_d18), 
+    .q({R_bruce, G_bruce, B_bruce}), 
 );
 
 
