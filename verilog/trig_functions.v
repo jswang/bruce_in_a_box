@@ -1,12 +1,5 @@
 //Lookup table specifically for 80x480 and 8bit fixed precision
-module arctan_LUT #(
-    parameter p_image_width = 80, 
-    parameter p_image_height = 480, 
-
-    //local
-    parameter c_max = (p_image_height > p_image_width) ? p_image_height : p_image_width
-)
-(
+module arctan_LUT(
     input               clk,
     input signed [11:0] numer,  //y in range [-c_max, c_max -1)
     input signed [11:0] denom,  //x in range [-c_max, c_max -1)

@@ -1,14 +1,9 @@
-module boundary_select 
-#(
-    parameter p_image_width = 200, //80
-    parameter p_image_height = 140 //480
-    )
-(
+module boundary_select (
     input clk,
     input reset, 
     input [17:0] SW,
     input                  clocktower, //1 if should display clocktowers
-    input  unsigned [10:0] VGA_X, //delayed by 16 
+    input  unsigned [10:0] VGA_X, //delayed by 15
     input  unsigned [10:0] VGA_Y,
     input  unsigned [10:0] top_left_x,
     input  unsigned [10:0] top_left_y,
@@ -21,9 +16,9 @@ module boundary_select
 
 
     output reg draw_image, 
-    output [7:0] image_R, 
-    output [7:0] image_G, 
-    output [7:0] image_B, 
+    output reg [7:0] image_R, 
+    output reg [7:0] image_G, 
+    output reg [7:0] image_B, 
     output unsigned [10:0] draw_start_x,
     output unsigned [10:0] draw_start_y, 
     output unsigned [10:0] draw_end_x, 
@@ -39,18 +34,23 @@ always @ (top_left_x, top_left_y, top_right_x, top_right_y) begin
     calculate_distance(top_left_x, top_left_y, top_right_x, top_right_y, scale_dist);
     
     if      (scale_dist >= 23'd230400)  scale = 4'd4; //x4
-    else if (scale_dist >= 23'd102400)  scale = 4'd3; //x2
-    else if (scale_dist >= 23'd36864)   scale = 4'd2; //x1
-    else if (scale_dist >= 23'd100)     scale = 4'd1; //x.5
-    else                                scale = 4'd0; //x.25
+    else if (scale_dist >= 23'd102400)  scale = 4'd4; //x2
+    else if (scale_dist >= 23'd36864)   scale = 4'd3; //x1
+    else if (scale_dist >= 23'd100)     scale = 4'd2; //x.5
+    else                                scale = 4'd1; //x.25
 end
 
 //Select correct image to output on RGB
 wire [7:0] R_clocktower, G_clocktower, B_clocktower;
 wire [7:0] R_bruce, G_bruce, B_bruce;
-assign image_R = clocktower ? R_clocktower : R_bruce;
-assign image_G = clocktower ? G_clocktower : G_bruce;
-assign image_B = clocktower ? B_clocktower : B_bruce;
+wire unsigned [9:0] p_image_width = clocktower ? 10'd40 : 10'd200; 
+wire unsigned [9:0] p_image_height = clocktower ? 10'd240 : 10'd140;
+
+always @(posedge clk) begin
+    image_R <= clocktower ? R_clocktower : R_bruce;
+    image_G <= clocktower ? G_clocktower : G_bruce;
+    image_B <= clocktower ? B_clocktower : B_bruce;
+end
 
 
 //----------Read from the ROM------------//
@@ -58,12 +58,6 @@ localparam x = 0;
 localparam y = 1;
 wire unsigned [10:0] draw_start [0:1];
 wire unsigned [10:0] draw_end   [0:1];
-// assign draw_start[x] = 11'd300; 
-// assign draw_start[y] = 11'd200;
-// assign draw_end[x]   = 11'd380; 
-// assign draw_end[y]   = 11'd200;
-// assign draw_end[x] = (SW[17]) ? 11'd300 - {4'd0, SW[16:10]} : 11'd300 + {4'd0, SW[16:10]};
-// assign draw_end[y] = (SW[9]) ? 11'd200 - {4'd0, SW[8:2]} : 11'd200 + {4'd0, SW[16:10]};
 
 assign draw_start[x] = top_left_x;
 assign draw_start[y] = (top_left_y + bot_left_y)>>1;
@@ -86,11 +80,7 @@ assign draw_end_offset[y] = draw_end[y] - offset[y];
 
 //reads from rom to do division so output delayed by 2 cycles
 //Forward rotation = theta
-arctan_LUT #(
-    .p_image_width(p_image_width), 
-    .p_image_height(p_image_height)
-)
-arctan(
+arctan_LUT arctan(
     .clk(clk),
     .numer(draw_end_offset[y]), 
     .denom(draw_end_offset[x]), 
@@ -201,16 +191,11 @@ always @ (*) begin
     endcase
 end
 
-// rom_clocktower clocktower_full (
-//     .clock      (clk), 
-//     .address_a  (rom_addr_d18[15:0]), 
-//     .address_b  (), 
-//     .q_a        ({R_clocktower, G_clocktower, B_clocktower}), 
-//     .q_b        ()
-// );
-assign R_clocktower = 8'd0;
-assign G_clocktower = 8'd0;
-assign B_clocktower = 8'd0;
+rom_clocktower clocktower_full (
+    .clock      (clk), 
+    .address    (rom_addr_d18[13:0]), 
+    .q        ({R_clocktower, G_clocktower, B_clocktower})
+);
 
 rom_bruce bruce (
     .clock      (clk), 

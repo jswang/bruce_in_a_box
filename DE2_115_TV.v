@@ -923,9 +923,12 @@ median_filter_corner #(
 );
 
 always @ (*) begin
-	case (SW[2:0])
+	case (SW[1:0])
 		//Nice Final product
 		3'd0: begin
+			VGA_R = VGA_R_d20;
+			VGA_G = VGA_G_d20;
+			VGA_B = VGA_B_d20;
 			//If I am within the window where I want to draw
 			if (draw_image && color_count > 19'd25) begin
 				if (!(image_R_d20 == 8'd43 && image_G_d20 == 8'd213 && image_B_d20 == 8'd55)) begin
@@ -933,11 +936,6 @@ always @ (*) begin
 					VGA_G = image_G_d20;
 					VGA_B = image_B_d20;
 				end	
-			end
-			else begin
-				VGA_R = VGA_R_d20;
-				VGA_G = VGA_G_d20;
-				VGA_B = VGA_B_d20;
 			end
 		end
 
@@ -1066,6 +1064,7 @@ always @ (*) begin
 			end
 		end
 
+
 		default: begin
 			VGA_R = VGA_R_d20;
 			VGA_G = VGA_G_d20;
@@ -1105,29 +1104,26 @@ I2C_AV_Config 	u1	(	//	Host Side
 						.I2C_SDAT(I2C_SDAT)	);	
 
 
-wire [10:0] VGA_X_d16, VGA_Y_d16;
-delay #( .DATA_WIDTH(22), .DELAY(16) ) delay_xy
+wire [10:0] VGA_X_d15, VGA_Y_d15;
+delay #( .DATA_WIDTH(22), .DELAY(15) ) delay_xy
 (
 	.clk 			(VGA_CLK), 
 	.data_in 		({VGA_X_d0, VGA_Y_d0}), 
-	.data_out 		({VGA_X_d16, VGA_Y_d16})
+	.data_out 		({VGA_X_d15, VGA_Y_d15})
 );
 
 wire draw_image;
 wire [7:0] image_R_d20, image_G_d20, image_B_d20;
 wire unsigned [10:0] draw_start_d20 [0:1];
 wire unsigned [10:0] draw_end_d20   [0:1]; 
-boundary_select 
-#( 	.p_image_width(200), 
-	.p_image_height(140)
-)	bounds(
+boundary_select bounds(
 	//inputs
 	.clk 			(VGA_CLK), 
 	.reset 			(reset), 
 	.SW 			(18'd0),
 	.clocktower     (SW[15]),
-	.VGA_X      	(VGA_X_d16), 
-	.VGA_Y 			(VGA_Y_d16), 
+	.VGA_X      	(VGA_X_d15), 
+	.VGA_Y 			(VGA_Y_d15), 
 	.top_left_x 	(top_left_fsm_d7[x]),
 	.top_left_y 	(top_left_fsm_d7[y]),
 	.top_right_x 	(top_right_fsm_d7[x]),
