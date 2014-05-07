@@ -1,7 +1,7 @@
 module boundary_select 
 #(
-    parameter p_image_width = 406, //80
-    parameter p_image_height = 284 //480
+    parameter p_image_width = 200, //80
+    parameter p_image_height = 140 //480
     )
 (
     input clk,
@@ -148,7 +148,7 @@ wire signed [11:0] VGA_XY_txfm [0:1];
 assign VGA_XY_txfm[x] = cos_times_x[19:8] - sine_times_y[19:8];
 assign VGA_XY_txfm[y] = sine_times_x[19:8] + cos_times_y[19:8];
 
-reg unsigned [15:0] rom_addr_d18;
+reg unsigned [14:0] rom_addr_d18;
 //generate addresses to read from rom
 always @ (*) begin
     case (scale) 
@@ -203,7 +203,7 @@ end
 
 // rom_clocktower clocktower_full (
 //     .clock      (clk), 
-//     .address_a  (rom_addr_d18), 
+//     .address_a  (rom_addr_d18[15:0]), 
 //     .address_b  (), 
 //     .q_a        ({R_clocktower, G_clocktower, B_clocktower}), 
 //     .q_b        ()

@@ -800,6 +800,14 @@ color_history color_hist (
 );
 
 wire median_filter_green_d0 = ((Cb_d0 < threshold_Cb_green) && (Cr_d0 <threshold_Cr_green));
+wire median_filter_green_d20;
+delay #( .DATA_WIDTH(1), .DELAY(20))  delay_orig_green
+( 
+	.clk 		(VGA_CLK), 
+	.data_in 	(median_filter_green_d0), 
+	.data_out 	(median_filter_green_d20)
+); 
+
 median_filter median_filter_color_beforetimeavg (
 	.clk 				(VGA_CLK), 
 	.reset 				(reset), 
@@ -900,45 +908,6 @@ fsm corner_follower (
     .corner_flip()
 );
 
-// fsm corner_follower (
-// 	.clk 				(VGA_CLK), 
-// 	.reset 				(reset), 
-// 	.VGA_VS 			(VGA_VS_d5), 
-// 	.pixel_valid 		(color_d5), 
-// 	.pixel_x 			({1'b0, color_x_d5}),
-// 	.pixel_y 			({1'b0, color_y_d5}),
-// 	.threshold 			(11'b00000111110), //11'b000 00 1111 10
-// 	.threshold_flip     (11'd0), //not used 
-// 	.offset 			(6'b000111), //6'b000111
-// 	.out_top_left_x 	(top_left_fsm_d6[x]),
-//     .out_top_left_y 	(top_left_fsm_d6[y]),
-//     .out_top_right_x 	(top_right_fsm_d6[x]),
-//     .out_top_right_y 	(top_right_fsm_d6[y]),
-//     .out_bot_left_x 	(bot_left_fsm_d6[x]),
-//     .out_bot_left_y 	(bot_left_fsm_d6[y]),
-//     .out_bot_right_x 	(bot_right_fsm_d6[x]),
-//     .out_bot_right_y 	(bot_right_fsm_d6[y]),
-
-//     //Test wires	
-//     .state(LEDG[3:0]), 
-//     .thresh_exceeded_flags(LEDG[7:4]),
-//     .count(),
-//     .thresh_flags(), 
-//     .test_x_max(test_x_max), 
-//     .test_x_min(test_x_min), 
-//     .test_y_max(test_y_max),
-//     .test_y_min(test_y_min), 
-//     .test_x_max_ylocalmin(test_x_max_ylocalmin),
-//     .test_x_max_ylocalmax(test_x_max_ylocalmax),
-//     .test_x_min_ylocalmin(test_x_min_ylocalmin),
-//     .test_x_min_ylocalmax(test_x_min_ylocalmax),
-//     .test_y_max_xlocalmin(test_y_max_xlocalmin),
-//     .test_y_max_xlocalmax(test_y_max_xlocalmax),
-//     .test_y_min_xlocalmin(test_y_min_xlocalmin),
-//     .test_y_min_xlocalmax(test_y_min_xlocalmax),
-//     .corner_flip()
-// );
-
 median_filter_corner #(
 	.p_filter_length(5), 
 	.p_bit_width_in(11)
@@ -954,9 +923,26 @@ median_filter_corner #(
 );
 
 always @ (*) begin
-	case (SW[1:0])
-		// Line and drawing clocktower
-		2'd0: begin
+	case (SW[2:0])
+		//Nice Final product
+		3'd0: begin
+			//If I am within the window where I want to draw
+			if (draw_image && color_count > 19'd25) begin
+				if (!(image_R_d20 == 8'd43 && image_G_d20 == 8'd213 && image_B_d20 == 8'd55)) begin
+					VGA_R = image_R_d20;
+					VGA_G = image_G_d20;
+					VGA_B = image_B_d20;
+				end	
+			end
+			else begin
+				VGA_R = VGA_R_d20;
+				VGA_G = VGA_G_d20;
+				VGA_B = VGA_B_d20;
+			end
+		end
+
+		//How the angle and location of clocktower are being established
+		3'd1: begin
 			//Red: draw start
 			if (VGA_X_d20 < draw_start_d20[x] + 5 && VGA_X_d20 > draw_start_d20[x] - 5
 			 && VGA_Y_d20 < draw_start_d20[y] + 5 && VGA_Y_d20 > draw_start_d20[y] - 5) begin
@@ -976,8 +962,6 @@ always @ (*) begin
 				VGA_G = VGA_G_d20;
 				VGA_B = VGA_B_d20;
 			end
-
-			//If I am within the window where I want to draw
 			if (draw_image && color_count > 19'd25) begin
 				if (!(image_R_d20 == 8'd43 && image_G_d20 == 8'd213 && image_B_d20 == 8'd55)) begin
 					VGA_R = image_R_d20;
@@ -985,12 +969,11 @@ always @ (*) begin
 					VGA_B = image_B_d20;
 				end	
 			end
-
-
+			
 		end
 
-		//new fsm with median filtering
-		2'd1: begin
+		//Color and corner detection
+		3'd2: begin
 			//Red: top left
 			if (VGA_X_d20 < top_left_fsm_d20[x] + 5 && VGA_X_d20 >= top_left_fsm_d20[x] - 5
 			 && VGA_Y_d20 < top_left_fsm_d20[y] + 5 && VGA_Y_d20 >= top_left_fsm_d20[y] - 5) begin
@@ -1066,72 +1049,16 @@ always @ (*) begin
 				VGA_G = 8'hFF;
 				VGA_B = 8'hFF;
 			end
-
-			if (draw_image) begin
-				// if (!(image_R_d20 == 8'd43 && image_G_d20 == 8'd213 && image_B_d20 == 8'd55)) begin
-					VGA_R = image_R_d20;
-					VGA_G = image_G_d20;
-					VGA_B = image_B_d20;
-				// end	
-			end
-
 		end
 
-	    //ymax
-		2'd2: begin
+		//Median filtering
+		3'd3: begin
 			//red
-			if(VGA_X_d20 == test_x_max
-				&& VGA_Y_d20 >= test_x_max_ylocalmin
-				&& VGA_Y_d20 <= test_x_max_ylocalmax ) begin
-				VGA_R = 8'hFF;
-				VGA_G = 8'h00;
-				VGA_B = 8'h00;
-			end
-			//orange
-			else if(VGA_X_d20 == test_x_min 
-				&& VGA_Y_d20 >= test_x_min_ylocalmin
-				&& VGA_Y_d20 <= test_x_min_ylocalmax ) begin
-				VGA_R = 8'hFF;
-				VGA_G = 8'd125;
-				VGA_B = 8'h00;
-			end
-
-			//yellow
-			else if (VGA_Y_d20 == test_y_max 
-				&& VGA_X_d20 >= test_y_max_xlocalmin
-				&& VGA_X_d20 <= test_y_max_xlocalmax ) begin
-				VGA_R = 8'hFF;
-				VGA_G = 8'hFF;
-				VGA_B = 8'h00;
-			end
-			//cyan
-			else if (VGA_Y_d20 == test_y_min 
-				&& VGA_X_d20 >= test_y_min_xlocalmin
-				&& VGA_X_d20 <= test_y_min_xlocalmax ) begin
-				VGA_R = 8'h00;
-				VGA_G = 8'hFF;
-				VGA_B = 8'hFF;
-			end
-			else if (color_d20) begin
+			if (median_filter_green_d20) begin
 				VGA_R = 8'hFF;
 				VGA_G = 8'h00;
 				VGA_B = 8'hFF;
 			end
-			else begin
-				VGA_R = VGA_R_d20;
-				VGA_G = VGA_G_d20;
-				VGA_B = VGA_B_d20;
-			end
-		end
-
-		//median filtering
-		2'd3: begin
-			if (color_d20) begin
-				VGA_R = 8'hFF;
-				VGA_G = 8'h00;
-				VGA_B = 8'hFF;
-			end
-			
 			else begin
 				VGA_R = VGA_R_d20;
 				VGA_G = VGA_G_d20;
@@ -1191,14 +1118,14 @@ wire [7:0] image_R_d20, image_G_d20, image_B_d20;
 wire unsigned [10:0] draw_start_d20 [0:1];
 wire unsigned [10:0] draw_end_d20   [0:1]; 
 boundary_select 
-#( 	.p_image_width(406), 
-	.p_image_height(284)
+#( 	.p_image_width(200), 
+	.p_image_height(140)
 )	bounds(
 	//inputs
 	.clk 			(VGA_CLK), 
 	.reset 			(reset), 
-	.SW 			(SW[17:0]),
-	.clocktower     (SW[2]),
+	.SW 			(18'd0),
+	.clocktower     (SW[15]),
 	.VGA_X      	(VGA_X_d16), 
 	.VGA_Y 			(VGA_Y_d16), 
 	.top_left_x 	(top_left_fsm_d7[x]),
