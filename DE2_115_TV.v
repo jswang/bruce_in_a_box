@@ -883,7 +883,7 @@ fsm corner_follower (
     .out_bot_left_x 	(bot_left_fsm_d6[x]),
     .out_bot_left_y 	(bot_left_fsm_d6[y]),
     .out_bot_right_x 	(bot_right_fsm_d6[x]),
-    .out_bot_right_y 	(bot_right_fsm_d6[y]), 
+    .out_bot_right_y 	(bot_right_fsm_d6[y]),
 
     //Test wires	
     .state(LEDG[3:0]), 
@@ -944,12 +944,12 @@ always @ (*) begin
 			end
 
 			//If I am within the window where I want to draw
-			if (draw_image) begin
-				// if (!(image_R_d20 == 8'd43 && image_G_d20 == 8'd213 && image_B_d20 == 8'd55)) begin
+			if (draw_image && color_count > 19'd25) begin
+				if (!(image_R_d20 == 8'd43 && image_G_d20 == 8'd213 && image_B_d20 == 8'd55)) begin
 					VGA_R = image_R_d20;
 					VGA_G = image_G_d20;
 					VGA_B = image_B_d20;
-				// end	
+				end	
 			end
 
 
@@ -1174,8 +1174,6 @@ boundary_select
 	.bot_left_y 	(bot_left_fsm_d7[y]),
 	.bot_right_x 	(bot_right_fsm_d7[x]),
 	.bot_right_y 	(bot_right_fsm_d7[y]),
-	.scale_amt      (color_count),
-
 	//outputs
 	.draw_image  	(draw_image), 
 	.image_R 		(image_R_d20),

@@ -12,8 +12,8 @@ fprintf(file,'\n');
 fprintf(file,'CONTENT BEGIN\n');
 
 addr = 0;
-for i=1:480
-    for j=1:80
+for i=1:284
+    for j=1:406
         r = uint32(img(i,j,1));
         g = uint32(img(i,j,2));
         b = uint32(img(i,j,3));

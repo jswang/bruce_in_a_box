@@ -20,7 +20,7 @@ module color_detect
     output reg                  we, 
     output reg [18:0]           write_addr
 );
-
+    reg unsigned [18:0] color_count_temp;
     reg [2:0] num_history;
     reg unsigned [9:0] x_max, x_min, y_max, y_min;
     reg VGA_VS_prev;
@@ -54,7 +54,7 @@ module color_detect
             x_min           <= 10'd639;
             y_max           <= 10'd0;
             y_min           <= 10'd479;
-            color_count     <= 19'd0;
+            color_count_temp<= 19'd0;
             color_x         <= 10'd0;
             color_y         <= 10'd0;
         end
@@ -62,7 +62,8 @@ module color_detect
             //Falling edge of VS
             if (VGA_VS_prev && ~VGA_VS) begin
                 //Reset for next frame of VGA screen
-                color_count     <= 19'd0;
+                color_count_temp<= 19'd0;
+                color_count     <= color_count_temp;
                 x_max           <= 10'd0; 
                 x_min           <= 10'd639;
                 y_max           <= 10'd0;
@@ -72,7 +73,7 @@ module color_detect
             else begin
                 if (median_color && num_history > threshold_history) begin
                     color_detected              <= 1'b1;
-                    color_count                 <= color_count + 19'd1;
+                    color_count_temp            <= color_count_temp + 19'd1;
                     color_x                     <= read_x;
                     color_y                     <= read_y;
                     updated_color_history[3:1]  <= color_history[2:0];

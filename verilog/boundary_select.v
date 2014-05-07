@@ -17,7 +17,7 @@ module boundary_select
     input  unsigned [10:0] bot_left_y,
     input  unsigned [10:0] bot_right_x,
     input  unsigned [10:0] bot_right_y, 
-    input  unsigned [18:0] scale_amt,
+    input  unsigned [18:0] color_count,
 
     output reg draw_image, 
     output [7:0] image_R, 
@@ -33,12 +33,15 @@ module boundary_select
 
 );
 //determine scale. max = 640*480 = 307200
-always @ (*) begin
-    if      (scale_amt >= 19'd154600) scale = 4'd4; //x4
-    else if (scale_amt >= 19'd80000)  scale = 4'd3; //x2
-    else if (scale_amt >= 19'd2000)   scale = 4'd2; //x1
-    else if (scale_amt >= 19'd1000)   scale = 4'd1; //x.5
-    else                              scale = 4'd0; //x.25
+wire unsigned [22:0] scale_dist;
+always @ (top_left_x, top_left_y, top_right_x, top_right_y) begin
+    calculate_distance(top_left_x, top_left_y, top_right_x, top_right_y, scale_dist);
+    
+    if      (scale_dist >= 23'd230400)  scale = 4'd4; //x4
+    else if (scale_dist >= 23'd102400)  scale = 4'd3; //x2
+    else if (scale_dist >= 23'd36864)   scale = 4'd2; //x1
+    else if (scale_dist >= 23'd100)     scale = 4'd1; //x.5
+    else                                scale = 4'd0; //x.25
     // scale <= SW[15:12];
 end
 //----------Read from the ROM------------//
@@ -84,8 +87,6 @@ arctan(
     .denom(draw_end_offset[x]), 
     .theta(theta) // [0, 359]
 );
-
-// assign theta = SW[10:2]; //todo put back into arctan
 
 wire signed [9:0] theta_inverse = 10'd360 -theta;
 //1b sign, 11bit integer, 8 bit precision
@@ -198,5 +199,27 @@ rom_clocktower clocktower_full (
     .q_a({image_R, image_G, image_B}), 
     .q_b()
 );
+
+
+task calculate_distance;
+input unsigned [10:0] point1_x;
+input unsigned [10:0] point1_y;
+input unsigned [10:0] point2_x;
+input unsigned [10:0] point2_y;
+output unsigned [22:0] dist_pt1_pt2;
+
+reg signed [10:0] diff_x;
+reg signed [10:0] diff_y;
+reg unsigned [21:0] xsqrd, ysqrd;
+begin
+    diff_x = (point1_x - point2_x); 
+    diff_y = (point1_y - point2_y);
+    
+    xsqrd  = diff_x * diff_x; 
+    ysqrd  = diff_y * diff_y; 
+    dist_pt1_pt2 = xsqrd + ysqrd;
+end
+
+endtask
 
 endmodule
