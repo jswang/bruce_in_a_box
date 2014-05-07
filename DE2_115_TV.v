@@ -926,6 +926,9 @@ always @ (*) begin
 	case (SW[2:0])
 		//Nice Final product
 		3'd0: begin
+			VGA_R = VGA_R_d20;
+			VGA_G = VGA_G_d20;
+			VGA_B = VGA_B_d20;
 			//If I am within the window where I want to draw
 			if (draw_image && color_count > 19'd25) begin
 				if (!(image_R_d20 == 8'd43 && image_G_d20 == 8'd213 && image_B_d20 == 8'd55)) begin
@@ -934,24 +937,12 @@ always @ (*) begin
 					VGA_B = image_B_d20;
 				end	
 			end
-			else begin
-				VGA_R = VGA_R_d20;
-				VGA_G = VGA_G_d20;
-				VGA_B = VGA_B_d20;
-			end
 		end
 
 		//How the angle and location of clocktower are being established
 		3'd1: begin
-			if (draw_image && color_count > 19'd25) begin
-				if (!(image_R_d20 == 8'd43 && image_G_d20 == 8'd213 && image_B_d20 == 8'd55)) begin
-					VGA_R = image_R_d20;
-					VGA_G = image_G_d20;
-					VGA_B = image_B_d20;
-				end	
-			end
 			//Red: draw start
-			else if (VGA_X_d20 < draw_start_d20[x] + 5 && VGA_X_d20 > draw_start_d20[x] - 5
+			if (VGA_X_d20 < draw_start_d20[x] + 5 && VGA_X_d20 > draw_start_d20[x] - 5
 			 && VGA_Y_d20 < draw_start_d20[y] + 5 && VGA_Y_d20 > draw_start_d20[y] - 5) begin
 					VGA_R = 8'hFF;
 					VGA_G = 8'h00;
@@ -969,45 +960,20 @@ always @ (*) begin
 				VGA_G = VGA_G_d20;
 				VGA_B = VGA_B_d20;
 			end
+			if (draw_image && color_count > 19'd25) begin
+				if (!(image_R_d20 == 8'd43 && image_G_d20 == 8'd213 && image_B_d20 == 8'd55)) begin
+					VGA_R = image_R_d20;
+					VGA_G = image_G_d20;
+					VGA_B = image_B_d20;
+				end	
+			end
+			
 		end
 
 		//Color and corner detection
 		3'd2: begin
-			//red
-			if(VGA_X_d20 == test_x_max
-				&& VGA_Y_d20 >= test_x_max_ylocalmin
-				&& VGA_Y_d20 <= test_x_max_ylocalmax ) begin
-				VGA_R = 8'hFF;
-				VGA_G = 8'h00;
-				VGA_B = 8'h00;
-			end
-			//orange
-			else if(VGA_X_d20 == test_x_min 
-				&& VGA_Y_d20 >= test_x_min_ylocalmin
-				&& VGA_Y_d20 <= test_x_min_ylocalmax ) begin
-				VGA_R = 8'hFF;
-				VGA_G = 8'd125;
-				VGA_B = 8'h00;
-			end
-
-			//yellow
-			else if (VGA_Y_d20 == test_y_max 
-				&& VGA_X_d20 >= test_y_max_xlocalmin
-				&& VGA_X_d20 <= test_y_max_xlocalmax ) begin
-				VGA_R = 8'hFF;
-				VGA_G = 8'hFF;
-				VGA_B = 8'h00;
-			end
-			//cyan
-			else if (VGA_Y_d20 == test_y_min 
-				&& VGA_X_d20 >= test_y_min_xlocalmin
-				&& VGA_X_d20 <= test_y_min_xlocalmax ) begin
-				VGA_R = 8'h00;
-				VGA_G = 8'hFF;
-				VGA_B = 8'hFF;
-			end
 			//Red: top left
-			else if (VGA_X_d20 < top_left_fsm_d20[x] + 5 && VGA_X_d20 >= top_left_fsm_d20[x] - 5
+			if (VGA_X_d20 < top_left_fsm_d20[x] + 5 && VGA_X_d20 >= top_left_fsm_d20[x] - 5
 			 && VGA_Y_d20 < top_left_fsm_d20[y] + 5 && VGA_Y_d20 >= top_left_fsm_d20[y] - 5) begin
 					VGA_R = 8'hFF;
 					VGA_G = 8'h00;
@@ -1047,7 +1013,40 @@ always @ (*) begin
 				VGA_G = VGA_G_d20;
 				VGA_B = VGA_B_d20;
 			end
-			
+
+			//red
+			if(VGA_X_d20 == test_x_max
+				&& VGA_Y_d20 >= test_x_max_ylocalmin
+				&& VGA_Y_d20 <= test_x_max_ylocalmax ) begin
+				VGA_R = 8'hFF;
+				VGA_G = 8'h00;
+				VGA_B = 8'h00;
+			end
+			//orange
+			else if(VGA_X_d20 == test_x_min 
+				&& VGA_Y_d20 >= test_x_min_ylocalmin
+				&& VGA_Y_d20 <= test_x_min_ylocalmax ) begin
+				VGA_R = 8'hFF;
+				VGA_G = 8'd125;
+				VGA_B = 8'h00;
+			end
+
+			//yellow
+			else if (VGA_Y_d20 == test_y_max 
+				&& VGA_X_d20 >= test_y_max_xlocalmin
+				&& VGA_X_d20 <= test_y_max_xlocalmax ) begin
+				VGA_R = 8'hFF;
+				VGA_G = 8'hFF;
+				VGA_B = 8'h00;
+			end
+			//cyan
+			else if (VGA_Y_d20 == test_y_min 
+				&& VGA_X_d20 >= test_y_min_xlocalmin
+				&& VGA_X_d20 <= test_y_min_xlocalmax ) begin
+				VGA_R = 8'h00;
+				VGA_G = 8'hFF;
+				VGA_B = 8'hFF;
+			end
 		end
 
 		//Median filtering
@@ -1065,26 +1064,13 @@ always @ (*) begin
 			end
 		end
 
-		//harris corner detection
-		3'd4: begin
-			if (harris_feature_d20 > {39'd0, SW[14:0]}) begin
-				VGA_R = 8'hFF;
-				VGA_G = 8'hFF;
-				VGA_B = 8'h00;
-			end
-			else begin
-				VGA_R = VGA_R_d20;
-				VGA_G = VGA_G_d20;
-				VGA_B = VGA_B_d20;
-			end
-		end
 
 		default: begin
 			VGA_R = VGA_R_d20;
 			VGA_G = VGA_G_d20;
 			VGA_B = VGA_B_d20;
 		end
-	endcase
+	 endcase
 end
 
 //	Line buffer, delay one line
