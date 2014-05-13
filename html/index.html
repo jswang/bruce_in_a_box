@@ -15,7 +15,7 @@
   <div id="main">
 
 <!--BANNER#################################################################################################-->
-    <div id="top"><img width="100%" src="images/banner.jpg" /></div> 
+    <!-- <div id="top"><img width="100%" src="images/banner.jpg" /></div>  -->
     <!-- todo -->
     
 <!--CONTENT RIGHT COLUMN###################################################################################-->    
@@ -26,67 +26,83 @@
   <!--####INTRODUCTION#####################################################################################-->       
           <h2 id="jump_intro">Introduction</h2>
           
-          <p>Our project is a real time cartoonifier. It bolds edges and reduces colors to make the video feed look like a cartoon. The colors can be reduced on a per channel basis from 3 bits per color all the way down to grayscale.</p>
+          <p>For my ECE 5760 final project, I have created an augmented reality system that in real time detects the corners of a flat surface and draws an image over the original video feed. Augmented reality is a technology that superimposes a computer generated image on a user’s view of the real world to provide more information. The goal of this project is to celebrate the end of my time as an Electrical and Computer Engineering undergraduate. What better way than to put Bruce Land, one of the best instructors at Cornell, and the Cornell clock tower, onto everything you see. Hence my project, Bruce in a Box.</p>
           
-          <p>Cartoonization is the act of modifying an image so it looks as if it were rendered by a computer or sketched by an artist. This includes bolding any edges or contours in the image and making colors brighter and more vibrant. In addition the amount of colors used in the image is reduced and smoothed out. In our implementation the number of possible colors is selectable by the user.</p>
+          <p>My system makes use of a variety of digital signal processing and computer vision techniques, resulting in a robust and reliable system. The hardware I utilized was the DE2-115 board by Altera, a Video Camera, and a VGA monitor. All of the functionality of my project is achieved through custom hardware written in Verilog. There are an extensive number of modules, and each one is designed to be as modular and parameterizable as possible.</p>
           
-          <p>We use a video decoder and VGA driver provided by Terasic to implement real time cartoonization on the Altera DE2 FPGA board. Video feed is sent to the board’s decoder chip from a camcorder via a composite cable. Once decoded to RGB, the signal passes through edge detection, time averaging and color reduction modules that we created in hardware. The cartoonized pixel data is then handed off to the board’s VGA driver and outputted to a monitor for viewing.</p>
-          
-          <p>The user is able to select both the color reduction scheme for each color channel and also the edge detection threshold by using the DE2’s switches. There are also options to display in grayscale and brighter color schemes selectable by the switches as well.</p>
-          
+          <p>The user holds up any size of green paper to the video camera. The VGA display screen then displays the scene with an image of either the Cornell Clocktower or Bruce Land superimposed on the green paper. When the user moves or rotates the piece of paper, the image of Bruce or the clocktower rotates, scales, and moves with it.  The final result is an interactive, responsive, and amusing augmented reality system that implements a large range of mathematical, digital signal processing, and computer vision algorithms and concepts.</p>
+
           <h5><a href="index.html#top">[top]</a></h5>
           <hr />
           
   <!--####HIGH LEVEL DESIGN################################################################################-->
 		  <h2 id="jump_high_level">High Level Design</h2>
           
-          <p><strong>Rationale and Sources of Project Idea:</strong><br />
-		  After working closely with video on the DE2 for two of our class projects, we thought it would be interesting to use the VGA driver again on the final project. We also wanted to gain experience with the on-board video decoder chip for future projects. We wanted practice in designing embedded systems for a challenging project that encompasses video signal processing, real-time calculations, and component integration. We also wanted a project that was fun to work on and visually interesting.</p>
+         <p><strong>Rationale and Inspiration:</strong><br />
+		 The inspiration for the project came from a Kenyan elections campaign that utilizes augmented reality. The potential voter receives a postcard with a static picture of a flag. When a smartphone camera is pointed at the postcard, the flag animates and plays the national anthem. A link to the video is included in the Appendix.  Having taken a Computer Vision course in the fall and being currently enrolled in a course on Digital Signal Processing, I immediately seized upon this idea. I decided to tailor it to Cornell’s School of Electrical and Computer Engineering, and instead of playing a video on the VGA monitor, display a scalable, 3-D like replica of the Cornell clocktower as well as the instructor of ECE 5760, Bruce Land.
+		</p>
 
-		  <p>The inspiration to create a cartoonifier came from many of the modern video games and television commercials that use bold edges and color simplification to create cartoon-like renditions of real people. An example from a Charles Schwab commercial is shown below.</p>
-		  
-		  <a href="images/michael.jpg"><img width="50%" src="images/michael.jpg" /></a>
-		  
-		  <p>Cartoonizations like the one above are common today, but very few can be rendered in real-time. We thought it would be an interesting challenge to create a device that could create cartoons on the fly from a camcorder feed.</p>
+		<p><strong>Background Math:</strong><br />
+			There are multiple mathematical and computer vision concepts implemented in this project. The big ones are as follows:
+		</p>
+		  	<ul>
+		  	<li>Color Detection based on YCbCr Space</li>
+			<li>Median Filtering over space</li>
+			<li>Median Filtering over time</li>
+			<li>Sobel Edge Detection</li>
+			<li>Harris Corner Detection</li>
+			<li>Corner Tracking</li>
+			<li>Image Transformations, Inverse Warping</li>
+			<li>Bubble Sort</li>
+			</ul>
+		 
 
-		  <p><strong>Background Math:</strong><br />
-		  For our edge detection algorithm, we use two Sobel filters.  There are two distinct filters, one which computes vertical edges (left) and one for horizontal edges (right).  The filters can be seen below.  The filters are convolved with the entire input image.  The middle pixels are weighted more heavily than the outer pixels, since they are closer to the pixel in question (center of grid) and thus have a higher impact on the edge gradient for that pixel.</p>
-		  
-		  <a href="images/filters.jpg"><img width="50%" src="images/filters.jpg" /></a>
+		  <p>Color can be represented in a variety of formats. Probably the most common is RGB space, where the red, green, and blue components determine the color of a single pixel. However, RGB color schemes are highly sensitive to changes in lighting. In order to make my system more robust in detecting green, I utilize the YCbCr color space, which is a family of color spaces that separate the luma component, or the light intensity, from the hue component. By using YCbCr space, I am able to always detect the green hue regardless to changes in lighting.</p>
 
-		  <p>For our intensity calculation, we use 25% red, 50% green, and 25% blue.  We have chosen these numbers because the human eye is most sensitive to green.  We have also chosen to use only 25% or 50% because divide by 2 or divide by 4 are trivial operations in hardware implementations, they are simply a shift.  This is important for our goal of real-time execution.</p>
+		  <!-- TODO diagram spaces -->
+
+		  <p>Median filtering is exactly what its name implies - a filter takes the median value over a 1-D or 2-D space. The advantage of median filtering is that it throws away outliers while still preserving edges. This differs from a Gaussian smoothing functions, which dilute edges and make all transitions more gradual. A 1-D, n-wide median filter can remove up to floor(n/2) bits of noise.  I perform median filtering over space, in other words on the green pixels detected by my system. This allows me to smooth edges and remove small pixel jags that may be present. I also median filter over time on detected corners. Doing so prevents large jumps and noisy data coming from the corner detection module. The detected corners of the green square move smoothly without a significant delay. Each detected green pixel is also median filtered over time. This ensures that only pixels that are consistently green are factored into corner calculations. A diagram of how 1-D and 2-D filtering operate on a signal is included below.</p>
+
+		  <!-- TODO median filtering -->
+
+		  <p> Sobel Edge Detection and Harris Corner Detection are two Computer Vision Algorithms used to extract features from an image. While my final system does not utilize Harris Corner Detection, I fully implemented and tested this algorithm. The algorithm is as follows:</p>
+		<ol>
+			<li>Use an nxn Sobel filter to get the x-gradient and y-gradient from the image</li>
+			<li>For a window of size wxw, calculate the following matrix (insert Ix, Iy, IxIy):
+					<!-- TODO Ix Iy IxIy matrics -->
+			Optionally weight the values of Ix and Iy by the distance of that pixel from the center pixel of the window</li>
+			<li>Calculate the determinant and trace of the matrix, and use that to calculate c, the corner strength feature formula corner strength</li>
+			<li>For all values of c above a certain threshold, mark that pixel as a corner</li>
+		</ol>
+
+		<p>Tracking the corners of a square in 3-D space falls underneath the larger problem of resolving motion ambiguities, a difficult task. The mathematical approach to resolving motion ambiguity is to use coupled Markov random fields that estimate uncertainty on a local area. These estimates are then used to determine which direction the object rotated. However, this is a rather complicated algorithm involving a lot of divisions, a difficult task on an FPGA. So I opted to create my own algorithm to track the corners of the rotating square. This algorithm will be discussed in detail in the Hardware Design Section.</p>
+		<p>Image transformations are operations that can translate, rotate, skew, scale, shear, or project an image in 2D space. Normally the transformation is represented in one or several matrices, and these matrices are convolved over the entire image.  There are two ways to get from a pixel’s original location in an image to its new location. The first method is forward warping. In this method, every point in the original image is transformed and “sent” to its new location.   However, this mode of warping can result in holes and splattering. The better approach is to perform inverse warping.  This algorithm goes through every pixel in the new, transformed image, undoes the transformation, and figures out which original pixel to grab.  If the original pixel happens to fall between two pixels, simply interpolate the source image. My system implements inverse warping on translation, rotation, and scale operations in order to redraw the superimposed image on to the VGA display.</p>
+
+		<!-- TODO inverse and forward warping -->
+		<p>Bubble sort is the simplest sorting algorithm. It repeatedly steps through a list of items to be sorted and swaps items if they are out of order. The algorithm continues stepping through the list until all entries are sorted. Bubble sort, while simple, is inefficient, achieving at worst O(n^2) performance. I have implemented Bubble Sort as a Verilog task that can be called repeatedly by different portions of a module.</p>
 
 		  <p><strong>Logical Structure:</strong><br />
-          The video input feed required by our project is generated by a digital camcorder provided to us by Bruce Land. It can output directly to a composite cable in NTSC standard video format in real time. The DE2 has an on-board video decoder with a composite video signal input port. The decoder is able to save pixel information in a multiple port SDRAM and later convert the inputted video feed to YCbCr and RGB formats. This decoder is provided to us by the Terasic example decoder code on the DE2 CD in the box.</p>
-          
-          <p>Once decoded, the video signal is then split off to two different pipeline paths: one for edge detection and one for color time and spatial averaging and color simplification. Along the edge detection path, the streaming pixel data is first fed into a large set of shift registers that holds pixel data for three entire lines worth of pixels. This is required because our edge detection algorithm requires not only the pixel in question, but the eight neighboring pixels as well. A 3x3 block of pixels centered around the pixel in question is chosen from the shift registers and sent to an intensity calculation module. The intensity calculation module calculates the intensity of each of the 9 pixels in the block and feeds the intensity values to both horizontal and vertical edge detection modules. These modules apply a Sobel filter algorithm to the appropriate pixels to detect an edge. If there is an edge, a select signal is sent to a final MUX to select black as the pixel color.</p>
-          
-          <p>In the color manipulation pipeline, the pixel data is first sent to an identical set of shift registers as in the other pipeline just to keep the two paths synchronized. The output of this module is sent to a time and spatial averaging module. This module interacts with SRAM and saves a history of past values for every pixel in the raster to time average out noise to reduce flickering. It also does 2x2 block spatial averaging to further smooth out the image. After some additional pipeline registers to match timing with the other path, the colors are simplified based on user input from the switches, which change the number of colors that each channel can represent.</p>
-          
-          <p>Finally the two paths converge at the input to the final MUXing that determines the value of the pixel in question. If there is an edge, black is chosen, otherwise color is chosen. There is also the option to choose a grayscale image, which is simply the intensity value for the pixel that was calculated earlier in the edge detection path. The output of the MUX is sent to the VGA controller provided to us by Terasic. The controller module drives the VGA output port on the DE2 board and is hooked up to an external monitor to display the raster, which is updated in real time.</p>
-          
-          <a href="images/BLD.jpg"><img width="75%" src="images/BLD.jpg" /></a>
+         The DE2-115 board receives a video feed in NTSC standard video format from a digital camcorder.  The DE2-115 saves the incoming pixel information to an on-board SDRAM and later converts the video feed into YCbCr and RGB formats. Then, a VGA controller takes the RGB information and generates the appropriate VGA control signals.  In order to manipulate the data to the VGA screen, I intercept the pixel color data and VGA control signals coming out of the VGA controller and put them through a 20 VGA clock delay buffer. At the same time, my system utilizes the color information and several VGA control signals to come up with the new image to be superimposed on the original video feed. Thus, at the end of 20 clock cycles, mux’s decide whether the original VGA pixels from the video input are used or whether pixels generated by my system during that 20 cycle delay should be displayed on the VGA screen. By using this buffering system, I am able to manipulate the image on the VGA screen in real time. There is technically a slight lag between the real world and what’s displayed on the VGA screen, but it is so small that it is not noticeable by the user. A logical overview of the system is included below:
+		</p>
+
+          <a href="images/logical.jpg"><img width="75%" src="images/logical.jpg" /></a>
 
 		  <p><strong>Hardware/Software Tradeoffs:</strong><br />
-		  The main trade-off that we made in this project was with our edge detection.  We chose a simple edge detection algorithm because it will always take the same amount of time to process the entire screen.  We could have had much better and crisper edges if we had gone with a more complex detection scheme, but this would have resulted in a variable amount of time to process the screen.  The more edges present, the longer it would take to process the image.  This could pose issues, since a main goal of our project was to make it operate in real-time.  For this reason, we had to sacrifice the ability to have more robust edge detection, to go with a scheme that ran in constant time.</p>
+		  There is no software in this design; all functionality is implemented using full custom Verilog hardware. I chose to stick with full custom hardware because I have finer grained control over resource utilization. Additionally, had I chosen to use a Nios II system, there the potential for severe bus contention on the Avalon switch fabric since so many modules are attempting to communicate with each other.
+		</p>
 		  
-		  <p>We also had to make a trade-off with regards to the color simplification. The fewer colors we output, the more the output would flicker. This is because the rounding of a slightly wavering input value between two output values has a more dramatic effect when those output values are farther apart.</p>
+		  <p>In hardware, there are several tradeoffs between speed, space, and accuracy. When median filtering over time, i.e. over VGA frames, using more frames leads to a cleaner edge. However, to store more history, more SRAM must be used, and there is a longer lag effect on the screen. To address this tradeoff, I allow the user to choose anywhere from 0 - 4 frames for the time averaging threshold.</p>
 		  
-		  <p>To avoid flicker, we added time averaging of our inputs. However, since we could only fit so much data into SRAM, we only were able to store 5 bits per color for time averaging. Time averaging works by storing your value, then with each input you subtract 1/T times the stored value and add 1/T times the input value, where T is the period used for averaging.</p>
+		  <p>When median filtering over time on the corners, the longer the filter the more outliers you can remove. However, there is limited storage in SRAM, and the more history you keep, the more SRAM you use. I found that median filtering over 11 frames created smooth corner tracking without hogging a lot of SRAM space.
+		</p>
 		  
-		  <p>So, in order to average over 4 frames, we have to divide by 4 (shift right 2) in our code. This leaves only 3 significant bits per color. 8 frame averaging leaves us with 2 significant bits per color. With only 2 or 3 input bits affecting the output, it was possible to wave a red object in front of an off-white wall and have a red streak remain onscreen since the white wasn’t white enough in the top 2 or 3 bits to remove the red left in the time average storage.</p>
-		  
-		  <p>We tried out a combination of levels of time averaging, but this provided troublesome too. We averaged across 8 frames to keep things smooth and every second we allowed the input to have twice as much weight. This meant most of the time was smooth and every second we removed the ghosting, but the ghosting removal caused a noticeable flash on the entire screen as all the slowing changing pixels suddenly changed.</p>
-		  
-		  <p>The final trade-off that we had to make was with regards to choosing between HSL and RGB simplification techniques. We played around a lot in MATLAB and with the FPGA and camera in the lab testing out various color simplification schemes. Our original theory was that hue-based simplification would look more like a cartoon since an unevenly lit single colored object would come out as one color, and resemble the simple lighting used in cartoon drawings. However, single colored objects are not the only things of interest for video processing.</p>
-		  
-		  <p>Since it is most entertaining to have people on the camera, the handling of skin tones became a high priority. Since we didn’t wear TV-style make-up, our complexions often became rather splotchy on the camera. RGB space simplificaiton seemed to be less splotchy than HSL simplification, so we went with RGB for the final version.</p>
+		  <p>Finally, when median filtering over space I use a 5x5 median filter. Again, a larger filter removes more outliers, but also requires buffering more of the incoming VGA pixels.  I found that 5x5 median filtering removes a lot of green pixel noise while keeping the RAM utilization reasonable.</p>
+		
+			<p>When deciding which Altera Board to use, the DE2 or the DE2-115, I chose to the use the DE2-115 because it has more dedicated multipliers and SRAM. The downside is that throughout the majority of this course, we have used the standard DE2 board. There was some overhead in getting the Altera example project up and running on the DE2-115 board, but this cost was far outweighed by the benefits of increased computational power and memory.</p>
 
 		  <p><strong>Relationship of design to standards:</strong><br />
-		  Our design takes a NTSC video standard signal as an input that comes from the video camera over a composite cable. We also must output pixel data to the CRT monitor in NTSC standard as well. An overview diagram of the NTSC video standard is shown below. The important part that we must take into consideration is the amount of time when valid data is not being requested and transmitted. This is a 10.9 microsecond period of blanking during a transition between lines. This is followed by a 52.6 microsecond period of data transmission to update the line. We use this blanking period as a disable signal that stops any color calculation or history updating when the pixel data is invalid. When valid data is being requested and transmitted we allow the calculations. The VGA Controller provided by Terasic handles the pixel request and output timing to adhere to the NTSC timings that the monitor requires.</p>
-		  
-		  <a href="images/NTSC.jpg"><img width="50%" src="images/NTSC.jpg" /></a>
-
+		  My design requires the video signal to be in NTSC video standard form. The data is output as a VGA signal. Thus, television and computer display standards are at play. These standards are implemented using IP cores from Altera that are included in the DE2_115_TV example.</p>
+		  <p>There are numerous patents held by companies regarding augmented reality systems. However, I did not reference any of these patents nor do I plan on patenting this invention, so I will spare you and myself a detailed patent search.</p>
 
           <h5><a href="index.html#top">[top]</a></h5>
           <hr />
@@ -94,8 +110,8 @@
   <!--####HARDWARE DESIGN##################################################################################-->
           <h2 id="jump_hardware">Hardware Design</h2>
           
-          <p><strong>3-line Buffer:</strong><br />
-          Our 3-line buffer is just a series of 3 large registers which hold the pixel information for an entire line of the VGA screen.  Each line is 640 pixels, and each pixel has 30 bits of information, 10 bits for each of red, green, and blue.  If the module is enabled, then on the clock edge our shiftin input will be stored in the first pixel of line1, with the rest of the pixels shifing up 1 slot, we also output line2[638] as shiftout.  This pixel information is then later used in the top level module and output to the screen.  We also output a grid of pixels, which are later used in our edge detection modules.  We output line2[638] because this is the pixel that is the center of the grid.  This means that the subsequent calculations for edge detection are being done for this pixel, and thus when it comes time to output to the screen, we must output that pixel (or black if it is an edge).</p> 
+          <p><strong>Overview</strong><br />
+       		The hardware in this design must accomplish a series of tasks in order to make this project work.  The steps are as follows:</p> 
 
 		  <p>This module, while originally designed in registers, was optimized to M4K blocks by the compiler.  This makes its operation slightly slower, but otherwise we would not have enough registers for the entirety of our project.</p>
           
