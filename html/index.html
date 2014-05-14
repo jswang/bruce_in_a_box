@@ -298,30 +298,27 @@
  
   <!--####APPENDIX B: MY CODE######################################################################-->
           <h2 id="jump_appx_code">Appendix B: My Code</h2>
-          
-          <p>Final system code</p>
-          <ul><li><a href="code/averager.v">averager.v</a></li>
-          <li><a href="code/buffer3.v">buffer3.v</a></li>
-          <li><a href="code/DE2_TV.v">DE2_TV.v</a></li>
-          <li><a href="code/edgedetectH.v">edgedetectH.v</a></li>
-          <li><a href="code/edgedetectV.v">edgedetectV.v</a></li>
-          <li><a href="code/intensityCalc.v">intensityCalc.v</a></li>
-          <li><a href="code/newPress.v">newPress.v</a></li>
-          <li><a href="code/TimeAverager.v">TimeAverager.v</a></li>
-          <li><a href="code/VGA_Ctrl.v">VGA_Ctrl.v</a></li>
-          <li><a href="code/DE2_TV.sof">.sof program file</a></li></ul>
-          
-          <p>HSL code</p>
-          <ul><li><a href="hsl/HSLtoRGB.v">HSLtoRGB.v</a></li>
-          <li><a href="hsl/RGB_HueSimplifier.v">RGB_HueSimplifier.v</a></li>
-          <li><a href="hsl/RGBtoHSL.v">RGBtoHSL.v</a></li>
-          <li><a href="hsl/ufpDiv.v">ufpDiv.v</a></li>
-          <li><a href="hsl/ufpMult.v">ufpMult.v</a></li>
-          <li><a href="hsl/ColorSimplify.m">ColorSimplify.m</a></li>
-          <li><a href="hsl/hsl2rgb.m">hsl2rgb.m</a></li>
-          <li><a href="hsl/rgb_hslSimplify_rgb.m">rgb_hslSimplify_rgb.m</a></li>
-          <li><a href="hsl/rgb2hsl.m">rgb2hsl.m</a></li></ul>
-          
+          <p>Note: The entire project is downloadable and hosted on bitbucket <a href="https://bitbucket.org/jsw267/ece5760_final_project">here</a>. Also please note that several Verilog files group together multiple related modules. For example, trig_functions.v contains a floating point multiply, arctan LUT, sine LUT, cosine LUT, and divison LUT. </p>
+          <p>Final Hardware Verilog Files</p>
+          <ul>
+          	<li><a href="code/boundary_select.v">boundary_select.v (Image Transformation)</a></li>
+          	<li><a href="code/color_detect.v">color_detect.v</a></li>
+          	<li><a href="code/color_history.v">color_history.v</a></li>
+          	<li><a href="code/DE2_115_TV.v">DE2_115_TV.v</a></li>
+          	<li><a href="code/delay.v">delay.v</a></li>
+          	<li><a href="code/fsm.v">fsm.v (corner follower)</a></li>
+          	<li><a href="code/harris_corner_detect.v">harris_corner_detect.v</a></li>
+          	<li><a href="code/median_filter.v">median_filter.v</a></li>
+          	<li><a href="code/trig_functions.v">trig_functions.v</a></li>
+          	<li><a href="code/VGA_Ctrl.v">VGA_Ctrl.v</a></li>
+          	<br>
+         		<li><a href="code/DE2_115_TV.sof">.sof program file</a></li></ul>
+         		
+          <p> Software Scripts</p>
+          <ul>
+          <li><a href="code/create_mif.m">create_mif.m</a></li> 
+          <li><a href="code/generate_lut.py">generate_lut.py</a></li>
+          </ul>
           <h5><a href="index.html#top">[top]</a></h5>
           <hr />
            
@@ -373,11 +370,25 @@
           
           <h5><a href="index.html#top">[top]</a></h5>
           <hr />
+
+  <!--####About the Author#######################################################################################-->          
+          <h2 id="jump_author">About the Author</h2>
+          <table> <tr>
+          <td> <img width="95%" src="images/author.jpg" /></td>
+          <td> <p> Julie Wang is a senior in Electrical in Computer Engineering at Cornell University graduating in Spring  2014. She is interested in FPGA design, embedded systems, signal processing, and programming. In her spare time she enjoys running and hiking. <br>
+          You can find her LinkedIn profile <a href="http://www.linkedin.com/pub/julie-wang/21/874/663">here</a></p></td>
+          </tr></table>
+          <p> 
+         
+          
+          <h5><a href="index.html#top">[top]</a></h5>
+          <hr />
           
   <!--####SPECIAL THANKS###################################################################################-->
 		  <h2 id="jump_thanks">Special Thanks</h2>
           <p>This template was directly taken from the ECE 5760 Video Realtime Cartoonifier project created by Jeff Yates, Tom Gowing, and Kerran Flanagan.</p>
-          <p>I would like to thank Altera and Terasic for donating the DE2 FPGA boards to Cornell University as well for providing extensive example code. I would also like to thank Professor Tsuhan Chen, who teaches Digital Signal Processing at Cornell, for advising me on median filtering and time averaging. I'd also like to thank Saugata Ghose, who would frequently sit down and chat with me about my project, and gave me good pointers towards additional background material. I would also like to thank my Teaching Assistants Scott McKenzie and Miles Pedrone, who assisted in brainstorming and debugging. Last and certainly not least, I'd like to thank my instructor, Bruce Land. Bruce has been an invaluable help in everything from lecture, to debugging, to just decompressing in lab. It has been truly a pleasure working with him for my entire senior year at Cornell University.</p>
+          <p>I would like to thank Altera and Terasic for donating the DE2 FPGA boards to Cornell University as well for providing extensive example code. I would also like to thank Professor Tsuhan Chen, who teaches Digital Signal Processing at Cornell, for advising me on median filtering and time averaging. I'd also like to thank Saugata Ghose, who would frequently sit down and chat with me about my project, and gave me good pointers towards additional background material. I would also like to thank my Teaching Assistants Scott McKenzie and Miles Pedrone, who assisted in brainstorming and debugging.</p> 
+          <p>Last and certainly not least, I'd like to thank my instructor, Bruce Land. Bruce has been an invaluable help in everything from lecture, to debugging, to just decompressing in lab. It has been truly a pleasure working with him for my entire senior year at Cornell University.</p>
           
         </div> <!--end innertube-->
 	  </div> <!--end content column-->
@@ -401,6 +412,7 @@
             <li><a href="index.html#jump_appx_tasks">D: Task Breakdown</a></li>   
           </ul>
         <h3><a href="index.html#jump_references">References</a></h3>
+        <h3><a href="index.html#jump_author">About the Author</a></h3>
         <h3><a href="index.html#jump_thanks">Special Thanks</a></h3>
         
         

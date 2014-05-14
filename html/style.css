@@ -24,14 +24,14 @@ a:hover{
 }
 
 table{
-	border: 1px solid #222;
+	border: none;
 	border-collapse: collapse;
 }
 
 
 td{
 	text-align: left;
-	border: 1px solid #222;
+	padding: 0;
 
 }
 
@@ -62,7 +62,7 @@ p{
 #contentcolumn{
 	margin-left: 180px; 
 	background: #f0eee4;
-	height: 10200px;
+	height: 12200px;
 	border-left: 1px solid #222;
 }
 
@@ -74,7 +74,7 @@ p{
 #leftcolumn{
 	float: left;
 	width: 180px;
-	height:	10200px;
+	height:	12200px;
 	margin-left: -840px;
 	background: #d9d9ce;
 }
