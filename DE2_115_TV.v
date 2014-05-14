@@ -922,6 +922,48 @@ median_filter_corner #(
 
 );
 
+wire [10:0] VGA_X_d15, VGA_Y_d15;
+delay #( .DATA_WIDTH(22), .DELAY(15) ) delay_xy
+(
+	.clk 			(VGA_CLK), 
+	.data_in 		({VGA_X_d0, VGA_Y_d0}), 
+	.data_out 		({VGA_X_d15, VGA_Y_d15})
+);
+
+wire draw_image;
+wire [7:0] image_R_d20, image_G_d20, image_B_d20;
+wire unsigned [10:0] draw_start_d20 [0:1];
+wire unsigned [10:0] draw_end_d20   [0:1]; 
+boundary_select bounds(
+	//inputs
+	.clk 			(VGA_CLK), 
+	.reset 			(reset), 
+	.SW 			(18'd0),
+	.clocktower     (SW[15]),
+	.VGA_X      	(VGA_X_d15), 
+	.VGA_Y 			(VGA_Y_d15), 
+	.top_left_x 	(top_left_fsm_d7[x]),
+	.top_left_y 	(top_left_fsm_d7[y]),
+	.top_right_x 	(top_right_fsm_d7[x]),
+	.top_right_y 	(top_right_fsm_d7[y]),
+	.bot_left_x 	(bot_left_fsm_d7[x]),
+	.bot_left_y 	(bot_left_fsm_d7[y]),
+	.bot_right_x 	(bot_right_fsm_d7[x]),
+	.bot_right_y 	(bot_right_fsm_d7[y]),
+	//outputs
+	.draw_image  	(draw_image), 
+	.image_R 		(image_R_d20),
+	.image_G 		(image_G_d20),
+	.image_B 		(image_B_d20),
+	.draw_start_x   (draw_start_d20[x]), 
+	.draw_start_y   (draw_start_d20[y]), 
+	.draw_end_x		(draw_end_d20[x]), 
+	.draw_end_y 	(draw_end_d20[y]), 
+	.theta		    (), 
+	.scale          ()
+);
+
+
 always @ (*) begin
 	case (SW[2:0])
 		//Nice Final product
@@ -1104,46 +1146,6 @@ I2C_AV_Config 	u1	(	//	Host Side
 						.I2C_SDAT(I2C_SDAT)	);	
 
 
-wire [10:0] VGA_X_d15, VGA_Y_d15;
-delay #( .DATA_WIDTH(22), .DELAY(15) ) delay_xy
-(
-	.clk 			(VGA_CLK), 
-	.data_in 		({VGA_X_d0, VGA_Y_d0}), 
-	.data_out 		({VGA_X_d15, VGA_Y_d15})
-);
-
-wire draw_image;
-wire [7:0] image_R_d20, image_G_d20, image_B_d20;
-wire unsigned [10:0] draw_start_d20 [0:1];
-wire unsigned [10:0] draw_end_d20   [0:1]; 
-boundary_select bounds(
-	//inputs
-	.clk 			(VGA_CLK), 
-	.reset 			(reset), 
-	.SW 			(18'd0),
-	.clocktower     (SW[15]),
-	.VGA_X      	(VGA_X_d15), 
-	.VGA_Y 			(VGA_Y_d15), 
-	.top_left_x 	(top_left_fsm_d7[x]),
-	.top_left_y 	(top_left_fsm_d7[y]),
-	.top_right_x 	(top_right_fsm_d7[x]),
-	.top_right_y 	(top_right_fsm_d7[y]),
-	.bot_left_x 	(bot_left_fsm_d7[x]),
-	.bot_left_y 	(bot_left_fsm_d7[y]),
-	.bot_right_x 	(bot_right_fsm_d7[x]),
-	.bot_right_y 	(bot_right_fsm_d7[y]),
-	//outputs
-	.draw_image  	(draw_image), 
-	.image_R 		(image_R_d20),
-	.image_G 		(image_G_d20),
-	.image_B 		(image_B_d20),
-	.draw_start_x   (draw_start_d20[x]), 
-	.draw_start_y   (draw_start_d20[y]), 
-	.draw_end_x		(draw_end_d20[x]), 
-	.draw_end_y 	(draw_end_d20[y]), 
-	.theta		    (), 
-	.scale          ()
-);
 
 endmodule
 
