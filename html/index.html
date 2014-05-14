@@ -15,7 +15,7 @@
   <div id="main">
 
 <!--BANNER#################################################################################################-->
-    <!-- <div id="top"><img width="100%" src="images/banner.jpg" /></div>  -->
+    <div id="top"><img width="100%" src="images/banner.jpg" /></div> 
     <!-- todo -->
     
 <!--CONTENT RIGHT COLUMN###################################################################################-->    
@@ -38,63 +38,63 @@
   <!--####HIGH LEVEL DESIGN################################################################################-->
 		  <h2 id="jump_high_level">High Level Design</h2>
           
-         <p><strong>Rationale and Inspiration:</strong><br />
-		 The inspiration for the project came from a Kenyan elections campaign that utilizes augmented reality. The potential voter receives a postcard with a static picture of a flag. When a smartphone camera is pointed at the postcard, the flag animates and plays the national anthem. A link to the video is included in the Appendix.  Having taken a Computer Vision course in the fall and being currently enrolled in a course on Digital Signal Processing, I immediately seized upon this idea. I decided to tailor it to Cornell’s School of Electrical and Computer Engineering, and instead of playing a video on the VGA monitor, display a scalable, 3-D like replica of the Cornell clocktower as well as the instructor of ECE 5760, Bruce Land.
-		</p>
+      <p><strong>Rationale and Inspiration:</strong><br />
+		  The inspiration for the project came from a Kenyan elections campaign that utilizes augmented reality. The potential voter receives a postcard with a static picture of a flag. When a smartphone camera is pointed at the postcard, the flag animates and plays the national anthem. A link to the video is included in the Appendix.  Having taken a Computer Vision course in the fall and being currently enrolled in a course on Digital Signal Processing, I immediately seized upon this idea. I decided to tailor it to Cornell’s School of Electrical and Computer Engineering, and instead of playing a video on the VGA monitor, display a scalable, 3-D like replica of the Cornell clocktower as well as the instructor of ECE 5760, Bruce Land.
+		  </p>
 
-		<p><strong>Background Math:</strong><br />
+			<p><strong>Background Math:</strong><br />
 			There are multiple mathematical and computer vision concepts implemented in this project. The big ones are as follows:
-		</p>
-		  	<ul>
+			</p>
+		  <ul>
 		  	<li>Color Detection based on YCbCr Space</li>
-			<li>Median Filtering over space</li>
-			<li>Median Filtering over time</li>
-			<li>Sobel Edge Detection</li>
-			<li>Harris Corner Detection</li>
-			<li>Corner Tracking</li>
-			<li>Image Transformations, Inverse Warping</li>
-			<li>Bubble Sort</li>
+				<li>Median Filtering over space</li>
+				<li>Median Filtering over time</li>
+				<li>Sobel Edge Detection</li>
+				<li>Harris Corner Detection</li>
+				<li>Corner Tracking</li>
+				<li>Image Transformations, Inverse Warping</li>
+				<li>Bubble Sort</li>
 			</ul>
 		 
-
 		  <p>Color can be represented in a variety of formats. Probably the most common is RGB space, where the red, green, and blue components determine the color of a single pixel. However, RGB color schemes are highly sensitive to changes in lighting. In order to make my system more robust in detecting green, I utilize the YCbCr color space, which is a family of color spaces that separate the luma component, or the light intensity, from the hue component. By using YCbCr space, I am able to always detect the green hue regardless to changes in lighting.</p>
 
-		  <!-- TODO diagram spaces -->
+		  <a href="images/RGB_YCbCr.jpg"><img width="75%" src="images/RGB_YCbCr.jpg" /></a>
 
-		  <p>Median filtering is exactly what its name implies - a filter takes the median value over a 1-D or 2-D space. The advantage of median filtering is that it throws away outliers while still preserving edges. This differs from a Gaussian smoothing functions, which dilute edges and make all transitions more gradual. A 1-D, n-wide median filter can remove up to floor(n/2) bits of noise.  I perform median filtering over space, in other words on the green pixels detected by my system. This allows me to smooth edges and remove small pixel jags that may be present. I also median filter over time on detected corners. Doing so prevents large jumps and noisy data coming from the corner detection module. The detected corners of the green square move smoothly without a significant delay. Each detected green pixel is also median filtered over time. This ensures that only pixels that are consistently green are factored into corner calculations. A diagram of how 1-D and 2-D filtering operate on a signal is included below.</p>
-
-		  <!-- TODO median filtering -->
+		  <p>Median filtering is exactly what its name implies - a filter takes the median value over a 1-D or 2-D space. The advantage of median filtering is that it throws away outliers while still preserving edges. This differs from a Gaussian smoothing functions, which dilute edges and make all transitions more gradual. A 1-D, n-wide median filter can remove up to floor(n/2) bits of noise.  I perform median filtering over space, in other words on the green pixels detected by my system. This allows me to smooth edges and remove small pixel jags that may be present. I also median filter over time on detected corners. Doing so prevents large jumps and noisy data coming from the corner detection module. The detected corners of the green square move smoothly without a significant delay. Each detected green pixel is also median filtered over time. This ensures that only pixels that are consistently green are factored into corner calculations.</p>
 
 		  <p> Sobel Edge Detection and Harris Corner Detection are two Computer Vision Algorithms used to extract features from an image. While my final system does not utilize Harris Corner Detection, I fully implemented and tested this algorithm. The algorithm is as follows:</p>
-		<ol>
-			<li>Use an nxn Sobel filter to get the x-gradient and y-gradient from the image</li>
-			<li>For a window of size wxw, calculate the following matrix (insert Ix, Iy, IxIy):
-					<!-- TODO Ix Iy IxIy matrics -->
-			Optionally weight the values of Ix and Iy by the distance of that pixel from the center pixel of the window</li>
-			<li>Calculate the determinant and trace of the matrix, and use that to calculate c, the corner strength feature formula corner strength</li>
-			<li>For all values of c above a certain threshold, mark that pixel as a corner</li>
-		</ol>
+			<ol>
+				<li>Use an nxn Sobel filter to get the x-gradient and y-gradient from the image</li>
+				<li>For a window of size wxw, calculate the following Harris matrix: 
+				<a href="images/harris_matrix.jpg"><img width="40%" src="images/harris_matrix.jpg" /></a>
+				Optionally weight the values of Ix and Iy by the distance of that pixel from the center pixel of the window</li>
+				<li>Calculate the determinant and trace of the matrix, and use that to calculate c, the corner strength feature formula corner strength: 
+				<a href="images/harris_corner_strength.jpg"><img width="40%" src="images/harris_corner_strength.jpg" /></a>
+				</li>
+				<li>For all values of c above a certain threshold, mark that pixel as a corner</li>
+			</ol>
 
-		<p>Tracking the corners of a square in 3-D space falls underneath the larger problem of resolving motion ambiguities, a difficult task. The mathematical approach to resolving motion ambiguity is to use coupled Markov random fields that estimate uncertainty on a local area. These estimates are then used to determine which direction the object rotated. However, this is a rather complicated algorithm involving a lot of divisions, a difficult task on an FPGA. So I opted to create my own algorithm to track the corners of the rotating square. This algorithm will be discussed in detail in the Hardware Design Section.</p>
-		<p>Image transformations are operations that can translate, rotate, skew, scale, shear, or project an image in 2D space. Normally the transformation is represented in one or several matrices, and these matrices are convolved over the entire image.  There are two ways to get from a pixel’s original location in an image to its new location. The first method is forward warping. In this method, every point in the original image is transformed and “sent” to its new location.   However, this mode of warping can result in holes and splattering. The better approach is to perform inverse warping.  This algorithm goes through every pixel in the new, transformed image, undoes the transformation, and figures out which original pixel to grab.  If the original pixel happens to fall between two pixels, simply interpolate the source image. My system implements inverse warping on translation, rotation, and scale operations in order to redraw the superimposed image on to the VGA display.</p>
+			<p>Tracking the corners of a square in 3-D space falls underneath the larger problem of resolving motion ambiguities, a difficult task. The mathematical approach to resolving motion ambiguity is to use coupled Markov random fields that estimate uncertainty on a local area. These estimates are then used to determine which direction the object rotated. However, this is a rather complicated algorithm involving a lot of divisions, a difficult task on an FPGA. So I opted to create my own algorithm to track the corners of the rotating square. This algorithm will be discussed in detail in the Hardware Design Section.</p>
+		
+			<p>Image transformations are operations that can translate, rotate, skew, scale, shear, or project an image in 2D space. Normally the transformation is represented in one or several matrices, and these matrices are convolved over the entire image.  There are two ways to get from a pixel’s original location in an image to its new location. The first method is forward warping. In this method, every point in the original image is transformed and “sent” to its new location.   However, this mode of warping can result in holes and splattering. The better approach is to perform inverse warping.  This algorithm goes through every pixel in the new, transformed image, undoes the transformation, and figures out which original pixel to grab.  If the original pixel happens to fall between two pixels, simply interpolate the source image. My system implements inverse warping on translation, rotation, and scale operations in order to redraw the superimposed image on to the VGA display.</p>
 
-		<!-- TODO inverse and forward warping -->
-		<p>Bubble sort is the simplest sorting algorithm. It repeatedly steps through a list of items to be sorted and swaps items if they are out of order. The algorithm continues stepping through the list until all entries are sorted. Bubble sort, while simple, is inefficient, achieving at worst O(n^2) performance. I have implemented Bubble Sort as a Verilog task that can be called repeatedly by different portions of a module.</p>
+			<a href="images/warping.jpg"><img width="75%" src="images/warping.jpg" /></a>
+		
+			<p>Bubble sort is the simplest sorting algorithm. It repeatedly steps through a list of items to be sorted and swaps items if they are out of order. The algorithm continues stepping through the list until all entries are sorted. Bubble sort, while simple, is inefficient, achieving at worst O(n^2) performance. I have implemented Bubble Sort as a Verilog task that can be called repeatedly by different portions of a module.</p>
 
 		  <p><strong>Logical Structure:</strong><br />
-         The DE2-115 board receives a video feed in NTSC standard video format from a digital camcorder.  The DE2-115 saves the incoming pixel information to an on-board SDRAM and later converts the video feed into YCbCr and RGB formats. Then, a VGA controller takes the RGB information and generates the appropriate VGA control signals.  In order to manipulate the data to the VGA screen, I intercept the pixel color data and VGA control signals coming out of the VGA controller and put them through a 20 VGA clock delay buffer. At the same time, my system utilizes the color information and several VGA control signals to come up with the new image to be superimposed on the original video feed. Thus, at the end of 20 clock cycles, mux’s decide whether the original VGA pixels from the video input are used or whether pixels generated by my system during that 20 cycle delay should be displayed on the VGA screen. By using this buffering system, I am able to manipulate the image on the VGA screen in real time. There is technically a slight lag between the real world and what’s displayed on the VGA screen, but it is so small that it is not noticeable by the user. A logical overview of the system is included below:
-		</p>
+      The DE2-115 board receives a video feed in NTSC standard video format from a digital camcorder.  The DE2-115 saves the incoming pixel information to an on-board SDRAM and later converts the video feed into YCbCr and RGB formats. Then, a VGA controller takes the RGB information and generates the appropriate VGA control signals.  In order to manipulate the data to the VGA screen, I intercept the pixel color data and VGA control signals coming out of the VGA controller and put them through a 20 VGA clock delay buffer. At the same time, my system utilizes the color information and several VGA control signals to come up with the new image to be superimposed on the original video feed. Thus, at the end of 20 clock cycles, mux’s decide whether the original VGA pixels from the video input are used or whether pixels generated by my system during that 20 cycle delay should be displayed on the VGA screen. By using this buffering system, I am able to manipulate the image on the VGA screen in real time. There is technically a slight lag between the real world and what’s displayed on the VGA screen, but it is so small that it is not noticeable by the user. A logical overview of the system is included below:
+			</p>
 
-          <a href="images/logical.jpg"><img width="75%" src="images/logical.jpg" /></a>
+      <a href="images/logical.jpg"><img width="100%" src="images/logical.jpg" /></a>
 
 		  <p><strong>Hardware/Software Tradeoffs:</strong><br />
-		  There is no software in this design; all functionality is implemented using full custom Verilog hardware. I chose to stick with full custom hardware because I have finer grained control over resource utilization. Additionally, had I chosen to use a Nios II system, there the potential for severe bus contention on the Avalon switch fabric since so many modules are attempting to communicate with each other.
-		</p>
+		  There is no software in this design; all functionality is implemented using full custom Verilog hardware. I chose to stick with full custom hardware because I have finer grained control over resource utilization. Additionally, had I chosen to use a Nios II system, there the potential for severe bus contention on the Avalon switch fabric since so many modules are attempting to communicate with each other. </p>
 		  
 		  <p>In hardware, there are several tradeoffs between speed, space, and accuracy. When median filtering over time, i.e. over VGA frames, using more frames leads to a cleaner edge. However, to store more history, more SRAM must be used, and there is a longer lag effect on the screen. To address this tradeoff, I allow the user to choose anywhere from 0 - 4 frames for the time averaging threshold.</p>
 		  
 		  <p>When median filtering over time on the corners, the longer the filter the more outliers you can remove. However, there is limited storage in SRAM, and the more history you keep, the more SRAM you use. I found that median filtering over 11 frames created smooth corner tracking without hogging a lot of SRAM space.
-		</p>
+			</p>
 		  
 		  <p>Finally, when median filtering over space I use a 5x5 median filter. Again, a larger filter removes more outliers, but also requires buffering more of the incoming VGA pixels.  I found that 5x5 median filtering removes a lot of green pixel noise while keeping the RAM utilization reasonable.</p>
 		
@@ -102,136 +102,176 @@
 
 		  <p><strong>Relationship of design to standards:</strong><br />
 		  My design requires the video signal to be in NTSC video standard form. The data is output as a VGA signal. Thus, television and computer display standards are at play. These standards are implemented using IP cores from Altera that are included in the DE2_115_TV example.</p>
+		  
 		  <p>There are numerous patents held by companies regarding augmented reality systems. However, I did not reference any of these patents nor do I plan on patenting this invention, so I will spare you and myself a detailed patent search.</p>
 
-          <h5><a href="index.html#top">[top]</a></h5>
-          <hr />
+      <h5><a href="index.html#top">[top]</a></h5>
+      <hr />
  
   <!--####HARDWARE DESIGN##################################################################################-->
-          <h2 id="jump_hardware">Hardware Design</h2>
+      <h2 id="jump_hardware">Hardware Design</h2>
           
-          <p><strong>Overview</strong><br />
-       		The hardware in this design must accomplish a series of tasks in order to make this project work.  The steps are as follows:</p> 
+      <p><strong>Overview:</strong><br />
+      The hardware in this design must accomplish a series of tasks in order to make this project work.  The steps are as follows:</p> 
+       	<ol>
+       		<li>Interpret an NTSC video input from the video camera</li>
+					<li>Reliably detect the green sheet of paper with little noise on the edges of the paper</li>
+					<li>Follow the corners of the green sheet of paper in order to detect the paper’s orientation in 3-D space</li>
+					<li>Read out the clocktower or Bruce image from ROM</li>
+					<li>Transform the image according to the orientation of the green sheet of paper</li>
+					<li>Output the augmented video feed to the VGA screen</li>
+       	</ol>
 
-		  <p>This module, while originally designed in registers, was optimized to M4K blocks by the compiler.  This makes its operation slightly slower, but otherwise we would not have enough registers for the entirety of our project.</p>
+		  <p><strong>Top Level Module:</strong><br />
+		 	The top level module in this design is based off of the Altera DE2-115 TV example provided as a part of the University Program Examples. Within the top level, there are various components written and instantiated by Altera that deal with translating the TV Decoder signal into the necessary control and data signals for a VGA controller. For more details on Altera’s implementation, please refer to the Altera Media Computer System guide linked in the Resources section.  My hardware sits between the TV Decoder blocks plus the VGA controller and the actual VGA monitor. All information meant for the VGA monitor is intercepted and either manipulated and delayed to the monitor or simply delayed by 20 VGA clock cycles. A block diagram of the overall system is included below.</p>
+
+		 	<a href="images/hw_block.jpg"><img width="75%" src="images/hw_block.jpg" /></a>
+
+		  <p><strong>VGA Controller: </strong><br />
+		 	The VGA Controller provided by Altera has several important signals that I utilize in my design. First, it always outputs the current (x,y) pixel coordinates on the VGA screen along with the RGB information for that pixel. I use these (x,y) coordinates when performing inverse warping to project a new image onto the screen. The VGA Controller also outputs VGA_VS, or a vertical sync, indicating a new 640x480 frame on the VGA display. I use this new frame signal to perform my time median filtering over frames as well as to make transitions in the state machine that implements the corner following algorithm.
+		  </p>
           
-          <a href="images/Buffer.jpg"><img width="50%" src="images/Buffer.jpg" /></a>
+		  <p><strong>Delay Unit:</strong><br />
+		  A tricky part of this design is ensuring that all VGA control and data signals arrive at the VGA controller at the same time. That means that I must keep track of, at all time, the latency from input to output for each of my modules. At the end, right before the VGA controller, every data and control signal must be delayed by exactly 20 clock cycles. In order to do this, I created a fully parameterizable delay unit. The user specifies the data width and the number of delay cycles, and the module instantiates the appropriate sized buffer to delay the signal by the specified amount. These delay units are seen throughout my design, and are meant to sync up all VGA signals going to the VGA controller. Twenty delay cycles was arbitrarily picked because it gives the system ample time to complete all of its operations. An optimization to the system would be to reduce this delay time to only the amount that is absolutely necessary.
+			</p>
 
-		  <p><strong>Intensity Calculator:</strong><br />
-		  The intensity calculator module is a simple hardware implementation of a weighted averaging between the different color channels of the pixel. The red, green, and blue values of the pixel in question are given to the intensity calculator during each cycle while the VGA is not blanking. We chose to weight the intensity of a pixel as 25% red value, 50% green, and 25% blue. We chose green to be greater than red and blue because the human eye is most sensitive to this color. The coefficients are chosen as powers of 2 so we can use shift and add operations instead of costly multiplications. We let the compiler optimize the addition and shift operations as necessary and register the result each cycle, which is then outputted to the edge detectors. We instantiated 9 intensity calculator modules in our final design to account for the block of 9 pixels that the edge detection algorithm requires.</p>
+		  <p><strong>Harris Corner Detector:</strong><br />
+		  The Harris Corner Detector in my system is fully implemented and tested, but was not used in my final design. This is because even with excellent corner detection, the issues of corner and motion ambiguity still exist. The system is no better off using Harris Corner Detection over simple x/y min/max corner detection. This will be discussed further in the corner tracking state machine section.</p>
 
-		  <p><strong>Edge Detectors:</strong><br />
-		  There are two distinct modules for edge detection, one that does the vertical edges, and one that does the horizontal edges.  The only difference between the two is which convolution filter it uses (described in Background Math), the rest of the execution is exactly the same.  The input grid of 9 pixels comes from the intensity calculator.  The module then convolves this grid of pixels with the filter, and does the necessary additions and subtractions.  This sum is then checked against a threshold.  We calculate two versions of the sum, since there is a possibility it will be negative.  We calculate the original sum and the negative of it, which guarantees that one of the two will be positive.  Then we check which one is positive, and check that value against the threshold.  This avoids some possibly disastrous complications, which include difficulty with sign on comparisons, or the need for two thresholds, 1 positive and 1 negative.</p>
-          
-          <p>The threshold for this module is variable, and can be set using the switches and a push button to register the new threshold value.  We originally had the threshold variable at 16 bits, but this was causing timing errors that resulted in smearing on the screen.  We reduced the threshold to only be a 10 bit number, which removed the timing issues.  The module outputs a 1 if the pixel is an edge, and a 0 if the pixel is not an edge.</p>
-
-		  <p><strong>Time Averager:</strong><br />
-		  We decided to average the pixel data both in time and space to reduce the noticeable flicker caused by color simplification. The module uses the on-board SRAM to store a history of past values of blocks of pixels to perform a weighted average on along with new incoming pixel data. The module is split into two components: an averager module that performs a combinational weighted average, and the hardware associated with SRAM communication.</p>
-
-		  <p>The averager module takes in the color information of the current pixel, the history for that pixel, and outputs the new value for the pixel to be saved in SRAM. We designed the averager to keep a running average of the last 4 frames worth of pixel data for each pixel in the raster. This means we want to add ¾ of the old value to ¼ of the new value to get the updated average. We chose to average 4 frames because it is a power of 2 and can be calculated using shift and add operations, thus avoiding costly multiplications. Instead of trying to calculate ¾ of the old value directly, we use (1 - ¼) times the old value. The final equation for the new average is:</p>
-		  <center>newAvg = oldAvg - oldAvg>>2 + newColor>>2.</center>
-		  <p>The averager module assumes that each color channel will have 5 bits of precision. This is determined by the word size of the SRAM, which is 16 bits. We have three 5 bit colors, which is 15 bits, and 1 unused bit that is stored in the SRAM. All three colors are averaged at the same time within the averager, and the value is outputted without registering.</p>
+		  <p>The Harris Corner Detector uses a ram shift buffer to buffer five full lines of the incoming VGA RGB data. The module then selects a 5x5 window from those full 5 lines. On the middle 3x3 pixels of that 5x5 window, I use a Sobel filter to calculate the x and y image gradients.  A Sobel filter is used because it approximates a Laplacian of a Gaussian. The LoG (Laplacian of a Gaussian) filter both smooths the image and takes the derivative in a single matrix operation.</p>
 		  
-		  <p>The time averager module is responsible for communicating with the SRAM and feeding its data to and from the averager module. To implement a 2x2 spatial averager, first we needed to change the addressing of the pixels by removing the least significant bit of the X and Y coordinates. This makes 4 adjacent pixels all reference the same location in SRAM. This reduces the total required SRAM and allows us to use a full word for pixel data instead of sharing 2 pixels per 16 bit word of SRAM as we have done in the past.</p>
+		  <p>Next, for each pixel in that 3x3 window I calculate Ix^2 and sum over that window, Iy^2 and sum, and Ix*Iy and sum. The next step is to calculate A, B, and C of the Harris matrix by using combinational additions.</p>
 		  
-		  <p>The SRAM takes a cycle to read and another to write, which is a problem if a new pixel is required each cycle. Luckily we are averaging 2 pixels at a time and adjacent horizontal pixels are requested one after another. This means we only need the history once for both the pixels together instead of both individually, which gives us 2 cycles per 2 pixel horizontal pair. We take advantage of this by reading the history for the two pixels in the first cycle and write the updated history for the two pixels in the second cycle. The history gets updated with both new pixel values for that 2 pixel block by using an intermediate history value that is stored in a register and not in SRAM.</p>
+		  <p>Finally, the trace and determinant are calculated to get the corner strength function. Note that the trace is scaled down in order to ensure that the final value of the corner strength function is greater than 0. This is because I am using integers in Verilog, not fixed or floating point numbers, so if the trace (which is in the denominator of the corner strength function) is too large, c will simply be 0. In practice I found that scaling down by a factor of 8 (.125) worked well.</p>
+
+          
+      <p><strong>Color History:</strong><br />
+		  In order to perform median filtering over time, previous frames must be stored. To minimize the amount of SRAM utilized, I chose to only store a ‘1’ if the pixel was previously determined to be green and ‘0’ if the pixel was not. Each pixel in the screen gets four bits of history, so the entire screen uses (4bits)*640*480 = 1200kB of SRAM. I utilize a dual ported SRAM to allow my system to simultaneously read history from the SRAM as well as update the history with new information.</p>
+			
+			<p>Upon reset, both ports are used to overwrite the SRAM with all 0’s. Afterwards, the read address is controlled by the VGA_X and VGA_Y coming out of the VGA controller and the write address and write data are controlled by the outputs of the color detection module.</p>
 		  
-		  <p>The current address requested is always sent to the SRAM address port with the LSB of X and Y coordinates removed. This makes the address the same during the first and second cycle of a pixel pair. The write enable for the SRAM is only set high in the second cycle, which is determined by the LSB of the X coordinate. There is a single data port to the SRAM that must be floating during the first cycle for reading, and set to the updated history value from the averager during the second cycle. The write enable to the SRAM can only be set high when the VGA controller is not “Blanking” because we only want to update the pixel history with valid data being requested by the VGA controller.</p>
-		  
-		  <p>The input to the averager module’s “old” port during the first cycle is the history data read from the SRAM. The input to the current colors are always the current color channels coming from the SDRAM requested by the VGA controller. The output of the averager is registered after the first cycle and used as the “old” input to the averager in the second cycle. The output during the second cycle is sent to the SRAM. This system uses both current adjacent pixel colors to update the average, while only needing to update the SRAM once. The output of the averager is also set as the output of the timeAverager module for each cycle. This is in a 5-5-5 RGB format.</p>
+		  <p>The SRAM takes two cycles to return data and the module outputs data on the rising edge of a clock. Thus, there is a three cycle clock delay from input to output of the color history unit. In order to keep the incoming and outgoing read addresses and data in sync with the rest of the system, I also delay and output the incoming read address. That way the (x,y) coordinates coming out of the color history unit correspond to the history that is output.</p>
+          
+		  <p><strong>Spatial Median Filter - Color:</strong><br />
+		 	The median filter on the VGA screen pixels seeks to smooth the detected edges of the green piece of paper in order to make corner tracking easier. First, the Cb, Cr information from the TV decoder modules is checked to see if it is below the thresholds for green in YCbCr space. If so, the value input to the median filter is ‘1’.  The median filter instantiates another ram shift buffer to buffer five full lines of VGA information about whether the pixel was green or not. I choose to buffer a single pixel (‘1’ if pixel green, ‘0’ if not green) rather than the full RGB or YCbCr information in order to minimize the amount of space used by the RAM shift register. From those five full lines the module picks out a 5x5 window. I created a Verilog function called COUNT that counts the total number of ‘1’s in that 5x5 window. If the number of green pixels is greater than 12, we know that the majority of pixels in that window are green, and the median filter outputs a ‘1’ for its decision.</p>
+		 	<p>Because I am using a 5x5 buffer and clocking the outputs, the median filter unit has a four clock cycle latency. This is reflected in the names of the outputs and the outputs’ corresponding delay units.</p>
 
-		  <p><strong>Muxing / Pipelining:</strong><br />
-		  Because we need to operate in real-time, we separate the computation into 2 pipelines for computation.  One pipeline is responsible for calculating the edges, while the other does the time averaging and color reduction.  For the edge detection pipe, the first stage is to run through the 3-line buffer.  For the color reduction pipe, the first stage is pipelining logic for the VGA signal inputs to the Time Averager.</p>
+		  <p><strong>Color Detection:</strong><br />
+      The color detection unit takes the current median color output from the color spatial median filter and the history of the past four frames for each pixel and decides whether or not that pixel will be declared green or not. It also counts the total number of pixels, per frame, that it has determined to be green. This count is used in the top level module to detect whether or not there is a green object in view of the camera. Finally, it also determines, per frame, the maximum and minimum x and y values of green pixels. These values are used by the corner tracking algorithm.</p>
 
-		  <p>For the color reduction pipeline, the stage 2 operation is the Time Averager.  For the edge detection pipeline, stage 2 is the intensity calculator.  Stage 3 is then the edge detectors, with the output of the two detectors being combined in an OR gate.  For the other pipeline, stage 3 is the 3-line buffer.  This is important because we must ensure that both pipes have the same amount of delay, so that the edges line up with the color image.  Stage 4 is where the two pipes are combined.  The user input masking logic is also here.  The muxing is done in three stages, first we choose between color or grayscale.  Next we choose the number of significant bits to use.  Finally we choose between the color/grayscale pixel, or a black pixel (edge).</p>
-          
-          <p><strong>VGA Controller Modifications:</strong><br />
-		  The VGA controller that Terasic kindly provides is defaulted to send a pixel request and receive the data from SRAM all in one cycle. Without any additional hardware this is a tight timing path to meet. In addition to this, we have to insert several pipeline stages and hardware modules to do our edge detection and color simplification. To make sure the VGA controller is receiving the data it thinks it is, we must send a request for the data a certain number of cycles early to allow for the delay through all the extra pipeline stages that we have added. We added 2 lines (minus 1 pixel) of pixel delay for the shift registers, 1 cycle for the intensity calculation, 1 cycle for the edge detection, and 1 cycle for the MUXing, which totals 2 vertical lines and 2 horizontal pixels worth of delay.</p>
-		  
-		  <p>Within the VGA Controller we added H_DLY and V_DLY parameters to add in these pixel delays. They cause the controller to start sending its stream of pixel requests before the end of the HSYNC by the delay amount specified. This means we actually start requesting pixels during the horizontal sync so the data arrives by the time the rest of the controller expects it.</p>
-          
-		  <p><strong>RGB to HSL and Back:</strong><br />
-		  In order to do hue simplification to cartoonify our image, we had to first map our RGB input into HSL space. This proved much easier in theory than in practice. We found that there is basically one way to do it, although one can change the ranges used to represent values to adjust the algorithm to different environments. Our algorithm is based on the formulas listed <a href="http://130.113.54.154/~monger/hsl-rgb.html">here</a>, which are taken from Fundamentals of Interactive Computer Graphics by Foley and van Dam (c 1982, Addison-Wesley), Chapter 17. These for the most part keep values in the range of 0 to 1. However, at some points in the formula temporary values exceed 1. Also, it maps hue to 0 to 6, since it is important for hue to be divisible by 3. On top of the weird numbers, converting RGB to HSL involves several divides, and converting back involves several multiplies. The formulas given also use negative temporary values sometimes. This makes for a difficult choice of hardware implementation.</p>
+      <p>The color detection unit takes an input from the switch to determine the time threshold. If the current median color is green and the number of past greens for this pixel is above the threshold, then that pixel is declared to be green. Then, the module checks to see if the (x,y) coordinates of this green pixel are the x/y max or min for this frame. If so it updates the appropriate x/y min/max.  Every new frame, as indicated by the VGA Vsync signal, the xmin, xmax, ymin, and ymax are reset and the min/max detection starts anew.</p>
 
-          <p>Difficult yes, impossible, no. We settled on doing all the math in 1.8 fixed point with occasional flags for negatives as needed. 1.8 fixed point meant we had 8 bits for the range 0 to 1 where most of the action happens and had a carry bit for where it was needed for temporary values. 1.8 fixed point also fits nicely into the 9 bit multipliers. This solves all the issues except hue, with the formulas going up to 6 in value and mandating divisibility by 3. To get around this, we stored our hue value as 1.8 fixed point with a maximum of 0.11000000 (3/4ths, or 192 as an integer). By sacrificing 1/4th of our range, we gained the divisibility by 3 needed for mapping 3 colors to one hue value and then the 1 hue back to 3 colors. See RGBtoHSL.v and HSLtoRGB.v for verilog source code.</p>
-          
-          <p>1.8 unsigned fixed point multiplication means one keeps bits 16:8 out of the 17:0 hardware “*” result. For division, first shift the quotient left 8. Then divide. Then keep bits 8:0 out of the 17:0 hardware “/” result. As a sanity check, this means dividing by 1.00000000 will give the same result - hardware division is integer division so dividing by 1.00000000 means shifting right 8.</p>
-          
-          <p>See ufpMult.v and ufpDiv.v for verilog source code.</p>
+      <p><strong>Corner Tracking State Machine:</strong><br />Tracking the corners of a piece of paper and resolving motion ambiguity is one of the most challenging aspects of this project. I designed, tested, and discarded many different algorithms in the development of the final corner tracking state machine.  The basic algorithm is to call the pixel with the minimum x value the top left, the pixel with the minimum y value the top right, the pixel with the maximum x value the bottom left, and the pixel with the maximum y the bottom right.</p>
+      <p>However, this naming scheme does not work when the rectangular or square piece of green paper has edges that are horizontal or vertical (or nearly so) to the VGA screen borders. Additionally, this naming scheme can’t follow a corner as it rotates. For example, as soon as the top left pixel, which was at first called so because it was the pixel with the minimum x value, rotates enough that it is no longer the pixel with the minimum x value, a different corner is named the new top left pixel, and the old top left pixel is renamed to be something else. In the case of clockwise rotation, it is re-evaluated to be the top right pixel.</p>
+      <p>In order to address the issue of horizontal and vertical edges, I count the number of pixels encountered along the x/y min and max. I store the values of the start and the end of each segment that falls along the x-min, x-max, y-min, and y-max. For example, along the minimum x pixel, I store (xmin, y local min) and (xmin, y local max).  If the count along either xmin or xmax exceeds a certain threshold, then I determine that I am in the special horizontal state. If the count along ymin or ymax exceeds a threshold, I am in the special vertical alignment case. If both x and y thresholds are exceeded, then the piece of paper is parallel to the camera’s plane of view and I’m in a special alignment case. If no thresholds are exceeded I can use my original, simple corner naming scheme. The counts and these maximums and minimums are reset every VGA frame, as determined by the Vsync signal.</p>
+      <p>The threshold must be carefully calibrated so that even at different scales, i.e. holding the green piece of paper closer or farther from the camera, the threshold reliably determines whether I am actually holding the paper in a special case.</p>
+      <p>here is also the issue of unsmooth green pixels detected along the edges of the paper. Despite all of the time and spatial median averaging, there are still unsmooth edges. Thus, simply counting the pixels along the x/y max/min won’t accurately reflect how aligned the piece of paper is with the borders of the VGA screen. To solve this, I create a variable max/min offset. For every VGA frame, I count the number of pixels encountered along an offset from the x/y min/max. For example, rather than counting all of the pixels that are horizontal with the minimum y pixel, I instead count all of the pixels that are horizontal with the (ymin + offset) pixel. That way I can avoid the “jaggy edges” of the actual green paper boundary.</p>
+      <p>Having detected a horizontal, vertical, or horizontal and vertical alignment case, I now select my corners differently. Each of the newly determined corners is described in the table below.</p>
 
-		  <p><strong>Lookup Table for Hue Simplification:</strong><br />
-          Unfortunately, even the correctly implemented RGB to HSL conversion formulas left some ugly artifacts due to the loss of precision and finicky edge cases. However, since we had RGB input and needed an RGB result, there was no explicit need to deal with HSL in hardware. Therefore, we created a hue simplification module that just used a lookup table that mapped RGB input to RGB output. The table sized we settled on was 3 bits per color, so total size was 2^9 or 512 entries. We tried 4 bits per color, but 2^12 meant 4096 entries which was too slow in hardware. See the software section for how we populated the table entries. The verilog code is in RGB_HueSimplifier.v</p>
-          
+      <a href="images/corner_assignment.jpg"><img width="75%" src="images/corner_assignment.jpg" /></a>
+
+      <p>There is also the issue of tracking a corner as it rotates. I attempt to solve this problem by assuming that no one corner will rotate more than 45 degrees each VGA screen. My algorithm is as follows.</p>
+      <ol>
+      	<li> Detect the current corners using the methods described below.</li>
+      	<li> Determine which of the old corners is closest to the currently detected top left corner.</li>
+      	<li> Reassign corners based on which of the old corners is closest.</li>
+      </ol>
+      <p>For example, let’s say that through my corner naming scheme I call the pixel with the minimum x value the top left corner. However, this so called top left is actually closest to what used to the top right corner. Then I call my new so-called top left the top right corner, and rotate all other names accordingly (new “top right” -> bottom right, new “bottom right” -> bottom left, new “bottom left” -> top left).</p>
+      <p>In order to calculate the distance between points, I write a Verilog task that combinatorially adds and multiplies to calculate the distance between two points without the square root operation at the end. Square root operations are expensive in hardware, and since every distance is not being square rooted, they can all be compared without issue.</p>
+      <p>All of these calculations reside within a finite state machine. Upon reset, I enter a pre init state where I wait for the next falling edge of Vsync, which indicates a new VGA frame. This is so that I don’t accidentally miss out on information on the VGA screen because of an asynchronous reset.</p>
+      <p>Next I enter the init state. In this state, which the system is moving through the VGA screen, I keep track of (xmin, y local min), (xmin, y local max), (xmax, ylocal min), (xmax, y local max), (x local min, y min), (x local max, y min), (x local min, y max), and (x local max, y min). I also keep track of the counts at an offset from the x/y min/x points, as described above.  When I finish a screen while in the init state, I simply name a certain corner top left and the rest accordingly. I then enter the steady state (rotating).</p>
+      <p>In this state I do the same track as before with the x/y max/min’s and their corresponding counts. However, when assigning the names of the corners, I check first to see which corner from the previous VGA screen my so called “new top left” is closest to. Depending on that, I reassign the names of my corners. I stay in the steady state as long as there is no reset. The final state machine is as follows:</p>
+      <a href="images/corner_follower_fsm.jpg"><img width="75%" src="images/corner_follower_fsm.jpg" /></a>
+
+      <p><strong>Time Median Filter - Corners:</strong><br />The corner median filter over time takes the (x,y) coordinates of the four corners from the corner tracking state machine. It then stores 11 VGA frames’ worth of corner coordinates in shift registers. I implemented bubble sort in a task that sorts the 11 entries in each corner’s shift register and outputs the median value of the x or y coordinate. The median x and median y coordinate for each of the four corners is then output by the median filter every VGA frame. Since the outputs are buffered, the latency for this module is a single clock cycle.</p>
+
+      <p><strong>Image Transformation:</strong><br />Performing inverse mapping and rotations is another challenging part of this project. The steps are as follows:</p>
+      <ol>
+      	<li>Determine the beginning and end location to begin drawing from</li>
+      	<li> Determine scale and rotation (theta) based on beginning and end location</li>
+      	<li>For each (x,y) coordinate on screen, perform inverse mapping
+      		<ol>
+      			<li>Translate to origin based on draw start</li>
+      			<li>Rotate by theta</li>
+      			<li>Scale</li>
+      		</ol>
+      	</li>
+      	<li>Read out image data from ROM</li>
+      	<li>If the transformed on-screen pixel falls within the ROM boundaries, display the ROM image data rather than the original video data.</li>
+      </ol>
+      <p>For the first step, the module receives the time median filtered corner coordinates from the corner tracking module. It uses the top left and top right (x,y) coordinates as the draw start and draw end, respectively. It then calculates the distance between these two points using a Verilog task. Depending on the distance between the pixels, I empirically determine a scale.</p>
+      <p>Next, to find the overall angle between these two points, I first translate the draw start and draw end coordinates by draw start (x,y) in order to move my start to the origin. I then calculate the angle between them using arctan( (draw end y offsetted) / (draw end x offsetted)). In order to compute the arctan, y must be divided by x and result in a fixed or floating point number. However, divisions, both of integers and floating point numbers, are costly in hardware. They require complicated modules and possibly multiple clock cycles. To mitigate this cost, I implemented a clever arctan lookup table. I first use a lookup table to do the y/x division and output a value in fixed point representation. I then use the value of the division to reference an arctan lookup table.</p>
+      <p>The size of these two lookup tables can be drastically reduced in order to make the table fit in the available M9K memory blocks on the DE2-115 Board. First off, the arctangent, cosine, or sine functions are only unique for 0 - 90 degrees. For the other three quadrants it’s simply a matter of having the correct sign. So the arctan LUT size can be reduced by a factor of four.</p>
+      <p>Next, the arctan function approaches 90 degrees as y/x approaches one. Since I am using integers to represent my theta, once the arctan function returns 89 degrees I no longer have to do a division LUT lookup, I can just assume that the result of arctan is 89 degrees. Thus, the table size of the division LUT is reduced even further.</p>
+      <p>Finally, I know that the division of y/x only yields a theta value &#60;= 89 degrees if the result of the division is less than or equal to approximately 57.294. Any y/x combinations to the division lookup table that would result in a value larger than this doesn’t need to be computed, and the arctan result can be assumed to be 89 degrees. All of these optimizations allow me to use lookup tables to implement division, which allows me to achieve a division and arctangent operation within a single cycle.</p>
+      <p>Next I take each on-screen (x,y) coordinate as it arrives to the image transformation module and translate it by subtracting the draw start (x,y) from the appropriate x/y coordinate. I then rotate the coordinate by calculating x’ = cos(theta)*x - sine(theta)*x and y’ = sine(theta)*x + cos(theta)*y. The sine and cosine functions are also implemented as lookup tables. The optimization of reducing the table size by four due to symmetry across quadrants is implemented for both the sine and cosine LUT’s.</p>
+      <p>Finally, I scale the x/y coordinates using the scale I determined from the draw start and draw end functions. To avoid doing costly multiplies, I use bit shifts to either spread out or condense the various (x,y) coordinates.</p>
+      <p>The transformed on-screen coordinate is fed into two ROM’s. One of the ROM’s stores an image of the clocktower and another of Bruce Land. Depending on what the user has set a switch to, one of these sets of RGB values is output by the boundary select module. There is also a signal called draw image that indicates whether or not the transformed on screen coordinate falls within the ROM boundaries. If it does, then the top level module will use the ROM RGB pixel values. If draw_image is false, then the top level will simply draw the original pixel from the video input.</p>
+      <p>I wrote python scripts to generate all of the lookup tables. These scripts are included in the Appendix.</p>
+
+      <p><strong>Displaying the Final Product:</strong><br />
+      On the top level module three switches control what is displayed on the VGA screen. The first mode is to display the original video feed unless the draw image signal from the image transformation module is asserted. If so, the system displays either the RGB information from the clocktower ROM or the Bruce Land ROM, depending on what the user has selected using another switch.</p>
+      <p>One thing to note is that in order to get the unique shapes of Bruce or the clocktower to display on the screen (rather than just a rectangle), I edited the images so that the background was a specific RGB color. If the mux in the top level saw that the RGB color from the ROM was that particular shade, it would instead use the RGB data of the original pixel from the TV decoder.</p>
+      <p>Additionally, the top level checks if the total number of green pixels (as calculated by the color spatial median filter) in that frame exceeds a certain threshold. If it does, then displaying from ROM proceeds as usual. If it does not, then we assume that there is no green object in view of the camera, and nothing from ROM is overlaid on the VGA screen.</p>
+      <p>The next mode does the same things as the first mode, except it also displays markers for the top left and top right corners that are used to determine the translation, rotation, and scale of the image read from ROM.</p>
+      <p>The remaining modes are for demonstration purposes, and display things like the corners as they are detected and tracked over time, the regions of the image that are detected as green, and the results of median filtering over time and space.</p>
+      <p>All of these modes are possible because the original VGA RGB data coming out of the TV decode modules is delayed by 20 clock cycles. The VGA RGB data modified by my system is also arriving at the muxes exactly 20 clock cycles later. Thus, it is a simple matter to create a case statement that switches between what is actually displayed on the VGA screen.</p>
+
+      <p><strong>Code References:</strong><br />
+      I referenced the “Video Game Enhancer” ECE 5760 final project by Scott Warren and Adam Shih for implementation details of the RAM shift register and Sobel filter design.</p>
+      <p>I also referenced the “Real-time Cartoonifier” project by Jeff Yates, Tom Gowin, and Kerran Flanagan for their use of the YCbCr for color detection.</p>
+      <p>Finally, I referenced an MIT project called “Virtual Postcard” for their corner tracking algorithm. However, I ended up not using their algorithm and developed my own because theirs was complicated and did not work very well.</p>
           <h5><a href="index.html#top">[top]</a></h5>
           <hr />
  
   <!--####SOFTWARE DESIGN##################################################################################-->
-          <h2 id="jump_software">Software Design</h2>
+      <h2 id="jump_software">Software Design</h2>
           
-          <p><strong>Color Simplification Test Script (MATLAB): RGB, HSL, Edge Detect:</strong><br />
-          In order to quickly see the results of various color simplification schemes, we wrote a MATLAB function to simulate what our hardware would do. The script takes in an image, simplifies the colors, and outputs two images: one with edges highlighted and one without. Since the script ran in seconds and the simplification scheme was easy to adjust, this let us test out a lot more schemes than would’ve been possible by repeatedly changing them in hardware and waiting for the Verilog to compile.</p>
-          
-          <p>For color simplification in HSL space, we first used a 3rd party script to convert RGB values to HSL values. We then rounded each of the hue, saturation, and lightness values into some determined set of values. For example, if we specified 32 hues, hue was rounded to the nearest 1/31nd on a 0 to 1 scale - 31 was used since both 0 and 1 show up when rounding. We then used a 3rd party script to convert the HSL back to RGB.</p>
-          
-          <p>For color simplification in RGB space, we simulated the effect of simply dropping bits on the FPGA by using floor() to round values. Each of the red, green, and blue values was multiplied by 2^n, floor()’d, then divided by 2^n to effectively keep only the most significant n bits of the fixed point value that is used on the FPGA.</p>
-          
-          <p>Our edge detection in software was algorithmically identical to the edge detection used in hardware. Both use a Sobel edge detection filter. The major difference was in software we ran it by looping over a 3 pixel wide band of a static image, where as in hardware it handed a 3 pixel wide stream. The software code currently allows for the output of edges to be half as dark when an edge is only detected in one direction.</p>
-          
-          <p>See <a href="index.html#jump_appx_photos">Appendix A</a> for photos</p>
-          
-          <p><strong>HSL Simplification Lookup Table Generator (MATLAB):</strong><br />
-          During development we eventually decided using a lookup table for hue based simplification was better than doing the HSL to RGB conversion and back in hardware. Since we had the conversion working both ways in MATLAB, we utilized that and made a MATLAB script that generates a lookup table mapping RGB input values to RGB output values that have been simplified by rounding in HSL space. The script generates a list of all possible inputs (based on using 3 bits per color), converts them all into HSL values, rounds them according to some scheme, then converts them back to RGB and lists the output next to each respective input. We decided on a 9 bit lookup table because a 12 bit table was too slow and caused massive horizontal smearing in the output. However, this means our HSL simplification process is not only simplifying in hue space, it is simplifying in RGB space since it only has 3 bits per color of input and output for the table.</p>
-          
-          <h5><a href="index.html#top">[top]</a></h5>
-          <hr />
+      <p>No software was used in the actual system. However, I wrote several scripts to create the lookup tables for the integer to fixed point division, the arctan look up table, the sine lookup table, and the cosine lookup table. I also utilized the “create_mif.m” MATLAB script written by Scott Warren and Adam Shih for their ECE 5760 Final Project “Video Game Enhancer”. It was modified and used to generate the memory initialization files needed for the ROM’s that stored an image of the clocktower and of Bruce.</p>
+      <h5><a href="index.html#top">[top]</a></h5>
+      <hr />
  
   <!--####DEVELOPMENT PROCESS##############################################################################-->
-          <h2 id="jump_development">Development Process</h2>
-          <p><strong>General Hardware Design:</strong><br />
-          We started the project design with a few brainstorming sessions, at the end of which we had a block level diagram of what we thought the system would look like.  Our first step in the design was to get the 3-line buffer in, without any other modifications.  This involved tweaking the VGA controller to send addresses earlier than it needed them back, since the data was received significantly later.</p>
-          
-          <p>Once we had the buffer in, and outputting to the screen without any noticeable defects, we began to work on the edge detection.  We started by designing the filters, and setting up the system to display an all black background, with only white pixels where there were edges.  We used this video feedback to tune our threshold for the edge detection.  We wanted edges to be thick and this method allowed us to see the edges change as we changed the threshold.</p>
-          
-          <p>After implementing the edge detection scheme, we moved to working on the color reduction aspect of the lab.  This started by just reducing the number of bits we use in the color.  This produced a decent output, but we thought that by converting to hues we might be able to do better.  Kerran took the hue conversion aspect and ran with it, and the debugging for this specific aspect can be seen below.  During this time, we also realized that we had a major problem with flicker, which we chose to address by using time averaging.  We designed a time averager and dropped it in, and we also decided to stick with a simple RGB reduction for our output scheme.</p>
-          
-          <p>Once we had the system pretty much finalized, we decided to put in some extra features that would help with the demo.  We put in variable edge detection, which can be set using the switches and then locked in using a push button.  We also made it variable for the number of bits we use for each color.  There are a maximum of 5 bits for each color, which each have 5 switches, which can be set active or inactive and locked in using a push button.  We allow for viewing in grayscale, by toggling switch 0.  Finally we can adjust the brightness by toggling switch 1, which controls wheter the inactive bits are set to zero or one.</p>
-          
-          <p><strong>Debugging HSL Conversion</strong><br />
-          The most useful thing we found for debugging the HSL conversion process was to point the camera at a color wheel or linear color spectrum. These spatially organized colors meant we could look for breaks in the spatial patterns in our output that indicate edge case failures, precision issues, or bugs. Our standard output was the final RGB result, but we found it very useful to take advantage of the ability to put things besides red, green, and blue on the three channels. The first channel, which always appeared as a red value on the monitor, could be either the actual red output, nothing, or the hue value output. The second was green, nothing, or the saturation. The third was blue, nothing, or lightness. This allowed us to debug each of the three aspects of HSL conversion independently.</p>
-          
-          <p>The horizontal hue spectrum below, was great for hue testing, and appeared shaded from dark to bright red left to right when our only enabled output was hue on the red channel. We found this image on a project page from a previous year <a href="http://instruct1.cit.cornell.edu/courses/ece576/FinalProjects/f2007/tjs49aw259/index.html">here</a>.</p>
-          
-          <a href="images/spectrum.png"><img width="75%" src="images/spectrum.png" /></a>
-          
-          <p>The hue-saturation color wheel below was good for testing hue and saturation. When outputting only saturation (green channel), the wheel appeared on our output as dark in the center with bright green edges. There were a few regions where the saturation maxed out prior to the edge of the circle, likely due to camera and screen signal processing as well as hardware mathematical imprecision. The hue did a nice job of wrapping around the circle going from dark to light, with the split down the center of the red region. As with saturation though, there were a few blobs on the edges due to imprecision and all the intermediate processing.  We found this picture <a href="http://commons.wikimedia.org/wiki/File:Color_circle_(hue-sat).png">here</a>.</p>
-          
-          <a href="images/colorwheel.png"><img width="50%" src="images/colorwheel.png" /></a>
+      <h2 id="jump_development">Development Process</h2>
+      <p>This was a long, involved project. Throughout its development I utilized incremental design and test. I set up a test bench in ModelSim where I could plop in different modules to see how they were actually functioning. This was very useful in debugging modules like the delay module, where timing is crucial and you cannot make assumptions about the number of clock cycles between an input and its corresponding outputs.</p>
+      
+      <p>I began by setting up the TV example for the DE2-115 board. It took some time to familiarize myself with the DE2-115 Board, in particular the differences in the VGA controllers on the two boards. Next I implemented reliable detection of the color green based on YCbCr space. From there I spent a lot of time figuring out how to detect and track corners. Once corner detection was somewhat reliable, I moved to on the image transformation portion. This part of the project was also challenging, and involved a lot of mathematical shortcuts and tricks in order to avoid hardware divisions and huge look up tables. Finally, I got to do some fun image editing on the clocktower and Bruce to ensure that the background was some specific color that could be detected and ignored.</p>
           
 		  <h5><a href="index.html#top">[top]</a></h5>
           <hr />
  
   <!--####RESULTS##########################################################################################-->
-          <h2 id="jump_results">Results</h2>
-          <p>For our final result, we had a complete cartoonifier system that ran in real time.  We could variably set the edges and the bit simplification for each color.  We could display in both color and grayscale.  We accomplished the goals that we set out to accomplish, and the video output looked like what we expected.</p>
-          
-          <p>There is a tiny bit of delay in the system, that is only noticeable if you watch a moving mouth and directly compare it to the rendered image on the screen.  There is a minimal amount of flickering of colors, but not enough to distract from the overall execution of the system.  In general, it works well, and it does what we expected of it.</p>
-          
-          <p>Below are two sample images of our output, one in grayscale and one in color.  The color image shows the rendered image next to the real image.  There are additional photos in the <a href="index.html#jump_appx_photos">appendix</a>.</p>
-          
-          <a href="images/Group_gray.jpg"><img width="50%" src="images/Group_gray.jpg" /></a>
-          <br />
-          <a href="images/Tom_beside_himself.jpg"><img width="50%" src="images/Tom_beside_himself.jpg" /></a>
+      <h2 id="jump_results">Results</h2>
+       <p><strong>Speed of Execution:</strong><br />
+       My system operates in real time to overlay an image of the clocktower or Bruce over the original video input. There is a slight lag in the corners and the overlaid image moving as the piece of green paper moves. However, this lag is pretty insignificant, and in my testing with various users, was not noticed and did not affect their enjoyment of the project.</p>
+
+       <p><strong>Accuracy:</strong><br />
+       For the most part, the corner ambiguity when the green piece of paper is horizontal or vertical with the VGA screen borders is resolved. However, when the piece of paper is oriented so that it is right on the threshold of whether the system decides an x or y axis is aligned, there is some “sliding” of the corners between their two possible coordinates. This results in some rapid changes in the scale of the overlaid image.</p>
+       
+       <p>Moving the piece of paper closer or further away from the camera scales well, except for the case mentioned above.</p>
+       
+       <p>The corner tracking is also not perfect. It seems that corners are unable to be fully tracked 360 degrees. The dynamic range of the tracking seems to be only 90 degrees. I was unable to determine the cause of this corner tracking failure.</p>
+       
+       <p>The overlaid image correctly rotates 360 degrees. This was tested using switches that varied the value of theta. I manually swept through every quadrant and verified that the overlaid image correctly rotate through all of them.</p>
+       
+       <p>The images below showcase some of the features of this project.</p>
+
+       <p><strong>Safety in the Design, Interference, and Usability:</strong><br />
+       There are no major safety hazards in this design. The system also does not interfere with other projects. If anything, extraneous green in the background interferes with my system’s corner detection and tracking. Luckily not too many people were wearing green in lab. This project is usable by anyone who is capable of holding a piece of paper. One thing to note though is that the user cannot be wearing a vivid shade of green. This interferes with the corner detection and tracking of them system.</p>
+      
           
 		  <h5><a href="index.html#top">[top]</a></h5>
           <hr />
  
   <!--####CONCLUSIONS######################################################################################-->
           <h2 id="jump_conclusions">Conclusions</h2>
-          <p>Overall we were very satisfied with the results of our project. We implemented a real-time cartoonifier that used an edge detection algorithm, time/space averaging, and selectable color simplification. The images we can produce are very convincing and in many cases look like they were sketched by an artist. We were able to accomplish all of this while keeping the hardware fast enough to keep up with the constantly updating stream of video data from the camcorder. We were able to conform to the NTSC video standard both while reading data from the camera and while outputting data to the monitor.</p>
+          <p>Overall, I am very satisfied with the results of my project. I implemented a huge variety and range of DSP and computer vision algorithms to create a responsive, robust, and fun final project. Many complicated algorithms united to create a final project that feels simple and easy to use. My original plan was to actually project a 2D image onto the surface of the green paper; however my decision to make it stand “upright” on the paper makes the system more fun (in my opinion).</p>
           
-          <p>However, we were not able to produce ideally cartoonized images for several reasons. There was a noticeable amount of flickering in our video due to the color simplification scheme. We were able to reduce this somewhat by averaging pixels together both in time and space. We would have liked the flickering to be minimized further. Also, we initially wanted fewer more vibrant colors so that everything within an edge boundary would be the same color. We tried to accomplish this using HSL simpflication but ran into problems. Mostly the colors that came out looked strangely different than what they should be using this scheme. We would have liked to use fewer, more vibrant colors, but non-ideal lighting and “boring” colors make this difficult.</p>
+          <p>The system is not perfect though. The biggest flaw is that corners are not tracked 360 degrees. Given more time, I would either fix my current algorithm or implement a different one in order to allow full rotation of the piece of paper. However, other than that, there are no flaws in the system. A fun extension would be to actually make the pseudo-3D image overlay actually 3-D. For example, rotating the square of paper would reveal a different angle of the clocktower. This is a rather involved extension though, and one that I did not have time for during this semester.</p>
           
-          <p>This was a very fun and interesting project that challenged us in video processing, real-time calculation, and embedded system design. This design could be produced, but a large portion of it is based off of the Terasic example code that came with the DE2 board.</p>
+          <p>The unique functions of my system consist almost entirely of custom Verilog that I wrote myself. The design framework, TV decoding, and VGA controller are taken from the Altera DE2-115 TV example. Also, I referenced a few modules from the Cartoonifier Project and Video Game Enhancer Project. I also read numerous data sheets and papers to gather information on color spaces, VGA timing, Harris Corner Detection, memory initialization files, motion ambiguity, and image transformations. All of these resources are linked in the resources section.</p>
+
+          <p>This was a fun, interesting, and challenging project. I learned a lot about image transformations, buffering, hardware implementations of various software functions, and color spaces. I also greatly improved my ability to conceptualize and keep track of clocking delays and timing diagrams. Overall, I am extremely satisfied with my ECE 5760 final project, Bruce in a Box.</p>
           
 		  <h5><a href="index.html#top">[top]</a></h5>
           <hr />
